@@ -77,7 +77,7 @@ def parse_ocr_result(ocr_data):
         text = data.get('msg', '') if isinstance(data, dict) else json.loads(data).get('msg', '')
     except (json.JSONDecodeError, TypeError):
         text = str(data)
-    match = re.search(r'([A-Za-z][0-9])|([0-9][A-Za-z])', text)
+    match = re.search(Config["RE"], text)
     return match.group(0).upper() if match else None
 
 

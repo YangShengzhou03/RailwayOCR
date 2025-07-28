@@ -1,0 +1,24 @@
+{
+  "ACCESS_KEY_ID": "LTAI5tP4MvSEvr4QPFnAnyNU",
+  "ACCESS_KEY_SECRET": "cvlgLuTysGBoVJd8nuWw88pWe69TVn",
+  "ENDPOINT": "oss-cn-hangzhou.aliyuncs.com",
+  "BUCKET_NAME": "yanshengzhou",
+  "EXPIRES_IN": 1800,
+  "ALLOWED_EXTENSIONS": [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".bmp",
+    ".gif"
+  ],
+  "LOG_FILE": "ocr_processing.log",
+  "CONCURRENCY": 10,
+  "RETRY_TIMES": 5,
+  "COZE_API_KEY": "pat_OyAzrVMk1RiK5qG4VoFS1Jr1XItbRrdtHZeDJ7prPUeBVyqCxptwiOfq1oqTQ2xR",
+  "WORKFLOW_ID": "7514709270924361743",
+  "SUMMARY_DIR": "summary",
+  "MAX_REQUESTS_PER_MINUTE": 300,
+  "RATE_LIMIT_BUFFER": 0.9,
+  "OPTIMAL_RATE": 270,
+  "IMAGE_PROCESSING_TIMEOUT": 30
+}

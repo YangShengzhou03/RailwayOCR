@@ -1,0 +1,34 @@
+[
+  {
+    "category_dir": "D:/结果\\A5",
+    "filename": "IMG_0487.JPG",
+    "oss_path": "RailwayOCR/images/20250729/IMG_0487.JPG",
+    "recognition": "A5",
+    "signed_url": "http://yanshengzhou.oss-cn-hangzhou.aliyuncs.com/RailwayOCR%2Fimages%2F20250729%2FIMG_0487.JPG?OSSAccessKeyId=LTAI5tP4MvSEvr4QPFnAnyNU&Expires=1753720361&Signature=O2W3Ojwa9IbrC8LG6C1UX6ws1fg%3D",
+    "success": true
+  },
+  {
+    "category_dir": "D:/结果\\A5",
+    "filename": "IMG_0486.JPG",
+    "oss_path": "RailwayOCR/images/20250729/IMG_0486.JPG",
+    "recognition": "A5",
+    "signed_url": "http://yanshengzhou.oss-cn-hangzhou.aliyuncs.com/RailwayOCR%2Fimages%2F20250729%2FIMG_0486.JPG?OSSAccessKeyId=LTAI5tP4MvSEvr4QPFnAnyNU&Expires=1753720361&Signature=BvuzGX45re6L8Bw%2B3CQ0%2FrhuJvw%3D",
+    "success": true
+  },
+  {
+    "category_dir": "D:/结果\\A5",
+    "filename": "IMG_0540.JPG",
+    "oss_path": "RailwayOCR/images/20250729/IMG_0540.JPG",
+    "recognition": "A5",
+    "signed_url": "http://yanshengzhou.oss-cn-hangzhou.aliyuncs.com/RailwayOCR%2Fimages%2F20250729%2FIMG_0540.JPG?OSSAccessKeyId=LTAI5tP4MvSEvr4QPFnAnyNU&Expires=1753720372&Signature=f2WusAaIczB%2FrblOm%2Fepi%2BvtmXU%3D",
+    "success": true
+  },
+  {
+    "category_dir": "D:/结果\\A5",
+    "filename": "IMG_0279.JPG",
+    "oss_path": "RailwayOCR/images/20250729/IMG_0279.JPG",
+    "recognition": "A5",
+    "signed_url": "http://yanshengzhou.oss-cn-hangzhou.aliyuncs.com/RailwayOCR%2Fimages%2F20250729%2FIMG_0279.JPG?OSSAccessKeyId=LTAI5tP4MvSEvr4QPFnAnyNU&Expires=1753720379&Signature=0Eo0kvvxPK0LxhkQonQ2iBPqiXo%3D",
+    "success": true
+  }
+]

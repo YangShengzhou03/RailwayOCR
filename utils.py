@@ -101,7 +101,7 @@ def process_image_file(local_file_path, client):
             status = {'filename': filename, 'success': bool(recognition), 'recognition': recognition,
                       'oss_path': oss_path, 'signed_url': upload_result['signed_url']}
             log("DEBUG" if recognition else "WARNING",
-                f"识别结果: {filename} → {recognition}" if recognition else f"未识别到有效标签: {filename}")
+                f"反馈识别结果: {filename} → {recognition}" if recognition else f"未识别到有效标签: {filename}")
             return status
         time.sleep(1)
     error_msg = ocr_result.get('error_msg', '未知识别错误') if ocr_result else '未获取到识别结果'

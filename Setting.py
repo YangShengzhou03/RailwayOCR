@@ -11,7 +11,7 @@ from utils import get_resource_path
 
 
 class SettingWindow(QMainWindow, Ui_SettingWindow):
-    CONFIG_FILE = "Config.json"
+    CONFIG_FILE = get_resource_path("resources/Config.json")
     REG_PATH = r"SOFTWARE\RailwayOCR"
     REG_PWD_KEY = "PasswordHash"
 

@@ -5,8 +5,7 @@ from datetime import timedelta
 
 import requests
 from PyQt6 import QtCore, QtGui
-from PyQt6.QtWidgets import (QApplication, QMainWindow,
-                             QMessageBox, QFileDialog)
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog)
 
 import utils
 from Setting import SettingWindow
@@ -16,9 +15,7 @@ from utils import log, save_summary, get_resource_path
 
 
 class CozeClient:
-
-    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30,
-                 max_retries=3, backoff_factor=1.0, proxies=None):
+    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0, proxies=None):
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout
@@ -51,7 +48,6 @@ class CozeClient:
         if bot_id:
             payload["bot_id"] = bot_id
 
-        # 每个请求使用独立会话
         session = self._create_session()
         try:
             response = session.post(
@@ -86,7 +82,6 @@ class CozeClient:
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
-
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -139,10 +134,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.toolButton_mini.clicked.connect(self.minimize_window)
 
     def open_setting(self):
-        """打开设置窗口"""
-        self.setting_window = SettingWindow()  # 创建设置窗口实例
+        self.setting_window = SettingWindow()
         self.minimize_window()
-        self.setting_window.show()  # 显示设置窗口
+        self.setting_window.show()
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -242,7 +236,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         mode = "移动" if self.is_move_mode else "复制"
         reply = QMessageBox.question(
             self, "确认处理",
-            f"即将{mode} {total_files} 个图像文件到分类文件夹。\n是否继续?",
+            f"即将识别分类 {total_files} 个图像并 {mode} 。\n是否继续?",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
         )
 

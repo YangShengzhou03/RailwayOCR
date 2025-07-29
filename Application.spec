@@ -35,6 +35,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    version='LeafAuto_version_info.txt',
+    version='RailwayOCR_version_info.txt',
     icon=['resources/img/icon.ico'],
 )

@@ -1,9 +1,65 @@
 import sys
 import traceback
+import winreg
+import hashlib
 
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 from MainWindow import MainWindow
+
+
+class PasswordDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("请输入密码")
+        self.setFixedSize(300, 150)
+
+        layout = QtWidgets.QVBoxLayout(self)
+
+        label = QtWidgets.QLabel("请输入启动密码：", self)
+        layout.addWidget(label)
+
+        self.password_edit = QtWidgets.QLineEdit(self)
+        self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+        layout.addWidget(self.password_edit)
+
+        button_layout = QtWidgets.QHBoxLayout()
+        self.ok_button = QtWidgets.QPushButton("确定", self)
+        self.cancel_button = QtWidgets.QPushButton("取消", self)
+
+        button_layout.addWidget(self.ok_button)
+        button_layout.addWidget(self.cancel_button)
+        layout.addLayout(button_layout)
+
+        self.ok_button.clicked.connect(self.accept)
+        self.cancel_button.clicked.connect(self.reject)
+
+        self.password_edit.returnPressed.connect(self.accept)
+
+    def get_password(self):
+        return self.password_edit.text()
+
+
+def verify_password(password):
+    try:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
+        stored_hash, _ = winreg.QueryValueEx(key, "PasswordHash")
+        winreg.CloseKey(key)
+
+        input_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+        return input_hash == stored_hash
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def has_password():
+    try:
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
+        winreg.QueryValueEx(key, "PasswordHash")
+        winreg.CloseKey(key)
+        return True
+    except (FileNotFoundError, OSError):
+        return False
 
 
 def main():
@@ -35,6 +91,18 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     app.setApplicationName("LeafView Railway")
     app.setOrganizationName("LeafView")
+
+    if has_password():
+        dialog = PasswordDialog()
+        while True:
+            if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+                return 1
+
+            password = dialog.get_password()
+            if verify_password(password):
+                break
+            else:
+                QtWidgets.QMessageBox.warning(None, "密码错误", "输入的密码不正确，请重试")
 
     window = MainWindow()
     window.setWindowTitle("LeafView Railway")

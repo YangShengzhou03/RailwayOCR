@@ -1,0 +1,877 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingWindow</class>
+ <widget class="QMainWindow" name="SettingWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>495</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="main_frame">
+      <property name="styleSheet">
+       <string notr="true">QFrame{
+background-color: rgb(255, 255, 255);
+border:0px solid red;
+border-radius:18px
+}</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="0">
+       <property name="spacing">
+        <number>12</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>16</number>
+         </property>
+         <property name="leftMargin">
+          <number>12</number>
+         </property>
+         <property name="topMargin">
+          <number>12</number>
+         </property>
+         <property name="rightMargin">
+          <number>12</number>
+         </property>
+         <property name="bottomMargin">
+          <number>12</number>
+         </property>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="font">
+              <font>
+               <pointsize>18</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>RailwayOCR Setting</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="toolButton_close">
+             <property name="styleSheet">
+              <string notr="true">QToolButton {
+    background: transparent;
+    border: none;
+    padding: 0;
+    spacing: 4px;
+    color: #333333;
+}
+
+QToolButton:hover {
+    background-color: rgb(255, 255, 255);
+    border-radius: 9px;
+}
+
+QToolButton:pressed {
+    background-color: rgba(150, 150, 150, 80);
+}
+
+QToolButton:disabled {
+    color: #999999;
+    opacity: 0.7;
+}
+
+QToolButton::menu-indicator {
+    image: none;
+    subcontrol-position: right center;
+    subcontrol-origin: padding;
+    width: 8px;
+    height: 8px;
+}</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>resources/img/窗口控制/窗口控制-关闭.svg</normaloff>resources/img/窗口控制/窗口控制-关闭.svg</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>24</width>
+               <height>24</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_2">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>ACCESS_KEY_ID：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_ACCESS_KEY_ID">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+               </property>
+               <property name="placeholderText">
+                <string>OSS服务公钥</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <item>
+              <widget class="QLabel" name="label_3">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>ACCESS_KEY_SECRET：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_ACCESS_KEY_SECRET">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+               </property>
+               <property name="placeholderText">
+                <string>OSS服务私钥</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_10">
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>ENDPOINT：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_ENDPOINT">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+               </property>
+               <property name="placeholderText">
+                <string>服务器地址</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>BUCKET_NAME：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_BUCKET_NAME">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+               </property>
+               <property name="placeholderText">
+                <string>存储桶名称</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_11">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_12">
+             <item>
+              <widget class="QLabel" name="label_9">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>COZE_API_KEY：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_COZE_API_KEY">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+               </property>
+               <property name="placeholderText">
+                <string>Ai识别服务密钥</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_13">
+             <item>
+              <widget class="QLabel" name="label_10">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>WORKFLOW_ID：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="lineEdit_WORKFLOW_ID">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+               </property>
+               <property name="placeholderText">
+                <string>工作流ID</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_6">
+           <property name="spacing">
+            <number>12</number>
+           </property>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLabel" name="label_7">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>CONCURRENCY（多线程处理并发数）：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_CONCURRENCY">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QSpinBox {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 4px;
+    padding: 2px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QSpinBox:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 1px;
+}
+
+QSpinBox:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 1px;
+    background-color: #f8faff;
+}
+
+QSpinBox:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 16px;
+    height: 8px;
+    background-color: transparent;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: rgba(30, 131, 255, 0.1);
+}
+
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+    background-color: rgba(30, 131, 255, 0.2);
+}
+
+QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
+    background-color: transparent;
+}</string>
+               </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
+               <property name="maximum">
+                <number>32</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_14">
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>RETRY_TIMES（失败时重试次数）：</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_RETRY_TIMES">
+               <property name="font">
+                <font>
+                 <pointsize>-1</pointsize>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QSpinBox {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 4px;
+    padding: 2px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QSpinBox:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 1px;
+}
+
+QSpinBox:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 1px;
+    background-color: #f8faff;
+}
+
+QSpinBox:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 16px;
+    height: 8px;
+    background-color: transparent;
+}
+
+QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+    background-color: rgba(30, 131, 255, 0.1);
+}
+
+QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
+    background-color: rgba(30, 131, 255, 0.2);
+}
+
+QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
+    background-color: transparent;
+}</string>
+               </property>
+               <property name="minimum">
+                <number>3</number>
+               </property>
+               <property name="maximum">
+                <number>30</number>
+               </property>
+               <property name="singleStep">
+                <number>1</number>
+               </property>
+               <property name="value">
+                <number>3</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <item>
+            <widget class="QLabel" name="label_8">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>RE（Ai 识别结果校验）：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit_RE">
+             <property name="font">
+              <font>
+               <pointsize>-1</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QLineEdit {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 5px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QLineEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+}
+
+QLineEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 4px;
+    background-color: #f8faff;
+}
+
+QLineEdit:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+             </property>
+             <property name="placeholderText">
+              <string>输入正则表达式</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_Password">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+    border: 2px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 6px 16px;
+    background-color: white;
+    color: rgb(30, 131, 255);
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: rgba(30, 131, 255, 0.1);
+    border: 2px solid rgb(30, 131, 255);
+}
+
+QPushButton:pressed {
+    background-color: rgba(30, 131, 255, 0.3);
+    border: 2px solid rgb(30, 131, 255);
+}
+
+QPushButton:disabled {
+    border: 2px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+             </property>
+             <property name="text">
+              <string>启动密码</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_11">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
+             <property name="text">
+              <string>PROMPT</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTextEdit" name="textEdit_PROMPT">
+             <property name="font">
+              <font>
+               <family>微软雅黑</family>
+               <pointsize>-1</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">QTextEdit {
+    border: 2px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 4px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QTextEdit:hover {
+    border: 2px solid rgb(30, 131, 255);
+    background-color: rgba(30, 131, 255, 0.05);
+}
+
+QTextEdit:focus {
+    border: 2px solid rgb(30, 131, 255);
+    background-color: rgba(30, 131, 255, 0.1);
+}
+
+QTextEdit:disabled {
+    border: 2px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+             </property>
+             <property name="placeholderText">
+              <string>请识别图像中卡片上的标签：仅提取同时满足以下条件的内容 ——1. 格式为单个英文字母（A-K，在前）+ 单个数字（1-7，在后）；2. 文字颜色为红色；3. 符合示例（如 A1、B2）。无需任何多余说明，直接返回识别到的标签；若未识别到符合条件的内容，直接返回“识别失败”。</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="horizontalLayout_15">
+           <item>
+            <spacer name="horizontalSpacer">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton_save">
+             <property name="styleSheet">
+              <string notr="true">QPushButton {
+    border: 2px solid rgb(30, 131, 255);
+    border-radius: 6px;
+    padding: 6px 16px;
+    background-color: rgb(30, 131, 255);
+    color: white;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: rgb(30, 131, 255);
+    border-color: rgb(30, 131, 255);
+}
+
+QPushButton:pressed {
+    background-color: rgb(20, 107, 214);
+    border-color: rgb(20, 107, 214);
+}
+
+QPushButton:disabled {
+    border-color: #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}</string>
+             </property>
+             <property name="text">
+              <string>保存设置</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

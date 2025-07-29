@@ -9,28 +9,10 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow,
                              QMessageBox, QFileDialog)
 
 import utils
+from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
 from utils import log, save_summary, get_resource_path
-
-"""
-    D:\Code\Python\RailwayOCR\venv\Scripts\python.exe D:\Code\Python\RailwayOCR\Application.py 
-配置加载成功: 并发数=10, 请求限制=300/分钟
-开始处理 92 个文件
-输出目录创建成功: D:/结果
-创建线程池，工作线程数: 10
-开始处理...
-已处理 1/92
-已处理 2/92
-已处理 3/92
-已处理 4/92
-已处理 5/92
-正在停止处理线程...
-处理被用户取消
-处理过程中发生致命错误: 'recognition'
-
-Process finished with exit code -1073740791 (0xC0000409)
-"""
 
 
 class CozeClient:
@@ -152,8 +134,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.copy_radio.toggled.connect(self.toggle_move_mode)
         self.move_radio.toggled.connect(self.toggle_move_mode)
 
+        self.toolButton_setting.clicked.connect(self.open_setting)
         self.toolButton_close.clicked.connect(self.close_application)
         self.toolButton_mini.clicked.connect(self.minimize_window)
+
+    def open_setting(self):
+        """打开设置窗口"""
+        self.setting_window = SettingWindow()  # 创建设置窗口实例
+        self.minimize_window()
+        self.setting_window.show()  # 显示设置窗口
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -273,7 +262,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread = ProcessingThread(
                 client, self.image_files, self.dest_dir, self.is_move_mode
             )
-            self.processing_thread.file_processed.connect(self.on_file_processed)
             self.processing_thread.processing_finished.connect(self.on_processing_finished)
             self.processing_thread.stats_updated.connect(self.on_stats_updated)
             self.processing_thread.progress_updated.connect(self.on_progress_updated)
@@ -314,33 +302,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            log("INFO", "用户请求停止处理")
+            log("WARNING", "用户请求停止处理")
+            self.pushButton_start.setText("正在停止")
             self.pushButton_start.setEnabled(False)
             self.processing = False
-            self.pushButton_start.setText("等待停止")
+
             if self.processing_thread and self.processing_thread.isRunning():
                 self.processing_thread.stop()
-                self.processing_thread.wait(5000)  # 等待线程结束（最多5秒）
-                if self.processing_thread.isRunning():
-                    log("ERROR", "处理线程未能正常停止")
-                else:
-                    log("INFO", "处理线程已停止")
-                self.processing_thread = None  # 释放引用
-            self.pushButton_start.setEnabled(True)
-            self.pushButton_start.setText("开始分类")
 
     @QtCore.pyqtSlot(int, str)
     def on_progress_updated(self, value, message):
         self.progressBar.setValue(value)
         print(message)
-
-    @QtCore.pyqtSlot(dict)
-    def on_file_processed(self, result):
-        status = "成功" if result['success'] else "失败"
-        details = result.get('recognition', '未识别') if result['success'] else result.get('error', '未知错误')
-
-        if not result['success']:
-            log("ERROR", f"{result['filename']} - {status}: {details}")
 
     @QtCore.pyqtSlot(int, int, int)
     def on_stats_updated(self, processed, success, failed):
@@ -351,8 +324,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot(list)
     def on_processing_finished(self, results):
         self.processing = False
-        self.pushButton_start.setText("开始分类")
-
         processing_end_time = time.time()
         total_seconds = int(processing_end_time - self.processing_start_time)
         total_time = str(timedelta(seconds=total_seconds))
@@ -378,25 +349,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 f"总共耗时: {total_time}"
             )
             QMessageBox.information(self, "处理完成", result_message)
-
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
-
-        save_summary(results, self.dest_dir)
+        save_summary(results)
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
         log("INFO", "处理已停止")
         self.processing = False
-        self.pushButton_start.setEnabled(True)
-        self.pushButton_start.setText("开始分类")
 
     @QtCore.pyqtSlot(str)
     def on_error_occurred(self, error_msg):
         log("ERROR", f"处理线程错误: {error_msg}")
         QMessageBox.critical(self, "处理错误", error_msg)
         self.processing = False
-        self.pushButton_start.setText("开始分类")
 
     def minimize_window(self):
         log("INFO", "窗口最小化")
@@ -415,12 +381,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             if self.processing_thread:
                 self.processing_thread.stop()
-                self.processing_thread.wait(5000)  # 等待线程结束
-                if self.processing_thread.isRunning():
-                    log("ERROR", "处理线程未能正常停止")
-                else:
-                    log("INFO", "处理线程已终止")
-                self.processing_thread = None
 
         log("INFO", "应用程序即将关闭")
         QApplication.quit()

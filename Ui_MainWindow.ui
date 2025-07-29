@@ -75,7 +75,7 @@
           <string notr="true">QFrame{
 	background-color: rgb(245, 249, 254);
 	border:0px solid red;
-	border-radius:20px
+	border-radius:30px
 }</string>
          </property>
          <property name="frameShape">
@@ -391,7 +391,7 @@ QToolButton::menu-indicator {
                  <property name="styleSheet">
                   <string notr="true">QFrame {
     background-color: rgb(255, 255, 255);
-    border-radius: 16px;
+    border-radius: 12px;
 }</string>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout">
@@ -511,7 +511,7 @@ QLineEdit:hover {
 }
 
 QLineEdit:focus {
-    border-color: rgb(85, 0, 255);
+    border-color: rgb(60, 145, 255);
     background: #ffffff;
     outline: none;
     box-shadow: 0 0 0 3px rgba(85, 0, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -573,69 +573,30 @@ QLineEdit[frame=&quot;false&quot;] {
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">/* 基础按钮样式 */
-QPushButton {
-    background-color: rgb(85, 0, 255); /* 基础紫色 */
-    color: white; /* 文字颜色 */
+                       <string notr="true">QPushButton {
+    background-color: rgb(60, 145, 255);
+    color: white;
     border-top-left-radius: 0px;
-    border-top-right-radius: 12px;   /* 右上角直角 */
-    border-bottom-left-radius: 0px; /* 左下角直角 */
-    border-bottom-right-radius: 12px; /* 右下角直角 */
-    padding: 8px 16px; /* 内边距 */
-    font-size: 14px; /* 字体大小 */
-    font-weight: 500; /* 字体粗细 */
-    border: none; /* 无边框 */
-    transition: all 0.2s ease; /* 过渡动画 */
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s ease;
 }
 
-/* 悬停效果 */
 QPushButton:hover {
-    background-color: rgb(105, 20, 255); /* 亮一点的紫色 */
-    transform: translateY(-1px); /* 轻微上浮 */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+    background-color: rgb(90, 170, 255);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 按下效果 */
 QPushButton:pressed {
-    background-color: rgb(70, 0, 220); /* 暗一点的紫色 */
-    transform: translateY(1px); /* 轻微下沉 */
-    box-shadow: none; /* 移除阴影 */
-}
-
-/* 禁用状态 */
-QPushButton:disabled {
-    background-color: rgb(160, 120, 255); /* 灰色调紫色 */
-    color: rgb(220, 220, 220); /* 浅灰色文字 */
-    transform: none; /* 取消变换 */
-    box-shadow: none; /* 无阴影 */
-    opacity: 0.7; /* 半透明 */
-}
-
-/* 主要按钮（如&quot;开始处理&quot;） */
-QPushButton#startBtn {
-    background-color: rgb(85, 0, 255);
-    padding: 10px 20px;
-    font-size: 15px;
-}
-
-/* 次要按钮（如&quot;浏览&quot;） */
-QPushButton#browseBtn {
-    background-color: rgba(85, 0, 255, 0.9);
-    padding: 6px 12px;
-    font-size: 13px;
-}
-
-/* 危险按钮（如&quot;停止处理&quot;） */
-QPushButton#stopBtn {
-    background-color: rgb(230, 50, 80);
-}
-
-QPushButton#stopBtn:hover {
-    background-color: rgb(240, 60, 90);
-}
-
-QPushButton#stopBtn:pressed {
-    background-color: rgb(210, 40, 70);
+    background-color: rgb(30, 120, 240);
+    transform: translateY(1px);
+    box-shadow: none;
 }</string>
                       </property>
                       <property name="text">
@@ -703,7 +664,7 @@ QLineEdit:hover {
 }
 
 QLineEdit:focus {
-    border-color: rgb(85, 0, 255);
+    border-color: rgb(60, 145, 255);
     background: #ffffff;
     outline: none;
     box-shadow: 0 0 0 3px rgba(85, 0, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -765,69 +726,30 @@ QLineEdit[frame=&quot;false&quot;] {
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">/* 基础按钮样式 */
-QPushButton {
-    background-color: rgb(85, 0, 255); /* 基础紫色 */
-    color: white; /* 文字颜色 */
+                       <string notr="true">QPushButton {
+    background-color: rgb(60, 145, 255);
+    color: white;
     border-top-left-radius: 0px;
-    border-top-right-radius: 12px;   /* 右上角直角 */
-    border-bottom-left-radius: 0px; /* 左下角直角 */
-    border-bottom-right-radius: 12px; /* 右下角直角 */
-    padding: 8px 16px; /* 内边距 */
-    font-size: 14px; /* 字体大小 */
-    font-weight: 500; /* 字体粗细 */
-    border: none; /* 无边框 */
-    transition: all 0.2s ease; /* 过渡动画 */
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s ease;
 }
 
-/* 悬停效果 */
 QPushButton:hover {
-    background-color: rgb(105, 20, 255); /* 亮一点的紫色 */
-    transform: translateY(-1px); /* 轻微上浮 */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+    background-color: rgb(90, 170, 255);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 按下效果 */
 QPushButton:pressed {
-    background-color: rgb(70, 0, 220); /* 暗一点的紫色 */
-    transform: translateY(1px); /* 轻微下沉 */
-    box-shadow: none; /* 移除阴影 */
-}
-
-/* 禁用状态 */
-QPushButton:disabled {
-    background-color: rgb(160, 120, 255); /* 灰色调紫色 */
-    color: rgb(220, 220, 220); /* 浅灰色文字 */
-    transform: none; /* 取消变换 */
-    box-shadow: none; /* 无阴影 */
-    opacity: 0.7; /* 半透明 */
-}
-
-/* 主要按钮（如&quot;开始处理&quot;） */
-QPushButton#startBtn {
-    background-color: rgb(85, 0, 255);
-    padding: 10px 20px;
-    font-size: 15px;
-}
-
-/* 次要按钮（如&quot;浏览&quot;） */
-QPushButton#browseBtn {
-    background-color: rgba(85, 0, 255, 0.9);
-    padding: 6px 12px;
-    font-size: 13px;
-}
-
-/* 危险按钮（如&quot;停止处理&quot;） */
-QPushButton#stopBtn {
-    background-color: rgb(230, 50, 80);
-}
-
-QPushButton#stopBtn:hover {
-    background-color: rgb(240, 60, 90);
-}
-
-QPushButton#stopBtn:pressed {
-    background-color: rgb(210, 40, 70);
+    background-color: rgb(30, 120, 240);
+    transform: translateY(1px);
+    box-shadow: none;
 }</string>
                       </property>
                       <property name="text">
@@ -1272,7 +1194,7 @@ border-radius:12px</string>
                   <string notr="true">QFrame{
 	background-color: rgb(255, 255, 255);
 border:0px solid red;
-border-radius:24px
+border-radius:12px
 }</string>
                  </property>
                  <property name="frameShape">
@@ -1299,6 +1221,15 @@ border-radius:24px
                   </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <property name="spacing">
+                     <number>12</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>6</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>6</number>
+                    </property>
                     <item>
                      <widget class="QLabel" name="label_2">
                       <property name="font">
@@ -1313,9 +1244,15 @@ border-radius:24px
                     </item>
                     <item>
                      <widget class="QProgressBar" name="progressBar">
+                      <property name="sizePolicy">
+                       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                       </sizepolicy>
+                      </property>
                       <property name="minimumSize">
                        <size>
-                        <width>684</width>
+                        <width>0</width>
                         <height>0</height>
                        </size>
                       </property>
@@ -1327,7 +1264,7 @@ border-radius:24px
                       </property>
                       <property name="styleSheet">
                        <string notr="true">QProgressBar {
-    border: 2px solid rgba(85, 0, 255, 0.5); 
+    border: 2px solid rgba(60, 145, 255, 0.5); 
     border-radius: 8px;
     background-color: #ffffff;
     text-align: center;
@@ -1337,7 +1274,7 @@ border-radius:24px
 }
 
 QProgressBar::chunk {
-    background-color: rgba(85, 0, 255, 0.4);
+    background-color: rgba(60, 145, 255, 0.6);
     width: 10px;
     margin: 0.5px;
     border-radius: 7px;
@@ -1345,8 +1282,8 @@ QProgressBar::chunk {
 }
 
 QProgressBar:completed {
-    background-color: rgb(85, 0, 255);
-    border-color: rgb(85, 0, 255);
+    background-color: rgb(60, 145, 255);
+    border-color: rgb(60, 145, 255);
 }</string>
                       </property>
                       <property name="value">
@@ -1358,54 +1295,48 @@ QProgressBar:completed {
                      <widget class="QPushButton" name="pushButton_start">
                       <property name="styleSheet">
                        <string notr="true">QPushButton {
-    background-color: rgb(85, 0, 255); /* 基础紫色 */
-    color: white; /* 文字颜色 */
-    border-radius: 4px;   /* 右上角直角 */
-    padding: 8px 16px; /* 内边距 */
-    font-size: 14px; /* 字体大小 */
-    font-weight: 500; /* 字体粗细 */
-    border: none; /* 无边框 */
-    transition: all 0.2s ease; /* 过渡动画 */
+    background-color: rgb(60, 145, 255);
+    color: white;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s ease;
 }
 
-/* 悬停效果 */
 QPushButton:hover {
-    background-color: rgb(105, 20, 255); /* 亮一点的紫色 */
-    transform: translateY(-1px); /* 轻微上浮 */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1); /* 轻微阴影 */
+    background-color: rgb(85, 170, 255);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 按下效果 */
 QPushButton:pressed {
-    background-color: rgb(70, 0, 220); /* 暗一点的紫色 */
-    transform: translateY(1px); /* 轻微下沉 */
-    box-shadow: none; /* 移除阴影 */
+    background-color: rgb(40, 125, 220);
+    transform: translateY(1px);
+    box-shadow: none;
 }
 
-/* 禁用状态 */
 QPushButton:disabled {
-    background-color: rgb(160, 120, 255); /* 灰色调紫色 */
-    color: rgb(220, 220, 220); /* 浅灰色文字 */
-    transform: none; /* 取消变换 */
-    box-shadow: none; /* 无阴影 */
-    opacity: 0.7; /* 半透明 */
+    background-color: rgb(140, 190, 255);
+    color: rgb(220, 220, 220);
+    transform: none;
+    box-shadow: none;
+    opacity: 0.7;
 }
 
-/* 主要按钮（如&quot;开始处理&quot;） */
 QPushButton#startBtn {
-    background-color: rgb(85, 0, 255);
+    background-color: rgb(60, 145, 255);
     padding: 10px 20px;
     font-size: 15px;
 }
 
-/* 次要按钮（如&quot;浏览&quot;） */
 QPushButton#browseBtn {
-    background-color: rgba(85, 0, 255, 0.9);
+    background-color: rgba(60, 145, 255, 0.9);
     padding: 6px 12px;
     font-size: 13px;
 }
 
-/* 危险按钮（如&quot;停止处理&quot;） */
 QPushButton#stopBtn {
     background-color: rgb(230, 50, 80);
 }
@@ -1430,7 +1361,7 @@ QPushButton#stopBtn:pressed {
                     <property name="styleSheet">
                      <string notr="true">QTextEdit {
     border: 1px solid #e2e8f0;
-    border-radius: 4px;
+    border-radius: 12px;
     padding: 4px;
     background-color: #ffffff;
     color: #334155;
@@ -1439,33 +1370,31 @@ QPushButton#stopBtn:pressed {
 
 QTextEdit QScrollBar:vertical {
     width: 6px;
-    background-color: #f8fafc; 
+    background-color: #f8fafc;
     margin: 8px 0px 8px 0px;
     border-radius: 3px;
 }
 
 QTextEdit QScrollBar::handle:vertical {
-    background-color: rgb(85, 0, 255); /* 使用主题色作为滑块颜色 */
+    background-color: rgb(60, 145, 255);
     border-radius: 3px;
-    min-height: 20px; /* 滑块最小高度 */
+    min-height: 20px;
 }
 
 QTextEdit QScrollBar::add-line:vertical,
 QTextEdit QScrollBar::sub-line:vertical {
-    height: 0px; /* 隐藏增加和减少按钮 */
+    height: 0px;
 }
 
 QTextEdit QScrollBar::add-page:vertical,
 QTextEdit QScrollBar::sub-page:vertical {
-    background: none; /* 当滚动超出视图时，不显示额外的背景 */
+    background: none;
 }
 
-/* 滑块悬停效果 */
 QTextEdit QScrollBar::handle:vertical:hover {
-    background-color: rgb(100, 20, 255); /* 悬停时稍微加深的颜色 */
+    background-color: rgb(85, 170, 255);
 }
 
-/* 上下箭头按钮隐藏 */
 QTextEdit QScrollBar:up-arrow:vertical,
 QTextEdit QScrollBar:down-arrow:vertical {
     height: 0px;

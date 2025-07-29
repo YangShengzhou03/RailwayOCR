@@ -60,8 +60,8 @@ class Ui_MainWindow(object):
         sizePolicy.setVerticalStretch(30)
         sizePolicy.setHeightForWidth(self.widget_logo.sizePolicy().hasHeightForWidth())
         self.widget_logo.setSizePolicy(sizePolicy)
-        self.widget_logo.setMinimumSize(QtCore.QSize(36, 36))
-        self.widget_logo.setMaximumSize(QtCore.QSize(36, 36))
+        self.widget_logo.setMinimumSize(QtCore.QSize(38, 38))
+        self.widget_logo.setMaximumSize(QtCore.QSize(38, 38))
         self.widget_logo.setStyleSheet("QWidget {\n"
 "    image: url(\"resources/img/logo.svg\");\n"
 "}")
@@ -344,7 +344,7 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_src_folder.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("resources/img/文件夹.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon3.addPixmap(QtGui.QPixmap("resources/img/ui/文件夹.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.pushButton_src_folder.setIcon(icon3)
         self.pushButton_src_folder.setIconSize(QtCore.QSize(26, 26))
         self.pushButton_src_folder.setObjectName("pushButton_src_folder")
@@ -509,7 +509,7 @@ class Ui_MainWindow(object):
         self.widget_6.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_6.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_6.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/已处理.svg\");\n"
+"    image: url(\"resources/img/ui/已处理.svg\");\n"
 "}")
         self.widget_6.setObjectName("widget_6")
         self.horizontalLayout_12.addWidget(self.widget_6)
@@ -530,6 +530,9 @@ class Ui_MainWindow(object):
         font.setPointSize(24)
         font.setBold(True)
         self.processed_label.setFont(font)
+        self.processed_label.setStyleSheet("QLabel {\n"
+"    color: rgb(255, 173, 58);\n"
+"}")
         self.processed_label.setObjectName("processed_label")
         self.verticalLayout_6.addWidget(self.processed_label)
         self.horizontalLayout_12.addLayout(self.verticalLayout_6)
@@ -545,7 +548,7 @@ class Ui_MainWindow(object):
         self.widget_4.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_4.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_4.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/总文件数.svg\");\n"
+"    image: url(\"resources/img/ui/总文件数.svg\");\n"
 "}")
         self.widget_4.setObjectName("widget_4")
         self.horizontalLayout_10.addWidget(self.widget_4)
@@ -572,6 +575,9 @@ class Ui_MainWindow(object):
         font.setPointSize(24)
         font.setBold(True)
         self.total_files_label.setFont(font)
+        self.total_files_label.setStyleSheet("QLabel {\n"
+"    color: rgb(255, 64, 178);\n"
+"}")
         self.total_files_label.setObjectName("total_files_label")
         self.verticalLayout_4.addWidget(self.total_files_label)
         self.horizontalLayout_10.addLayout(self.verticalLayout_4)
@@ -587,7 +593,7 @@ class Ui_MainWindow(object):
         self.widget_7.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_7.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_7.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/成功.svg\");\n"
+"    image: url(\"resources/img/ui/成功.svg\");\n"
 "}")
         self.widget_7.setObjectName("widget_7")
         self.horizontalLayout_13.addWidget(self.widget_7)
@@ -607,6 +613,9 @@ class Ui_MainWindow(object):
         font.setPointSize(24)
         font.setBold(True)
         self.success_label.setFont(font)
+        self.success_label.setStyleSheet("QLabel {\n"
+"    color: rgb(66, 225, 155);\n"
+"}")
         self.success_label.setObjectName("success_label")
         self.verticalLayout_7.addWidget(self.success_label)
         self.horizontalLayout_13.addLayout(self.verticalLayout_7)
@@ -622,7 +631,7 @@ class Ui_MainWindow(object):
         self.widget_8.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_8.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_8.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/失败.svg\");\n"
+"    image: url(\"resources/img/ui/失败.svg\");\n"
 "}")
         self.widget_8.setObjectName("widget_8")
         self.horizontalLayout_14.addWidget(self.widget_8)
@@ -642,6 +651,9 @@ class Ui_MainWindow(object):
         font.setPointSize(24)
         font.setBold(True)
         self.failed_label.setFont(font)
+        self.failed_label.setStyleSheet("QLabel {\n"
+"    color: rgb(245, 67, 65);\n"
+"}")
         self.failed_label.setObjectName("failed_label")
         self.verticalLayout_8.addWidget(self.failed_label)
         self.horizontalLayout_14.addLayout(self.verticalLayout_8)
@@ -679,7 +691,7 @@ class Ui_MainWindow(object):
         self.progressBar.setMinimumSize(QtCore.QSize(0, 0))
         self.progressBar.setMaximumSize(QtCore.QSize(684, 16777215))
         self.progressBar.setStyleSheet("QProgressBar {\n"
-"    border: 2px solid rgba(60, 145, 255, 0.5); \n"
+"    border: 1px solid rgba(60, 145, 255, 0.5); \n"
 "    border-radius: 8px;\n"
 "    background-color: #ffffff;\n"
 "    text-align: center;\n"

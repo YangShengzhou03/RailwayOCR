@@ -10,7 +10,7 @@ from queue import Queue, Empty
 import oss2
 from PyQt6 import QtCore
 
-from utils import load_config, save_summary
+from utils import load_config, save_summary, log
 
 
 class ProcessingThread(QtCore.QThread):
@@ -190,6 +190,7 @@ class ProcessingThread(QtCore.QThread):
             if self.requests_counter >= self.max_requests_per_minute:
                 wait_time = (self.window_start + timedelta(minutes=1) - now).total_seconds() + 0.1
                 self.rate_limit_warning.emit(f"请求频率限制，等待 {wait_time:.1f} 秒")
+                log("WARNING", f"请求频率限制，等待 {wait_time:.1f} 秒")
                 time.sleep(wait_time)
                 self.requests_counter = 0
                 self.window_start = now
@@ -221,7 +222,8 @@ class ProcessingThread(QtCore.QThread):
             return {
                 'success': True,
                 'signed_url': signed_url,
-                'expire_time': (datetime.now() + timedelta(seconds=self.Config["EXPIRES_IN"])).strftime("%m-%d %H:%M:%S")
+                'expire_time': (datetime.now() + timedelta(seconds=self.Config["EXPIRES_IN"])).strftime(
+                    "%m-%d %H:%M:%S")
             }
         return {'success': False, 'error': f"OSS处理失败，HTTP状态码: {result.status}"}
 
@@ -272,6 +274,7 @@ class ProcessingThread(QtCore.QThread):
         os.makedirs(os.path.join(output_dir, "识别失败"), exist_ok=True)
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
+        log("DEBUG", f"{local_file_path} 识别为 {recognition}")
         filename = os.path.basename(local_file_path)
         category = ''.join(c for c in recognition if c.isalnum() or c in "-_.() ") if recognition else "识别失败"
         category_dir = os.path.join(output_dir, category or "其他")

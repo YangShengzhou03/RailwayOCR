@@ -35,5 +35,6 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['icon.ico'],
+    version='LeafAuto_version_info.txt',
+    icon=['resources/img/icon.ico'],
 )

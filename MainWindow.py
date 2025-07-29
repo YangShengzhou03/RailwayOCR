@@ -22,13 +22,14 @@ class CozeClient:
         self.base_url = base_url
         self.timeout = timeout
         self.proxies = proxies
-        self.session = self._create_session(max_retries, backoff_factor)
+        self.max_retries = max_retries
+        self.backoff_factor = backoff_factor
 
-    def _create_session(self, max_retries, backoff_factor):
+    def _create_session(self):
         session = requests.Session()
         retry_strategy = requests.adapters.Retry(
-            total=max_retries,
-            backoff_factor=backoff_factor,
+            total=self.max_retries,
+            backoff_factor=self.backoff_factor,
             status_forcelist=[500, 502, 503, 504]
         )
         adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
@@ -49,8 +50,10 @@ class CozeClient:
         if bot_id:
             payload["bot_id"] = bot_id
 
+        # 每个请求使用独立会话
+        session = self._create_session()
         try:
-            response = self.session.post(
+            response = session.post(
                 api_url,
                 json=payload,
                 timeout=self.timeout,
@@ -77,6 +80,8 @@ class CozeClient:
 
         except Exception as e:
             return {"success": False, "error_msg": f"请求异常: {str(e)}"}
+        finally:
+            session.close()
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -251,8 +256,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             )
             self.processing_thread.file_processed.connect(self.on_file_processed)
             self.processing_thread.processing_finished.connect(self.on_processing_finished)
-            self.processing_thread.stats_updated.connect(self.update_stats)
-            self.processing_thread.progress_updated.connect(self.update_progress)
+            self.processing_thread.stats_updated.connect(self.on_stats_updated)
+            self.processing_thread.progress_updated.connect(self.on_progress_updated)
+            self.processing_thread.processing_stopped.connect(self.on_processing_stopped)
+            self.processing_thread.error_occurred.connect(self.on_error_occurred)
 
             self.processing_thread.start()
             log("INFO", "图像识别线程启动")
@@ -292,14 +299,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_start.setEnabled(False)
             self.processing = False
             self.pushButton_start.setText("等待停止")
-            if self.processing_thread:
+            if self.processing_thread and self.processing_thread.isRunning():
                 self.processing_thread.stop()
-                log("INFO", "处理线程已停止")
+                self.processing_thread.wait(5000)  # 等待线程结束（最多5秒）
+                if self.processing_thread.isRunning():
+                    log("ERROR", "处理线程未能正常停止")
+                else:
+                    log("INFO", "处理线程已停止")
+                self.processing_thread = None  # 释放引用
+            self.pushButton_start.setEnabled(True)
+            self.pushButton_start.setText("开始分类")
 
-    def update_progress(self, value, message):
+    @QtCore.pyqtSlot(int, str)
+    def on_progress_updated(self, value, message):
         self.progressBar.setValue(value)
         print(message)
 
+    @QtCore.pyqtSlot(dict)
     def on_file_processed(self, result):
         status = "成功" if result['success'] else "失败"
         details = result.get('recognition', '未识别') if result['success'] else result.get('error', '未知错误')
@@ -307,11 +323,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not result['success']:
             log("ERROR", f"{result['filename']} - {status}: {details}")
 
-    def update_stats(self, processed, success, failed):
+    @QtCore.pyqtSlot(int, int, int)
+    def on_stats_updated(self, processed, success, failed):
         self.processed_label.setText(str(processed))
         self.success_label.setText(str(success))
         self.failed_label.setText(str(failed))
 
+    @QtCore.pyqtSlot(list)
     def on_processing_finished(self, results):
         self.processing = False
         self.pushButton_start.setText("开始分类")
@@ -347,6 +365,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         save_summary(results, self.dest_dir)
 
+    @QtCore.pyqtSlot()
+    def on_processing_stopped(self):
+        log("INFO", "处理已停止")
+        self.processing = False
+        self.pushButton_start.setEnabled(True)
+        self.pushButton_start.setText("开始分类")
+
+    @QtCore.pyqtSlot(str)
+    def on_error_occurred(self, error_msg):
+        log("ERROR", f"处理线程错误: {error_msg}")
+        QMessageBox.critical(self, "处理错误", error_msg)
+        self.processing = False
+        self.pushButton_start.setText("开始分类")
+
     def minimize_window(self):
         log("INFO", "窗口最小化")
         self.showMinimized()
@@ -364,7 +396,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             if self.processing_thread:
                 self.processing_thread.stop()
-                log("INFO", "处理线程已终止")
+                self.processing_thread.wait(5000)  # 等待线程结束
+                if self.processing_thread.isRunning():
+                    log("ERROR", "处理线程未能正常停止")
+                else:
+                    log("INFO", "处理线程已终止")
+                self.processing_thread = None
 
         log("INFO", "应用程序即将关闭")
         QApplication.quit()

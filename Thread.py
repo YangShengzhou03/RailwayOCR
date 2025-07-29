@@ -33,7 +33,6 @@ class ProcessingThread(QtCore.QThread):
         self.success_count = 0
         self.failed_count = 0
         self.lock = threading.Lock()
-        self.logger = self.parent().logger if hasattr(self.parent(), 'logger') else print
         self._load_config()
         self.requests_counter = 0
         self.window_start = datetime.now()
@@ -255,7 +254,6 @@ class ProcessingThread(QtCore.QThread):
                     "image": upload_result['signed_url']
                 }
             )
-            print(ocr_result)
             if ocr_result['success']:
                 recognition = self.parse_ocr_result(ocr_result)
                 status = {

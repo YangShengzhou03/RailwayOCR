@@ -295,7 +295,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if reply == QMessageBox.StandardButton.Yes:
             log("WARNING", "用户请求停止处理")
-            self.pushButton_start.setText("正在停止")
+            self.pushButton_start.setText("正在刹停")
             self.pushButton_start.setEnabled(False)
             self.processing = False
 
@@ -305,7 +305,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot(int, str)
     def on_progress_updated(self, value, message):
         self.progressBar.setValue(value)
-        print(message)
 
     @QtCore.pyqtSlot(int, int, int)
     def on_stats_updated(self, processed, success, failed):

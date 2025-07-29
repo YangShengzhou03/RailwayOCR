@@ -7,20 +7,23 @@ from datetime import datetime
 main_window = None
 
 
-def load_config(file_path='Config.json'):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
-
-
-Config = load_config()
-
-
 def get_resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path).replace(os.sep, '/')
+
+
+file_path = get_resource_path('resources/Config.json')
+
+
+def load_config():
+    with open(file_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+Config = load_config()
 
 
 def log(level, message):

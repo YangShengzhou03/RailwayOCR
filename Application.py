@@ -1,40 +1,111 @@
+import hashlib
 import sys
 import traceback
 import winreg
-import hashlib
 
 from PyQt6 import QtWidgets, QtCore
+from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
+
 from MainWindow import MainWindow
+from utils import get_resource_path
 
 
 class PasswordDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # 设置窗口样式
         self.setWindowTitle("请输入密码")
-        self.setFixedSize(300, 150)
+        self.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))
+        self.setFixedSize(350, 180)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #f5f5f7;
+                border-radius: 8px;
+            }
+            QLabel {
+                color: #333333;
+                font-size: 18px;
+                font-family: "Microsoft YaHei UI";
+            }
+            QLineEdit {
+                padding: 8px 12px;
+                border: 1px solid #d1d1d6;
+                border-radius: 6px;
+                font-size: 13px;
+                background-color: white;
+            }
+            QLineEdit:focus {
+                border-color: #007aff;
+                outline: none;
+            }
+            QPushButton {
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 13px;
+                font-weight: 500;
+            }
+            QPushButton#okButton {
+                background-color: #007aff;
+                color: white;
+                border: none;
+            }
+            QPushButton#okButton:hover {
+                background-color: #0066cc;
+            }
+            QPushButton#cancelButton {
+                background-color: #f5f5f7;
+                color: #333333;
+                border: 1px solid #d1d1d6;
+            }
+            QPushButton#cancelButton:hover {
+                background-color: #ebebef;
+            }
+        """)
 
-        layout = QtWidgets.QVBoxLayout(self)
+        # 创建布局
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.setContentsMargins(24, 24, 24, 20)
+        main_layout.setSpacing(16)
 
-        label = QtWidgets.QLabel("请输入启动密码：", self)
-        layout.addWidget(label)
+        # 标题标签
+        title_label = QtWidgets.QLabel("请输入启动密码", self)
+        title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(title_label)
 
+        # 密码输入框
         self.password_edit = QtWidgets.QLineEdit(self)
         self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
-        layout.addWidget(self.password_edit)
+        self.password_edit.setPlaceholderText("输入密码")
+        self.password_edit.setMinimumHeight(36)
+        main_layout.addWidget(self.password_edit)
 
+        # 按钮布局
         button_layout = QtWidgets.QHBoxLayout()
-        self.ok_button = QtWidgets.QPushButton("确定", self)
+        button_layout.setSpacing(12)
+
+        # 取消按钮
         self.cancel_button = QtWidgets.QPushButton("取消", self)
+        self.cancel_button.setObjectName("cancelButton")
+        self.cancel_button.setMinimumHeight(34)
 
-        button_layout.addWidget(self.ok_button)
+        # 确定按钮
+        self.ok_button = QtWidgets.QPushButton("确定", self)
+        self.ok_button.setObjectName("okButton")
+        self.ok_button.setMinimumHeight(34)
+        self.ok_button.setDefault(True)
+
         button_layout.addWidget(self.cancel_button)
-        layout.addLayout(button_layout)
+        button_layout.addWidget(self.ok_button)
+        main_layout.addLayout(button_layout)
 
+        # 连接信号槽
         self.ok_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
-
         self.password_edit.returnPressed.connect(self.accept)
+
+        # 设置焦点
+        self.password_edit.setFocus()
 
     def get_password(self):
         return self.password_edit.text()
@@ -92,6 +163,34 @@ def main():
     app.setApplicationName("LeafView Railway")
     app.setOrganizationName("LeafView")
 
+    # 全局字体设置
+    font = QFont()
+    font.setFamily("Segoe UI, Microsoft YaHei, sans-serif")
+    app.setFont(font)
+
+    # 全局样式设置
+    app.setStyleSheet("""
+        QMessageBox {
+            background-color: #f5f5f7;
+            border-radius: 8px;
+        }
+        QMessageBox QLabel {
+            color: #333333;
+            font-size: 14px;
+        }
+        QMessageBox QPushButton {
+            padding: 6px 16px;
+            border-radius: 6px;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            font-size: 13px;
+        }
+        QMessageBox QPushButton:hover {
+            background-color: #0066cc;
+        }
+    """)
+
     if has_password():
         dialog = PasswordDialog()
         while True:
@@ -102,13 +201,32 @@ def main():
             if verify_password(password):
                 break
             else:
-                QtWidgets.QMessageBox.warning(None, "密码错误", "输入的密码不正确，请重试")
+                msg_box = QtWidgets.QMessageBox(
+                    QtWidgets.QMessageBox.Icon.Warning,
+                    "密码错误",
+                    "输入的密码不正确，请重试",
+                    parent=None
+                )
+                msg_box.setStyleSheet("""
+                    QPushButton {
+                        min-width: 80px;
+                    }
+                """)
+                msg_box.exec()
 
     window = MainWindow()
     window.setWindowTitle("LeafView Railway")
+    window.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))
 
+    # 窗口居中显示
     if hasattr(window, 'centerOnScreen'):
         window.centerOnScreen()
+    else:
+        # 自动居中实现
+        qr = window.frameGeometry()
+        cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
+        qr.moveCenter(cp)
+        window.move(qr.topLeft())
 
     window.show()
     exit_code = app.exec()
@@ -128,11 +246,18 @@ def handle_incoming_connection(server):
         if message == "bring_to_front":
             for widget in QtWidgets.QApplication.topLevelWidgets():
                 if isinstance(widget, QtWidgets.QMainWindow) and widget.windowTitle() == "LeafView Railway":
-                    if widget.windowState() & QtCore.Qt.WindowState.WindowMinimized:
-                        widget.setWindowState(
-                            widget.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive)
+                    # 窗口激活动画
+                    widget.setWindowState(
+                        widget.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive)
                     widget.activateWindow()
                     widget.raise_()
+                    # 添加焦点动画效果
+                    widget.setStyleSheet("""
+                        QMainWindow {
+                            border: 1px solid #007aff;
+                        }
+                    """)
+                    QtCore.QTimer.singleShot(300, lambda: widget.setStyleSheet(""))
                     break
 
     socket.disconnectFromServer()

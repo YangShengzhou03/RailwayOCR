@@ -1,0 +1,26 @@
+{
+  "ACCESS_KEY_ID": "LTAI5tP4MvSEvr4QPFnAnyNU",
+  "ACCESS_KEY_SECRET": "cvlgLuTysGBoVJd8nuWw88pWe69TVn",
+  "ENDPOINT": "oss-cn-hangzhou.aliyuncs.com",
+  "BUCKET_NAME": "yanshengzhou",
+  "EXPIRES_IN": 1800,
+  "ALLOWED_EXTENSIONS": [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".bmp",
+    ".gif"
+  ],
+  "LOG_FILE": "ocr_processing.log",
+  "CONCURRENCY": 8,
+  "RETRY_TIMES": 5,
+  "COZE_API_KEY": "pat_OyAzrVMk1RiK5qG4VoFS1Jr1XItbRrdtHZeDJ7prPUeBVyqCxptwiOfq1oqTQ2xR",
+  "WORKFLOW_ID": "7514709270924361743",
+  "SUMMARY_DIR": "summary",
+  "MAX_REQUESTS_PER_MINUTE": 300,
+  "RATE_LIMIT_BUFFER": 0.9,
+  "OPTIMAL_RATE": 270,
+  "IMAGE_PROCESSING_TIMEOUT": 30,
+  "RE": "([A-Za-z][0-9])|([0-9][A-Za-z])",
+  "PROMPT": "请识别图像中卡片上的标签：仅提取同时满足以下条件的内容 ——1. 格式为单个英文字母（A-K，在前）+ 单个数字（1-7，在后）；2. 文字颜色为红色；3. 符合示例（如 A1、B2）。无需任何多余说明，直接返回识别到的标签；若未识别到符合条件的内容，直接返回“识别失败”。"
+}

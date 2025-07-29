@@ -1,0 +1,35 @@
+VSVersionInfo(
+    ffi=FixedFileInfo(
+        filevers=(1, 0, 0, 0),
+        prodvers=(1, 0, 0, 0),
+        mask=0x3f,
+        flags=0x0,
+        OS=0x4,
+        fileType=0x1,
+        subtype=0x0,
+        date=(0, 0)
+    ),
+    kids=[
+        StringFileInfo([
+            StringTable('080404B0', [
+                StringStruct('CompanyName', 'Yangshengzhou'),
+                StringStruct('CompanyShortName', 'Shengzhou'),
+                StringStruct('FileDescription', 'RailwayOCR'),
+                StringStruct('FileVersion', '1.0.0.0'),
+                StringStruct('InternalName', 'LeafView-RailwayOCR'),
+                StringStruct('LegalCopyright', 'Copyright © 2025 Yangshengzhou All rights reserved'),
+                StringStruct('LegalTrademarks', 'TM RailwayOCR'),
+                StringStruct('OriginalFilename', 'RailwayOCR.exe'),
+                StringStruct('ProductName', 'RailwayOCR'),
+                StringStruct('ProductShortName', 'RailwayOCR'),
+                StringStruct('ProductVersion', '1.0.0.0'),
+                StringStruct('Comments', 'RailwayOCR 是一款基于阿里云OSS和扣子智能体的自动化图像分类工具'),
+                StringStruct('PrivateBuild', 'Beta v1.0.0'),
+                StringStruct('SpecialBuild', '识别准确度优化版本')
+            ])
+        ]),
+        VarFileInfo([
+            VarStruct('Translation', [2052, 1200])
+        ])
+    ]
+)

@@ -191,8 +191,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def toggle_move_mode(self):
         self.is_move_mode = self.move_radio.isChecked()
-        mode = "移动" if self.is_move_mode else "复制"
-        log("INFO", f"操作模式切换为: {mode}")
 
     def check_directory_conflict(self):
         if not (self.source_dir and self.dest_dir):

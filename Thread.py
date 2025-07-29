@@ -255,6 +255,7 @@ class ProcessingThread(QtCore.QThread):
                     "image": upload_result['signed_url']
                 }
             )
+            print(ocr_result)
             if ocr_result['success']:
                 recognition = self.parse_ocr_result(ocr_result)
                 status = {

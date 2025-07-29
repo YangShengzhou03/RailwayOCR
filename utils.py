@@ -40,10 +40,7 @@ def log(level, message):
 
 def save_summary(results):
     os.makedirs(Config["SUMMARY_DIR"], exist_ok=True)
-    summary_path = os.path.join(Config["SUMMARY_DIR"], "summary.json")
     stats_path = os.path.join(Config["SUMMARY_DIR"], "statistics.json")
-    with open(summary_path, 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=2)
     total = len(results)
     success_count = sum(1 for r in results if r['success'])
     stats = {

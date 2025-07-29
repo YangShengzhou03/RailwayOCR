@@ -13,6 +13,25 @@ from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
 from utils import log, save_summary, get_resource_path
 
+"""
+    D:\Code\Python\RailwayOCR\venv\Scripts\python.exe D:\Code\Python\RailwayOCR\Application.py 
+配置加载成功: 并发数=10, 请求限制=300/分钟
+开始处理 92 个文件
+输出目录创建成功: D:/结果
+创建线程池，工作线程数: 10
+开始处理...
+已处理 1/92
+已处理 2/92
+已处理 3/92
+已处理 4/92
+已处理 5/92
+正在停止处理线程...
+处理被用户取消
+处理过程中发生致命错误: 'recognition'
+
+Process finished with exit code -1073740791 (0xC0000409)
+"""
+
 
 class CozeClient:
 

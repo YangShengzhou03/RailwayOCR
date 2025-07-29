@@ -8,6 +8,8 @@
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
+from utils import get_resource_path
+
 
 class Ui_SettingWindow(object):
     def setupUi(self, SettingWindow):
@@ -76,7 +78,7 @@ class Ui_SettingWindow(object):
 "}")
         self.toolButton_close.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("resources/img/窗口控制/窗口控制-关闭.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap(get_resource_path("resources/img/窗口控制/窗口控制-关闭.svg")), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.toolButton_close.setIcon(icon)
         self.toolButton_close.setIconSize(QtCore.QSize(24, 24))
         self.toolButton_close.setObjectName("toolButton_close")

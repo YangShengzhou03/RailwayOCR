@@ -8,6 +8,8 @@
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
+from utils import get_resource_path
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -63,7 +65,7 @@ class Ui_MainWindow(object):
         self.widget_logo.setMinimumSize(QtCore.QSize(38, 38))
         self.widget_logo.setMaximumSize(QtCore.QSize(38, 38))
         self.widget_logo.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/logo.svg\");\n"
+f"    image: url({get_resource_path('resources/img/logo.svg')});\n"
 "}")
         self.widget_logo.setObjectName("widget_logo")
         self.horizontalLayout_33.addWidget(self.widget_logo)
@@ -114,7 +116,7 @@ class Ui_MainWindow(object):
 "}")
         self.toolButton_setting.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap("resources/img/窗口控制/窗口控制-设置.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap(get_resource_path("resources/img/窗口控制/窗口控制-设置.svg")), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.toolButton_setting.setIcon(icon)
         self.toolButton_setting.setIconSize(QtCore.QSize(20, 20))
         self.toolButton_setting.setObjectName("toolButton_setting")
@@ -153,7 +155,7 @@ class Ui_MainWindow(object):
 "}")
         self.toolButton_mini.setText("")
         icon1 = QtGui.QIcon()
-        icon1.addPixmap(QtGui.QPixmap("resources/img/窗口控制/窗口控制-最小化.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon1.addPixmap(QtGui.QPixmap(get_resource_path("resources/img/窗口控制/窗口控制-最小化.svg")), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.toolButton_mini.setIcon(icon1)
         self.toolButton_mini.setIconSize(QtCore.QSize(22, 22))
         self.toolButton_mini.setObjectName("toolButton_mini")
@@ -192,7 +194,7 @@ class Ui_MainWindow(object):
 "}")
         self.toolButton_close.setText("")
         icon2 = QtGui.QIcon()
-        icon2.addPixmap(QtGui.QPixmap("resources/img/窗口控制/窗口控制-关闭.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon2.addPixmap(QtGui.QPixmap(get_resource_path("resources/img/窗口控制/窗口控制-关闭.svg")), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.toolButton_close.setIcon(icon2)
         self.toolButton_close.setIconSize(QtCore.QSize(22, 22))
         self.toolButton_close.setObjectName("toolButton_close")
@@ -344,7 +346,7 @@ class Ui_MainWindow(object):
 "}")
         self.pushButton_src_folder.setText("")
         icon3 = QtGui.QIcon()
-        icon3.addPixmap(QtGui.QPixmap("resources/img/ui/文件夹.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon3.addPixmap(QtGui.QPixmap(get_resource_path("resources/img/ui/文件夹.svg")), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.pushButton_src_folder.setIcon(icon3)
         self.pushButton_src_folder.setIconSize(QtCore.QSize(26, 26))
         self.pushButton_src_folder.setObjectName("pushButton_src_folder")
@@ -509,7 +511,7 @@ class Ui_MainWindow(object):
         self.widget_6.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_6.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_6.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/ui/已处理.svg\");\n"
+f"    image: url({get_resource_path('resources/img/ui/已处理.svg')});\n"
 "}")
         self.widget_6.setObjectName("widget_6")
         self.horizontalLayout_12.addWidget(self.widget_6)
@@ -548,7 +550,7 @@ class Ui_MainWindow(object):
         self.widget_4.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_4.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_4.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/ui/总文件数.svg\");\n"
+f"    image: url({get_resource_path('resources/img/ui/总文件数.svg')});\n"
 "}")
         self.widget_4.setObjectName("widget_4")
         self.horizontalLayout_10.addWidget(self.widget_4)
@@ -593,7 +595,7 @@ class Ui_MainWindow(object):
         self.widget_7.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_7.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_7.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/ui/成功.svg\");\n"
+f"    image: url({get_resource_path('resources/img/ui/成功.svg')});\n"
 "}")
         self.widget_7.setObjectName("widget_7")
         self.horizontalLayout_13.addWidget(self.widget_7)
@@ -631,7 +633,7 @@ class Ui_MainWindow(object):
         self.widget_8.setMinimumSize(QtCore.QSize(58, 58))
         self.widget_8.setMaximumSize(QtCore.QSize(58, 58))
         self.widget_8.setStyleSheet("QWidget {\n"
-"    image: url(\"resources/img/ui/失败.svg\");\n"
+f"    image: url({get_resource_path('resources/img/ui/失败.svg')});\n"
 "}")
         self.widget_8.setObjectName("widget_8")
         self.horizontalLayout_14.addWidget(self.widget_8)

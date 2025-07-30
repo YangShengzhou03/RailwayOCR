@@ -41,6 +41,7 @@ UninstallDisplayIcon={app}\_internal\resources\img\icon.ico
 [UninstallDelete]
 Type: files; Name: "{app}\*.*"
 Type: dirifempty; Name: "{app}\_internal"
+Type: dirifempty; Name: "{app}\summary"
 Type: dirifempty; Name: "{app}"
 
 [Languages]

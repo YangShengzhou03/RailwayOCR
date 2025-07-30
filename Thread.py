@@ -48,18 +48,23 @@ class ProcessingThread(QtCore.QThread):
             self.Config = load_config()
             self.max_requests_per_minute = self.Config.get("MAX_REQUESTS_PER_MINUTE", 60)
             self.worker_count = self.Config.get("CONCURRENCY", 4)
+            self.backoff_factor = self.Config.get("BACKOFF_FACTOR", 2.0)
+            self.request_interval = self.Config.get("REQUEST_INTERVAL", 0.5)
+            self.max_backoff_time = self.Config.get("MAX_BACKOFF_TIME", 30)
+            self.request_timeout = self.Config.get("REQUEST_TIMEOUT", 60)
         except Exception as e:
             self.max_requests_per_minute = 60
             self.worker_count = 4
+            self.backoff_factor = 2.0
+            self.request_interval = 0.5
+            self.max_backoff_time = 30
+            self.request_timeout = 60
             self.error_occurred.emit(f"配置加载失败: {str(e)}")
 
     def run(self):
-        results = []
-        total_files = self.total_files
-
         try:
-            if total_files == 0:
-                self.processing_finished.emit(results)
+            if not self.image_files:
+                self.processing_finished.emit([])
                 return
 
             self._create_directories()
@@ -90,9 +95,8 @@ class ProcessingThread(QtCore.QThread):
             self.progress_updated.emit(100, "处理完成")
 
         except Exception as e:
-            error_msg = f"处理过程中发生致命错误: {str(e)}"
-            self.error_occurred.emit(error_msg)
-            self.processing_finished.emit(results)
+            self.error_occurred.emit(f"处理过程中发生致命错误: {str(e)}")
+            self.processing_finished.emit([])
 
     def _worker(self, worker_id):
         while self.is_running or not self.file_queue.empty():
@@ -101,6 +105,7 @@ class ProcessingThread(QtCore.QThread):
             except Empty:
                 break
 
+            result = None
             try:
                 if not self.is_running:
                     result = {
@@ -110,30 +115,35 @@ class ProcessingThread(QtCore.QThread):
                     }
                 else:
                     result = self.rate_limited_process(file_path, self.client)
-
-                with self.lock:
-                    self.processed_count += 1
-                    self.results.append(result)
-
-                    if result['success']:
-                        self.success_count += 1
-                        result['category_dir'] = self.copy_to_classified_folder(
-                            file_path, result['recognition'], self.dest_dir, self.is_move_mode)
-                    else:
-                        self.failed_count += 1
-                        self.copy_to_classified_folder(file_path, None, self.dest_dir, self.is_move_mode)
-
-                    self.signal_queue.put(('file_processed', result))
-                    self.signal_queue.put(
-                        ('stats_updated', self.processed_count, self.success_count, self.failed_count))
-
-                    progress = int((self.processed_count / self.total_files) * 100)
-                    self.signal_queue.put(
-                        ('progress_updated', progress, f"已处理 {self.processed_count}/{self.total_files}"))
-
             except Exception as e:
+                result = {
+                    'filename': os.path.basename(file_path),
+                    'success': False,
+                    'error': f'处理过程中发生异常: {str(e)}'
+                }
                 self.signal_queue.put(('error_occurred', f"工作线程 {worker_id + 1} 处理文件时出错: {str(e)}"))
             finally:
+                if result is not None:
+                    with self.lock:
+                        self.processed_count += 1
+                        self.results.append(result)
+
+                        if result['success']:
+                            self.success_count += 1
+                            result['category_dir'] = self.copy_to_classified_folder(
+                                file_path, result['recognition'], self.dest_dir, self.is_move_mode)
+                        else:
+                            self.failed_count += 1
+                            self.copy_to_classified_folder(file_path, None, self.dest_dir, self.is_move_mode)
+
+                        self.signal_queue.put(('file_processed', result))
+                        self.signal_queue.put(
+                            ('stats_updated', self.processed_count, self.success_count, self.failed_count))
+
+                        progress = int((self.processed_count / self.total_files) * 100)
+                        self.signal_queue.put(
+                            ('progress_updated', progress, f"已处理 {self.processed_count}/{self.total_files}"))
+
                 self.file_queue.task_done()
 
     def _signal_processor(self):
@@ -155,7 +165,7 @@ class ProcessingThread(QtCore.QThread):
                     self.progress_updated.emit(args[0], args[1])
                 elif signal_name == 'error_occurred':
                     self.error_occurred.emit(args[0])
-            except Exception as e:
+            except Exception:
                 pass
             finally:
                 self.signal_queue.task_done()
@@ -164,8 +174,7 @@ class ProcessingThread(QtCore.QThread):
         try:
             self.create_output_directories(self.dest_dir)
         except Exception as e:
-            error_msg = f"创建输出目录失败: {str(e)}"
-            self.error_occurred.emit(error_msg)
+            self.error_occurred.emit(f"创建输出目录失败: {str(e)}")
             raise
 
     def rate_limited_process(self, file_path, client):
@@ -215,19 +224,20 @@ class ProcessingThread(QtCore.QThread):
         bucket = oss2.Bucket(auth, self.Config["ENDPOINT"], self.Config["BUCKET_NAME"])
         if not os.path.exists(local_file):
             return {'success': False, 'error': f"文件不存在: {local_file}"}
-        result = bucket.put_object_from_file(oss_path, local_file)
-        if result.status == 200:
-            signed_url = bucket.sign_url('GET', oss_path, self.Config["EXPIRES_IN"])
-            return {
-                'success': True,
-                'signed_url': signed_url,
-                'expire_time': (datetime.now() + timedelta(seconds=self.Config["EXPIRES_IN"])).strftime(
-                    "%m-%d %H:%M:%S")
-            }
-        return {'success': False, 'error': f"OSS处理失败，HTTP状态码: {result.status}"}
 
-    def is_image_file(self, filename):
-        return os.path.splitext(filename)[1].lower() in self.Config["ALLOWED_EXTENSIONS"]
+        try:
+            result = bucket.put_object_from_file(oss_path, local_file)
+            if result.status == 200:
+                signed_url = bucket.sign_url('GET', oss_path, self.Config["EXPIRES_IN"])
+                return {
+                    'success': True,
+                    'signed_url': signed_url,
+                    'expire_time': (datetime.now() + timedelta(seconds=self.Config["EXPIRES_IN"])).strftime(
+                        "%m-%d %H:%M:%S")
+                }
+            return {'success': False, 'error': f"OSS处理失败，HTTP状态码: {result.status}"}
+        except Exception as e:
+            return {'success': False, 'error': f"OSS连接异常: {str(e)}"}
 
     def parse_ocr_result(self, ocr_data):
         if not ocr_data.get('success'):
@@ -246,25 +256,53 @@ class ProcessingThread(QtCore.QThread):
         upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
         if not upload_result['success']:
             return {'filename': filename, 'success': False, 'error': upload_result['error']}
-        for attempt in range(self.Config["RETRY_TIMES"]):
-            ocr_result = client.run_workflow(
-                workflow_id=self.Config["WORKFLOW_ID"],
-                parameters={
-                    "prompt": self.Config["PROMPT"],
-                    "image": upload_result['signed_url']
-                }
-            )
-            if ocr_result['success']:
-                recognition = self.parse_ocr_result(ocr_result)
-                status = {
-                    'filename': filename,
-                    'success': bool(recognition),
-                    'recognition': recognition,
-                    'oss_path': oss_path,
-                    'signed_url': upload_result['signed_url']
-                }
-                return status
-            time.sleep(1)
+
+        max_attempts = self.Config["RETRY_TIMES"]
+        for attempt in range(max_attempts):
+            # 指数退避策略
+            if attempt > 0:
+                backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
+                print(f"等待 {backoff_time:.1f} 秒后重试（{attempt + 1}/{max_attempts}）")
+                time.sleep(backoff_time)
+
+            print(f"尝试识别 {filename} ({attempt + 1}/{max_attempts})")
+            try:
+                ocr_result = client.run_workflow(
+                    workflow_id=self.Config["WORKFLOW_ID"],
+                    parameters={
+                        "prompt": self.Config["PROMPT"],
+                        "image": upload_result['signed_url']
+                    },
+                    timeout=self.request_timeout  # 设置请求超时
+                )
+
+                # 添加基础请求间隔
+                time.sleep(self.request_interval)
+
+                if ocr_result['success']:
+                    recognition = self.parse_ocr_result(ocr_result)
+                    return {
+                        'filename': filename,
+                        'success': bool(recognition),
+                        'recognition': recognition,
+                        'oss_path': oss_path,
+                        'signed_url': upload_result['signed_url']
+                    }
+                else:
+                    error_msg = ocr_result.get('error_msg', '未知错误')
+                    print(f"尝试 {attempt + 1}/{max_attempts} 失败: {error_msg}")
+
+                    # 针对频率限制错误的特殊处理
+                    if "rate-limited" in error_msg:
+                        extended_backoff = min(self.backoff_factor ** (attempt + 2), self.max_backoff_time)
+                        print(f"检测到频率限制，延长等待时间至 {extended_backoff:.1f} 秒")
+                        time.sleep(extended_backoff)
+
+            except Exception as e:
+                error_msg = f'客户端调用异常: {str(e)}'
+                ocr_result = {'success': False, 'error_msg': error_msg}
+                print(f"尝试 {attempt + 1}/{max_attempts} 异常: {error_msg}")
+
         error_msg = ocr_result.get('error_msg', '未知识别错误') if ocr_result else '未获取到识别结果'
         return {'filename': filename, 'success': False, 'error': error_msg}
 
@@ -273,7 +311,10 @@ class ProcessingThread(QtCore.QThread):
         os.makedirs(os.path.join(output_dir, "识别失败"), exist_ok=True)
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
-        log("DEBUG", f"{local_file_path} 识别为 {recognition}")
+        if recognition:
+            log("DEBUG", f"{local_file_path} 识别为 {recognition}")
+        else:
+            log("ERROR", f"{local_file_path} 未识别到卡片或标签")
         filename = os.path.basename(local_file_path)
         category = ''.join(c for c in recognition if c.isalnum() or c in "-_.() ") if recognition else "识别失败"
         category_dir = os.path.join(output_dir, category or "其他")
@@ -287,5 +328,5 @@ class ProcessingThread(QtCore.QThread):
         try:
             (shutil.move if is_move else shutil.copy2)(local_file_path, dest_path)
             return category_dir
-        except Exception as e:
+        except Exception:
             return None

@@ -15,7 +15,8 @@ from utils import log, save_summary, get_resource_path
 
 
 class CozeClient:
-    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0, proxies=None):
+    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0,
+                 proxies=None):
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout
@@ -39,7 +40,7 @@ class CozeClient:
         })
         return session
 
-    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False):
+    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False, timeout=None):
         api_url = f"{self.base_url}/workflow/run"
         payload = {"workflow_id": workflow_id, "is_async": is_async}
 
@@ -50,10 +51,13 @@ class CozeClient:
 
         session = self._create_session()
         try:
+            # 使用方法级超时参数，如果未提供则使用实例级默认值
+            request_timeout = timeout if timeout is not None else self.timeout
+
             response = session.post(
                 api_url,
                 json=payload,
-                timeout=self.timeout,
+                timeout=request_timeout,
                 proxies=self.proxies
             )
             response.raise_for_status()
@@ -79,6 +83,49 @@ class CozeClient:
             return {"success": False, "error_msg": f"请求异常: {str(e)}"}
         finally:
             session.close()
+
+    def get_task_result(self, execute_id, timeout=None):
+        """获取异步任务结果"""
+        api_url = f"{self.base_url}/task/result"
+        payload = {"execute_id": execute_id}
+
+        session = self._create_session()
+        try:
+            # 使用方法级超时参数，如果未提供则使用实例级默认值
+            request_timeout = timeout if timeout is not None else self.timeout
+
+            response = session.post(
+                api_url,
+                json=payload,
+                timeout=request_timeout,
+                proxies=self.proxies
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except Exception as e:
+            return {"success": False, "error_msg": f"获取任务结果失败: {str(e)}"}
+        finally:
+            session.close()
+
+    def wait_for_task_completion(self, execute_id, max_attempts=10, check_interval=5, timeout=None):
+        """等待异步任务完成"""
+        for attempt in range(max_attempts):
+            result = self.get_task_result(execute_id, timeout=timeout)
+
+            if not result.get("success"):
+                return result
+
+            status = result.get("data", {}).get("status")
+
+            if status == "completed":
+                return result
+            elif status in ["failed", "cancelled"]:
+                return {"success": False, "error_msg": f"任务状态: {status}"}
+
+            time.sleep(check_interval)
+
+        return {"success": False, "error_msg": "等待任务完成超时"}
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -261,7 +308,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.error_occurred.connect(self.on_error_occurred)
 
             self.processing_thread.start()
-            log("INFO", "图像识别线程启动")
+            log("INFO", "正在连接到OSS和图像识别服务器，请耐心等待")
 
         except Exception as e:
             log("ERROR", f"启动处理线程失败: {str(e)}")

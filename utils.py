@@ -42,17 +42,33 @@ def log(level, message):
 
 
 def save_summary(results):
-    os.makedirs(Config["SUMMARY_DIR"], exist_ok=True)
-    stats_path = os.path.join(Config["SUMMARY_DIR"], "statistics.json")
-    total = len(results)
-    success_count = sum(1 for r in results if r['success'])
-    stats = {
-        "处理时间": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "总文件数": total,
-        "成功识别": success_count,
-        "识别失败": total - success_count,
-        "识别成功率": f"{success_count / total * 100:.2f}%" if total > 0 else "0.00%"
-    }
-    with open(stats_path, 'w', encoding='utf-8') as f:
-        json.dump(stats, f, ensure_ascii=False, indent=2)
-    return stats
+    try:
+        os.makedirs(Config["SUMMARY_DIR"], exist_ok=True)
+
+        stats_path = os.path.join(Config["SUMMARY_DIR"], "statistics.json")
+
+        total = len(results)
+        success_count = sum(1 for r in results if r.get('success', False))
+
+        stats = {
+            "处理时间": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "总文件数": total,
+            "成功识别": success_count,
+            "识别失败": total - success_count,
+            "识别成功率": f"{success_count / total * 100:.2f}%" if total > 0 else "0.00%"
+        }
+
+        with open(stats_path, 'w', encoding='utf-8') as f:
+            json.dump(stats, f, ensure_ascii=False, indent=2)
+
+        return stats
+
+    except PermissionError:
+        print(f"错误：没有权限创建或写入文件，请检查目录权限")
+        return None
+    except FileNotFoundError as e:
+        print(f"错误：找不到文件或目录 - {e}")
+        return None
+    except Exception as e:
+        print(f"未知错误：{e}")
+        return None

@@ -470,10 +470,10 @@ RailwayOCR的诞生，源于我们对"用AI技术赋能铁路安全"的追求。
 如果RailwayOCR能为您的工作带来帮助，欢迎给我们一个⭐Star。更期待与铁路行业的同仁们共同完善这个系统，为中国铁路的智能化发展贡献力量！
 
 ## 📞 联系与支持  
-- **项目主页**：[https://gitee.com/Yangshengzhou/Jobs_helper](https://gitee.com/Yangshengzhou/Jobs_helper)  
-- **文档中心**：[https://yangshengzhou.gitbook.io/Jobs_helper](https://yangshengzhou.gitbook.io/Jobs_helper)  
-- **问题反馈**：[提交Issue](https://gitee.com/Yangshengzhou/Jobs_helper/issues)  
-- **商务合作**：3555844679@qq.com（主题注明"海投助手合作"）  
+- **项目主页**：[https://gitee.com/Yangshengzhou/railway-ocr](https://gitee.com/Yangshengzhou/railway-ocr)  
+- **文档中心**：[https://yangshengzhou.gitbook.io/railway-ocr](https://yangshengzhou.gitbook.io/railway-ocr)  
+- **问题反馈**：[提交Issue](https://gitee.com/Yangshengzhou/railway-ocr/issues)  
+- **商务合作**：3555844679@qq.com（主题注明"RailwayOCR合作"）  
 - **社区交流**：  
 [![微信](https://img.shields.io/badge/微信-YSZFortune-brightgreen?logo=wechat)](https://img.shields.io/badge/微信-YSZFortune-brightgreen?logo=wechat) [![QQ群](https://img.shields.io/badge/QQ群-1021471813-blue?logo=tencentqq)](https://img.shields.io/badge/QQ群-1021471813-blue?logo=tencentqq)
 

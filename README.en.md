@@ -473,9 +473,9 @@ The birth of RailwayOCR stems from our pursuit of "empowering railway safety wit
 If RailwayOCR can be helpful for your work, please give us a ⭐Star. We are even more looking forward to improving this system together with colleagues in the railway industry, contributing to the intelligent development of China's railways!
 
 ## 📞 Contact and Support  
-- **Project Homepage**: [https://gitee.com/Yangshengzhou/Jobs_helper](https://gitee.com/Yangshengzhou/Jobs_helper)  
-- **Documentation Center**: [https://yangshengzhou.gitbook.io/Jobs_helper](https://yangshengzhou.gitbook.io/Jobs_helper)  
-- **Issue Feedback**: [Submit Issue](https://gitee.com/Yangshengzhou/Jobs_helper/issues)  
+- **Project Homepage**: [https://gitee.com/Yangshengzhou/railway-ocr](https://gitee.com/Yangshengzhou/railway-ocr)  
+- **Documentation Center**: [https://yangshengzhou.gitbook.io/railway-ocr](https://yangshengzhou.gitbook.io/railway-ocr)  
+- **Issue Feedback**: [Submit Issue](https://gitee.com/Yangshengzhou/railway-ocr/issues)  
 - **Business Cooperation**: 3555844679@qq.com (please indicate "RailwayOCR Cooperation" in the subject)  
 - **Community Exchange**:  
 [![WeChat](https://img.shields.io/badge/WeChat-YSZFortune-brightgreen?logo=wechat)](https://img.shields.io/badge/WeChat-YSZFortune-brightgreen?logo=wechat) [![QQ Group](https://img.shields.io/badge/QQ%20Group-1021471813-blue?logo=tencentqq)](https://img.shields.io/badge/QQ%20Group-1021471813-blue?logo=tencentqq)

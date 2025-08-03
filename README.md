@@ -1,4 +1,4 @@
-# 🚂 RailwayOCR - 铁路图像智能识别与分类系统 🌟
+# 🚂 RailwayOCR - 图像智能识别分类系统 🌟
 
 <div align="center">
   <a href="https://www.gnu.org/licenses/agpl-3.0">

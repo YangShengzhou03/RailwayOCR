@@ -1,6 +1,4 @@
-import json
 import os
-import re
 import shutil
 import threading
 import time
@@ -10,7 +8,7 @@ from queue import Queue, Empty
 import oss2
 from PyQt6 import QtCore
 
-from utils import load_config, save_summary, log
+from utils import load_config, log, log_print
 
 
 class ProcessingThread(QtCore.QThread):
@@ -42,6 +40,7 @@ class ProcessingThread(QtCore.QThread):
         self.workers = []
         self.signal_queue = Queue()
         self.signal_processor_running = True
+        log("WARNING", f"初始化处理线程，使用 {getattr(client, 'client_type', '未知')} 识别模式")
 
     def _load_config(self):
         try:
@@ -89,8 +88,6 @@ class ProcessingThread(QtCore.QThread):
             self.signal_processor_running = False
             signal_thread.join()
 
-            if self.results:
-                save_summary(self.results)
             self.processing_finished.emit(self.results)
             self.progress_updated.emit(100, "处理完成")
 
@@ -114,7 +111,7 @@ class ProcessingThread(QtCore.QThread):
                         'error': '处理已取消'
                     }
                 else:
-                    result = self.rate_limited_process(file_path, self.client)
+                    result = self.rate_limited_process(file_path)
             except Exception as e:
                 result = {
                     'filename': os.path.basename(file_path),
@@ -177,7 +174,7 @@ class ProcessingThread(QtCore.QThread):
             self.error_occurred.emit(f"创建输出目录失败: {str(e)}")
             raise
 
-    def rate_limited_process(self, file_path, client):
+    def rate_limited_process(self, file_path):
         if not self.is_running:
             return {'filename': os.path.basename(file_path), 'success': False, 'error': '处理已取消'}
 
@@ -186,7 +183,7 @@ class ProcessingThread(QtCore.QThread):
         if not self.is_running:
             raise RuntimeError("处理已取消")
 
-        return self.process_image_file(file_path, client)
+        return self.process_image_file(file_path)
 
     def _check_rate_limit(self):
         with self.lock:
@@ -209,12 +206,18 @@ class ProcessingThread(QtCore.QThread):
         with self.lock:
             self.is_running = False
 
+        # 清空队列
         while not self.file_queue.empty():
             try:
                 self.file_queue.get_nowait()
             except Empty:
                 continue
             self.file_queue.task_done()
+
+        # 等待所有工作线程完成
+        for worker in self.workers:
+            if worker.is_alive():
+                worker.join(timeout=1.0)
 
         self.processing_stopped.emit()
 
@@ -239,94 +242,91 @@ class ProcessingThread(QtCore.QThread):
         except Exception as e:
             return {'success': False, 'error': f"OSS连接异常: {str(e)}"}
 
-    def parse_ocr_result(self, ocr_data):
-        if not ocr_data.get('success'):
-            return None
-        data = ocr_data.get('data', '')
-        try:
-            text = data.get('msg', '') if isinstance(data, dict) else json.loads(data).get('msg', '')
-        except (json.JSONDecodeError, TypeError):
-            text = str(data)
-        match = re.search(self.Config["RE"], text)
-        return match.group(0).upper() if match else None
-
-    def process_image_file(self, local_file_path, client):
+    def process_image_file(self, local_file_path):
         filename = os.path.basename(local_file_path)
-        oss_path = f"RailwayOCR/images/{datetime.now().strftime('%Y%m%d')}/{filename}"
-        upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
-        if not upload_result['success']:
-            return {'filename': filename, 'success': False, 'error': upload_result['error']}
+        log_print(f"开始处理图像文件: {filename}")
+
+        # 根据客户端类型决定是否需要上传文件
+        if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
+            # 本地识别模式，直接使用本地文件路径
+            log_print(f"使用本地识别模式处理文件: {filename}")
+            image_source = local_file_path
+            oss_path = None
+            signed_url = None
+        else:
+            # 其他识别模式，上传文件到OSS
+            oss_path = f"RailwayOCR/images/{datetime.now().strftime('%Y%m%d')}/{filename}"
+            upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
+
+            if not upload_result['success']:
+                log_print(f"文件上传失败: {filename}, 错误: {upload_result['error']}")
+                return {'filename': filename, 'success': False, 'error': upload_result['error']}
+            else:
+                log_print(f"文件上传成功: {filename}, 获取到签名URL")
+                image_source = upload_result['signed_url']
+                signed_url = upload_result['signed_url']
 
         max_attempts = self.Config["RETRY_TIMES"]
         for attempt in range(max_attempts):
-            # 指数退避策略
             if attempt > 0:
                 backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
-                print(f"等待 {backoff_time:.1f} 秒后重试（{attempt + 1}/{max_attempts}）")
                 time.sleep(backoff_time)
 
-            print(f"尝试识别 {filename} ({attempt + 1}/{max_attempts})")
             try:
-                ocr_result = client.run_workflow(
-                    workflow_id=self.Config["WORKFLOW_ID"],
-                    parameters={
-                        "prompt": self.Config["PROMPT"],
-                        "image": upload_result['signed_url']
-                    },
-                    timeout=self.request_timeout  # 设置请求超时
-                )
-
-                # 添加基础请求间隔
+                ocr_result = self.client.recognize(image_source)
                 time.sleep(self.request_interval)
 
                 if ocr_result['success']:
-                    recognition = self.parse_ocr_result(ocr_result)
-                    return {
+                    log_print(f"OCR识别成功: {filename}, 结果: {ocr_result['result']}")
+                    result = {
                         'filename': filename,
-                        'success': bool(recognition),
-                        'recognition': recognition,
-                        'oss_path': oss_path,
-                        'signed_url': upload_result['signed_url']
+                        'success': True,
+                        'recognition': ocr_result['result']
                     }
+                    if oss_path:
+                        result['oss_path'] = oss_path
+                    if signed_url:
+                        result['signed_url'] = signed_url
+                    return result
                 else:
-                    error_msg = ocr_result.get('error_msg', '未知错误')
-                    print(f"尝试 {attempt + 1}/{max_attempts} 失败: {error_msg}")
-
-                    # 针对频率限制错误的特殊处理
-                    if "rate-limited" in error_msg:
-                        extended_backoff = min(self.backoff_factor ** (attempt + 2), self.max_backoff_time)
-                        print(f"检测到频率限制，延长等待时间至 {extended_backoff:.1f} 秒")
-                        time.sleep(extended_backoff)
+                    error_msg = ocr_result.get('error', '未知错误')
+                    raw_result = ocr_result.get('raw', '无原始数据')
+                    log_print(f"OCR识别失败 (尝试 {attempt+1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result}")
+                    if attempt == max_attempts - 1:
+                        log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
+                        return {'filename': filename, 'success': False, 'error': error_msg}
 
             except Exception as e:
-                error_msg = f'客户端调用异常: {str(e)}'
-                ocr_result = {'success': False, 'error_msg': error_msg}
-                print(f"尝试 {attempt + 1}/{max_attempts} 异常: {error_msg}")
+                error_msg = f'识别异常: {str(e)}'
+                log_print(f"OCR识别异常 (尝试 {attempt+1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                if attempt == max_attempts - 1:
+                    return {'filename': filename, 'success': False, 'error': error_msg}
 
-        error_msg = ocr_result.get('error_msg', '未知识别错误') if ocr_result else '未获取到识别结果'
-        return {'filename': filename, 'success': False, 'error': error_msg}
+        return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
 
     def create_output_directories(self, output_dir):
         os.makedirs(output_dir, exist_ok=True)
         os.makedirs(os.path.join(output_dir, "识别失败"), exist_ok=True)
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
-        if recognition:
-            log("DEBUG", f"{local_file_path} 识别为 {recognition}")
-        else:
-            log("ERROR", f"{local_file_path} 未识别到卡片或标签")
         filename = os.path.basename(local_file_path)
-        category = ''.join(c for c in recognition if c.isalnum() or c in "-_.() ") if recognition else "识别失败"
-        category_dir = os.path.join(output_dir, category or "其他")
+        category = recognition if recognition else "识别失败"
+        category_dir = os.path.join(output_dir, category)
         os.makedirs(category_dir, exist_ok=True)
         dest_path = os.path.join(category_dir, filename)
         counter = 1
+
         while os.path.exists(dest_path):
             name, ext = os.path.splitext(filename)
             dest_path = os.path.join(category_dir, f"{name}_{counter}{ext}")
             counter += 1
+
         try:
-            (shutil.move if is_move else shutil.copy2)(local_file_path, dest_path)
+            if is_move:
+                shutil.move(local_file_path, dest_path)
+            else:
+                shutil.copy2(local_file_path, dest_path)
             return category_dir
-        except Exception:
+        except Exception as e:
+            log("ERROR", f"文件操作失败: {str(e)}")
             return None

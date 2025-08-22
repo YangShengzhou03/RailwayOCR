@@ -1,9 +1,19 @@
+import base64
+import json
 import os
+import re
+import ssl
 import sys
 import time
-from datetime import timedelta
-
 import requests
+import urllib.parse
+from datetime import timedelta
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+import easyocr
+import numpy as np
+from PIL import Image
+
 from PyQt6 import QtCore, QtGui
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog)
 
@@ -11,18 +21,169 @@ import utils
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import log, save_summary, get_resource_path
+from utils import log, save_summary, get_resource_path, log_print
 
 
-class CozeClient:
-    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0,
-                 proxies=None):
+class AliClient:
+    def __init__(self, appcode=None):
+        self.REQUEST_URL = "https://gjbsb.market.alicloudapi.com/ocrservice/advanced"
+        self.appcode = appcode
+        self.context = ssl._create_unverified_context()
+        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.client_type = 'ali'  # 添加客户端类型标识
+
+    def get_img(self, img_file):
+        if img_file.startswith("http"):
+            return img_file
+        else:
+            with open(os.path.expanduser(img_file), 'rb') as f:
+                data = f.read()
+        try:
+            return str(base64.b64encode(data), 'utf-8')
+        except TypeError:
+            return base64.b64encode(data)
+
+    def posturl(self, headers, body):
+        try:
+            params = json.dumps(body).encode(encoding='UTF8')
+            req = Request(self.REQUEST_URL, params, headers)
+            r = urlopen(req, context=self.context)
+            return r.read().decode("utf8")
+        except HTTPError as e:
+            return json.dumps({"error": f"HTTP错误: {e.code}", "details": e.read().decode("utf8")})
+
+    def extract_matches(self, response_text):
+        try:
+            data = json.loads(response_text)
+        except json.JSONDecodeError:
+            return None
+
+        words_info = data.get("prism_wordsInfo", [])
+        for item in words_info:
+            word = item.get("word", "").strip()
+            if self.pattern.fullmatch(word):
+                return word.upper()
+        return None
+
+    def recognize(self, img_file, params=None):
+        if not self.appcode:
+            return {"success": False, "error": "未提供AppCode"}
+
+        if params is None:
+            params = {
+                "prob": False,
+                "charInfo": False,
+                "rotate": False,
+                "table": False,
+                "sortPage": False,
+                "noStamp": False,
+                "figure": False,
+                "row": False,
+                "paragraph": False,
+                "oricoord": False
+            }
+
+        img = self.get_img(img_file)
+        if img.startswith('http'):
+            params.update({'url': img})
+        else:
+            params.update({'img': img})
+
+        headers = {
+            'Authorization': f'APPCODE {self.appcode}',
+            'Content-Type': 'application/json; charset=UTF-8'
+        }
+
+        response = self.posturl(headers, params)
+        result = self.extract_matches(response)
+
+        if result:
+            return {"success": True, "result": result, "raw": response}
+        else:
+            return {"success": False, "error": "未识别到匹配模式", "raw": response}
+
+
+class LocalClient:
+    def __init__(self, max_retries=3):
+        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.client_type = 'local'  # 添加客户端类型标识
+        self.reader = None
+        self.max_retries = max_retries
+        self._initialize_reader()
+
+    def _initialize_reader(self):
+        import time
+        retry_count = 0
+        while retry_count < self.max_retries:
+            try:
+                log_print(f"正在尝试加载OCR模型 (尝试 {retry_count+1}/{self.max_retries})...")
+                self.reader = easyocr.Reader(['en'], gpu=False)
+                log_print("OCR模型加载成功")
+                return
+            except Exception as e:
+                error_msg = f"模型加载失败: {str(e)}"
+                log_print(error_msg)
+                retry_count += 1
+                if retry_count < self.max_retries:
+                    wait_time = min(2 ** retry_count, 10)  # 指数退避，最大10秒
+                    log_print(f"{wait_time}秒后重试...")
+                    time.sleep(wait_time)
+                else:
+                    log_print(f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
+                    # 仍然抛出异常，让调用者知道初始化失败
+                    raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}")
+
+    def get_img(self, img_file):
+        return img_file  # 本地识别直接使用文件路径
+
+    def optimized_preprocess(self, img_path, max_size=800):
+        try:
+            image = Image.open(img_path)
+
+            if max(image.size) > max_size:
+                scale = max_size / max(image.size)
+                new_size = (int(image.size[0] * scale), int(image.size[1] * scale))
+                image = image.resize(new_size, Image.Resampling.LANCZOS)
+
+            gray_image = image.convert('L')
+            return np.array(gray_image)
+        except Exception as e:
+            log_print(f"图像预处理错误: {str(e)}")
+            return None
+
+    def extract_matches(self, texts):
+        for text in texts:
+            if self.pattern.fullmatch(text.strip()):
+                return text.strip().upper()
+        return None
+
+    def recognize(self, img_file, params=None):
+        processed_image = self.optimized_preprocess(img_file)
+
+        if processed_image is not None:
+            result = self.reader.readtext(processed_image, detail=0)
+            matched_result = self.extract_matches(result)
+            raw_result = json.dumps({"texts": result})
+
+            if matched_result:
+                return {"success": True, "result": matched_result, "raw": raw_result}
+            else:
+                return {"success": False, "error": "未识别到匹配模式", "raw": raw_result}
+        else:
+            return {"success": False, "error": "图像预处理失败", "raw": "{}"}
+
+
+class DouyinClient:
+    def __init__(self, api_key=None, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0, proxies=None, config=None):
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout
         self.proxies = proxies
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
+        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.config = config or {}
+        self.client_type = 'douyin'  # 添加客户端类型标识
 
     def _create_session(self):
         session = requests.Session()
@@ -40,92 +201,152 @@ class CozeClient:
         })
         return session
 
-    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False, timeout=None):
-        api_url = f"{self.base_url}/workflow/run"
-        payload = {"workflow_id": workflow_id, "is_async": is_async}
+    def get_img(self, img_file):
+        with open(os.path.expanduser(img_file), 'rb') as f:
+            data = f.read()
+        return str(base64.b64encode(data), 'utf-8')
 
-        if parameters:
-            payload["parameters"] = parameters
-        if bot_id:
-            payload["bot_id"] = bot_id
+    def extract_matches(self, response_data):
+        if not response_data.get("success"):
+            return None
 
+        # 假设结果在data字段中，具体结构需要根据实际API响应调整
+        result_text = response_data.get("data", {}).get("result", "")
+        if self.pattern.fullmatch(result_text.strip()):
+            return result_text.strip().upper()
+        return None
+
+    def recognize(self, img_file, params=None):
+        if not self.api_key:
+            return {"success": False, "error": "未提供抖音API Key"}
+
+        img = self.get_img(img_file)
         session = self._create_session()
+
+        # 构建请求参数
+        request_params = {
+            "image": img
+        }
+        if params:
+            request_params.update(params)
+
         try:
-            # 使用方法级超时参数，如果未提供则使用实例级默认值
-            request_timeout = timeout if timeout is not None else self.timeout
+            # 这里假设抖音API的工作流ID和机器人ID需要配置
+            workflow_id = self.config.get("DOUYIN_WORKFLOW_ID")
+            bot_id = self.config.get("DOUYIN_BOT_ID")
 
             response = session.post(
-                api_url,
-                json=payload,
-                timeout=request_timeout,
+                f"{self.base_url}/workflow/run",
+                json={
+                    "workflow_id": workflow_id,
+                    "parameters": request_params,
+                    "bot_id": bot_id,
+                    "is_async": False
+                },
+                timeout=self.timeout,
                 proxies=self.proxies
             )
+
             response.raise_for_status()
             result = response.json()
+            raw_result = json.dumps(result)
 
             if result.get("code") == 0:
-                return {
-                    "success": True,
-                    "data": result.get("data"),
-                    "debug_url": result.get("debug_url"),
-                    "execute_id": result.get("execute_id"),
-                    "usage": result.get("usage")
-                }
+                data = result.get("data", {})
+                # 提取识别结果（需要根据实际API响应结构调整）
+                recognized_text = data.get("result", "")
+                matched_result = self.extract_matches({"success": True, "data": {"result": recognized_text}})
+
+                if matched_result:
+                    return {"success": True, "result": matched_result, "raw": raw_result}
+                else:
+                    return {"success": False, "error": "未识别到匹配模式", "raw": raw_result}
             else:
-                return {
-                    "success": False,
-                    "error_code": result.get("code"),
-                    "error_msg": result.get("msg"),
-                    "logid": result.get("detail", {}).get("logid")
-                }
+                return {"success": False, "error": f"抖音API错误: {result.get('msg', '未知错误')}", "raw": raw_result}
 
         except Exception as e:
-            return {"success": False, "error_msg": f"请求异常: {str(e)}"}
+            return {"success": False, "error": f"请求异常: {str(e)}", "raw": "{}"}
         finally:
             session.close()
 
-    def get_task_result(self, execute_id, timeout=None):
-        """获取异步任务结果"""
-        api_url = f"{self.base_url}/task/result"
-        payload = {"execute_id": execute_id}
 
-        session = self._create_session()
+class BaiduClient:
+    def __init__(self, api_key=None, secret_key=None):
+        self.REQUEST_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
+        self.api_key = api_key
+        self.secret_key = secret_key
+        self.access_token = ''
+        self.context = ssl._create_unverified_context()
+        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.client_type = 'baidu'  # 添加客户端类型标识
+
+    def get_access_token(self):
+        if not self.access_token:
+            token_url = "https://aip.baidubce.com/oauth/2.0/token"
+            params = {
+                "grant_type": "client_credentials",
+                "client_id": self.api_key,
+                "client_secret": self.secret_key
+            }
+            try:
+                req = Request(f"{token_url}?{urllib.parse.urlencode(params)}")
+                r = urlopen(req, context=self.context)
+                data = json.loads(r.read().decode("utf8"))
+                self.access_token = data.get("access_token", "")
+            except Exception as e:
+                log_print(f"获取百度access_token失败: {str(e)}")
+        return self.access_token
+
+    def get_img(self, img_file):
+        with open(os.path.expanduser(img_file), 'rb') as f:
+            data = f.read()
+        return str(base64.b64encode(data), 'utf-8')
+
+    def posturl(self, headers, body):
         try:
-            # 使用方法级超时参数，如果未提供则使用实例级默认值
-            request_timeout = timeout if timeout is not None else self.timeout
+            req = Request(self.REQUEST_URL + "?access_token=" + self.access_token, body.encode("utf-8"), headers)
+            r = urlopen(req, context=self.context)
+            return r.read().decode("utf8")
+        except HTTPError as e:
+            return json.dumps({"error": f"HTTP错误: {e.code}", "details": e.read().decode("utf8")})
 
-            response = session.post(
-                api_url,
-                json=payload,
-                timeout=request_timeout,
-                proxies=self.proxies
-            )
-            response.raise_for_status()
-            return response.json()
+    def extract_matches(self, response_text):
+        try:
+            data = json.loads(response_text)
+        except json.JSONDecodeError:
+            return None
 
-        except Exception as e:
-            return {"success": False, "error_msg": f"获取任务结果失败: {str(e)}"}
-        finally:
-            session.close()
+        words_result = data.get("words_result", [])
+        for item in words_result:
+            word = item.get("words", "").strip()
+            if self.pattern.fullmatch(word):
+                return word.upper()
+        return None
 
-    def wait_for_task_completion(self, execute_id, max_attempts=10, check_interval=5, timeout=None):
-        """等待异步任务完成"""
-        for attempt in range(max_attempts):
-            result = self.get_task_result(execute_id, timeout=timeout)
+    def recognize(self, img_file, params=None):
+        if not self.api_key or not self.secret_key:
+            return {"success": False, "error": "未提供百度API Key或Secret Key"}
 
-            if not result.get("success"):
-                return result
+        self.get_access_token()
+        if not self.access_token:
+            return {"success": False, "error": "获取百度access_token失败"}
 
-            status = result.get("data", {}).get("status")
+        img = self.get_img(img_file)
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
 
-            if status == "completed":
-                return result
-            elif status in ["failed", "cancelled"]:
-                return {"success": False, "error_msg": f"任务状态: {status}"}
+        body = f"image={urllib.parse.quote(img)}"
+        if params:
+            body += "&" + urllib.parse.urlencode(params)
 
-            time.sleep(check_interval)
+        response = self.posturl(headers, body)
+        result = self.extract_matches(response)
 
-        return {"success": False, "error_msg": "等待任务完成超时"}
+        if result:
+            return {"success": True, "result": result, "raw": response}
+        else:
+            return {"success": False, "error": "未识别到匹配模式", "raw": response}
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -182,7 +403,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_setting(self):
         self.setting_window = SettingWindow()
-        self.minimize_window()
         self.setting_window.show()
 
     def mousePressEvent(self, event):
@@ -287,17 +507,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if reply != QMessageBox.StandardButton.Yes:
             log("INFO", "用户取消处理操作")
+            log_print("用户取消处理操作")
             return
 
         self.processing_start_time = time.time()
 
         log("WARNING", "开始文件处理流程")
+        log_print(f"开始处理 {len(self.image_files)} 个图像文件")
         self.processing = True
         self.pushButton_start.setText("停止分类")
         self.progressBar.setValue(0)
 
         try:
-            client = CozeClient(api_key=self.config["COZE_API_KEY"])
+            mode_index = self.config.get("MODE_INDEX", 0)
+
+            # 根据模式索引创建对应的客户端
+            if mode_index == 0:
+                # 阿里云模式
+                appcode = self.config.get("ALI_CODE")
+                if not appcode:
+                    QMessageBox.critical(self, "错误", "未配置阿里云AppCode")
+                    log("ERROR", "未配置阿里云AppCode")
+                    return
+                client = AliClient(appcode=appcode)
+                log("INFO", "使用阿里云OCR模式")
+            elif mode_index == 1:
+                # 本地模式
+                try:
+                    client = LocalClient(max_retries=5)
+                    log("INFO", "使用本地OCR模式")
+                except Exception as e:
+                    error_msg = f"本地OCR模型加载失败: {str(e)}"
+                    log("ERROR", error_msg)
+                    QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}\n请检查网络连接并重试。")
+                    return
+            elif mode_index == 2:
+                # 抖音云模式
+                api_key = self.config.get("DOUYIN_API_KEY")
+                if not api_key:
+                    QMessageBox.critical(self, "错误", "未配置抖音API Key")
+                    log("ERROR", "未配置抖音API Key")
+                    return
+                client = DouyinClient(api_key=api_key, config=self.config)
+                log("INFO", "使用抖音云OCR模式")
+            elif mode_index == 3:
+                # 百度云模式
+                api_key = self.config.get("BAIDU_API_KEY")
+                secret_key = self.config.get("BAIDU_SECRET_KEY")
+                if not api_key or not secret_key:
+                    QMessageBox.critical(self, "错误", "未配置百度云API Key或Secret Key")
+                    log("ERROR", "未配置百度云API Key或Secret Key")
+                    return
+                client = BaiduClient(api_key=api_key, secret_key=secret_key)
+                log("INFO", "使用百度云OCR模式")
+            else:
+                QMessageBox.critical(self, "错误", f"无效的模式索引: {mode_index}")
+                log("ERROR", f"无效的模式索引: {mode_index}")
+                return
+
+            # 创建处理线程
             self.processing_thread = ProcessingThread(
                 client, self.image_files, self.dest_dir, self.is_move_mode
             )
@@ -311,7 +579,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log("INFO", "正在连接到OSS和图像识别服务器，请耐心等待")
 
         except Exception as e:
-            log("ERROR", f"启动处理线程失败: {str(e)}")
+            error_msg = f"启动处理线程失败: {str(e)}"
+            log("ERROR", error_msg)
+            log_print(error_msg)
             self.processing = False
             self.pushButton_start.setText("开始分类")
 
@@ -329,6 +599,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.image_files:
             log("WARNING", "源文件夹中没有图像文件")
             QMessageBox.warning(self, "文件缺失", "源文件夹中未发现任何图像文件")
+            return False
+
+        mode_index = self.config.get("MODE_INDEX", 0)
+
+        if mode_index == 0 and not self.config.get("ALI_CODE"):
+            log("WARNING", "未配置阿里云AppCode")
+            QMessageBox.warning(self, "配置缺失", "请先在设置中配置阿里云AppCode")
+            return False
+        elif mode_index == 1:
+            # 本地模式不需要API密钥
+            pass
+        elif mode_index == 2 and not self.config.get("DOUYIN_API_KEY"):
+            log("WARNING", "未配置抖音API Key")
+            QMessageBox.warning(self, "配置缺失", "请先在设置中配置抖音API Key")
+            return False
+        elif mode_index == 3 and not (self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
+            log("WARNING", "未配置百度API Key或Secret Key")
+            QMessageBox.warning(self, "配置缺失", "请先在设置中配置百度API Key和Secret Key")
             return False
 
         return True
@@ -376,6 +664,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log("INFO", f"总文件数: {total_count} | 成功: {success_count} | 失败: {failed_count}")
         log("INFO", f"识别率: {success_rate}")
         log("INFO", "=" * 50)
+
+        log_print(f"处理完成，总耗时: {total_time}")
+        log_print(f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
+
+        stats = save_summary(results)
+        if stats:
+            log_print(f"统计信息已保存到summary文件夹")
 
         if total_count > 0:
             result_message = (

@@ -8,8 +8,6 @@
 
 from PyQt6 import QtCore, QtGui, QtWidgets
 
-from utils import get_resource_path
-
 
 class Ui_SettingWindow(object):
     def setupUi(self, SettingWindow):
@@ -78,7 +76,7 @@ class Ui_SettingWindow(object):
 "}")
         self.toolButton_close.setText("")
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(get_resource_path("resources/img/窗口控制/窗口控制-关闭.svg")), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        icon.addPixmap(QtGui.QPixmap("resources/img/窗口控制/窗口控制-关闭.svg"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.toolButton_close.setIcon(icon)
         self.toolButton_close.setIconSize(QtCore.QSize(24, 24))
         self.toolButton_close.setObjectName("toolButton_close")
@@ -297,6 +295,38 @@ class Ui_SettingWindow(object):
         self.lineEdit_COZE_API_KEY.setObjectName("lineEdit_COZE_API_KEY")
         self.horizontalLayout_12.addWidget(self.lineEdit_COZE_API_KEY)
         self.horizontalLayout_11.addLayout(self.horizontalLayout_12)
+        self.horizontalLayout_14 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_14.setObjectName("horizontalLayout_14")
+        self.label_12 = QtWidgets.QLabel(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_12.setFont(font)
+        self.label_12.setObjectName("label_12")
+        self.horizontalLayout_14.addWidget(self.label_12)
+        self.lineEdit_BAIDU_API_KEY = QtWidgets.QLineEdit(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(-1)
+        self.lineEdit_BAIDU_API_KEY.setFont(font)
+        self.lineEdit_BAIDU_API_KEY.setStyleSheet("""QLineEdit {\n    border: 1px solid rgb(30, 131, 255);\n    border-radius: 6px;\n    padding: 5px;\n    background-color: white;\n    color: black;\n    font-size: 14px;\n}\n\nQLineEdit:hover {\n    border: 2px solid rgb(30, 131, 255);\n    padding: 4px;\n}\n\nQLineEdit:focus {\n    border: 2px solid rgb(30, 131, 255);\n    padding: 4px;\n    background-color: #f8faff;\n}\n\nQLineEdit:disabled {\n    border: 1px solid #cccccc;\n    background-color: #f0f0f0;\n    color: #999999;\n}""")
+        self.lineEdit_BAIDU_API_KEY.setObjectName("lineEdit_BAIDU_API_KEY")
+        self.horizontalLayout_14.addWidget(self.lineEdit_BAIDU_API_KEY)
+        self.horizontalLayout_11.addLayout(self.horizontalLayout_14)
+        self.horizontalLayout_15 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_15.setObjectName("horizontalLayout_15")
+        self.label_13 = QtWidgets.QLabel(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_13.setFont(font)
+        self.label_13.setObjectName("label_13")
+        self.horizontalLayout_15.addWidget(self.label_13)
+        self.lineEdit_BAIDU_SECRET_KEY = QtWidgets.QLineEdit(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(-1)
+        self.lineEdit_BAIDU_SECRET_KEY.setFont(font)
+        self.lineEdit_BAIDU_SECRET_KEY.setStyleSheet("""QLineEdit {\n    border: 1px solid rgb(30, 131, 255);\n    border-radius: 6px;\n    padding: 5px;\n    background-color: white;\n    color: black;\n    font-size: 14px;\n}\n\nQLineEdit:hover {\n    border: 2px solid rgb(30, 131, 255);\n    padding: 4px;\n}\n\nQLineEdit:focus {\n    border: 2px solid rgb(30, 131, 255);\n    padding: 4px;\n    background-color: #f8faff;\n}\n\nQLineEdit:disabled {\n    border: 1px solid #cccccc;\n    background-color: #f0f0f0;\n    color: #999999;\n}""")
+        self.lineEdit_BAIDU_SECRET_KEY.setObjectName("lineEdit_BAIDU_SECRET_KEY")
+        self.horizontalLayout_15.addWidget(self.lineEdit_BAIDU_SECRET_KEY)
+        self.horizontalLayout_11.addLayout(self.horizontalLayout_15)
         self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_13.setObjectName("horizontalLayout_13")
         self.label_10 = QtWidgets.QLabel(parent=self.main_frame)
@@ -305,11 +335,11 @@ class Ui_SettingWindow(object):
         self.label_10.setFont(font)
         self.label_10.setObjectName("label_10")
         self.horizontalLayout_13.addWidget(self.label_10)
-        self.lineEdit_WORKFLOW_ID = QtWidgets.QLineEdit(parent=self.main_frame)
+        self.lineEdit_ALI_CODE = QtWidgets.QLineEdit(parent=self.main_frame)
         font = QtGui.QFont()
         font.setPointSize(-1)
-        self.lineEdit_WORKFLOW_ID.setFont(font)
-        self.lineEdit_WORKFLOW_ID.setStyleSheet("QLineEdit {\n"
+        self.lineEdit_ALI_CODE.setFont(font)
+        self.lineEdit_ALI_CODE.setStyleSheet("QLineEdit {\n"
 "    border: 1px solid rgb(30, 131, 255);\n"
 "    border-radius: 6px;\n"
 "    padding: 5px;\n"
@@ -334,11 +364,12 @@ class Ui_SettingWindow(object):
 "    background-color: #f0f0f0;\n"
 "    color: #999999;\n"
 "}")
-        self.lineEdit_WORKFLOW_ID.setObjectName("lineEdit_WORKFLOW_ID")
-        self.horizontalLayout_13.addWidget(self.lineEdit_WORKFLOW_ID)
+        self.lineEdit_ALI_CODE.setObjectName("lineEdit_ALI_CODE")
+        self.horizontalLayout_13.addWidget(self.lineEdit_ALI_CODE)
         self.horizontalLayout_11.addLayout(self.horizontalLayout_13)
         self.verticalLayout_2.addLayout(self.horizontalLayout_11)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_6.setContentsMargins(-1, -1, 0, -1)
         self.horizontalLayout_6.setSpacing(12)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
@@ -468,6 +499,86 @@ class Ui_SettingWindow(object):
         self.spinBox_RETRY_TIMES.setObjectName("spinBox_RETRY_TIMES")
         self.horizontalLayout_14.addWidget(self.spinBox_RETRY_TIMES)
         self.horizontalLayout_6.addLayout(self.horizontalLayout_14)
+        self.horizontalLayout_16 = QtWidgets.QHBoxLayout()
+        self.horizontalLayout_16.setContentsMargins(-1, -1, 0, -1)
+        self.horizontalLayout_16.setSpacing(0)
+        self.horizontalLayout_16.setObjectName("horizontalLayout_16")
+        self.label_11 = QtWidgets.QLabel(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.label_11.setFont(font)
+        self.label_11.setObjectName("label_11")
+        self.horizontalLayout_16.addWidget(self.label_11)
+        self.comboBox_mode = QtWidgets.QComboBox(parent=self.main_frame)
+        self.comboBox_mode.setStyleSheet("QComboBox {\n"
+"    border: 1px solid rgb(30, 131, 255);\n"
+"    border-radius: 4px;\n"
+"    padding: 2px;\n"
+"    background-color: white;\n"
+"    color: black;\n"
+"    font-size: 14px;\n"
+"}\n"
+"\n"
+"QComboBox:hover {\n"
+"    border: 2px solid rgb(30, 131, 255);\n"
+"    padding: 1px;\n"
+"}\n"
+"\n"
+"QComboBox:focus {\n"
+"    border: 2px solid rgb(30, 131, 255);\n"
+"    padding: 1px;\n"
+"    background-color: #f8faff;\n"
+"}\n"
+"\n"
+"QComboBox:disabled {\n"
+"    border: 1px solid #cccccc;\n"
+"    background-color: #f0f0f0;\n"
+"    color: #999999;\n"
+"}\n"
+"\n"
+"/* 下拉按钮样式 */\n"
+"QComboBox::drop-down {\n"
+"    subcontrol-origin: border;\n"
+"    subcontrol-position: top right;\n"
+"    width: 16px;\n"
+"    height: 100%;\n"
+"    background-color: transparent;\n"
+"}\n"
+"\n"
+"/* 下拉箭头样式 */\n"
+"QComboBox::down-arrow {\n"
+"    image: url(:/icons/down_arrow.png); /* 可替换为实际箭头图标 */\n"
+"    width: 8px;\n"
+"    height: 8px;\n"
+"}\n"
+"\n"
+"QComboBox::drop-down:hover {\n"
+"    background-color: rgba(30, 131, 255, 0.1);\n"
+"}\n"
+"\n"
+"QComboBox::drop-down:pressed {\n"
+"    background-color: rgba(30, 131, 255, 0.2);\n"
+"}\n"
+"\n"
+"QComboBox:disabled::drop-down {\n"
+"    background-color: transparent;\n"
+"}\n"
+"\n"
+"/* 下拉列表样式 */\n"
+"QComboBox QAbstractItemView {\n"
+"    border: 1px solid rgb(30, 131, 255);\n"
+"    border-radius: 4px;\n"
+"    background-color: white;\n"
+"    selection-background-color: rgba(30, 131, 255, 0.2);\n"
+"    selection-color: black;\n"
+"}")
+        self.comboBox_mode.setObjectName("comboBox_mode")
+        self.comboBox_mode.addItem("")
+        self.comboBox_mode.addItem("")
+        self.comboBox_mode.addItem("")
+        self.comboBox_mode.addItem("")
+        self.horizontalLayout_16.addWidget(self.comboBox_mode)
+        self.horizontalLayout_6.addLayout(self.horizontalLayout_16)
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
@@ -538,43 +649,6 @@ class Ui_SettingWindow(object):
         self.verticalLayout_2.addLayout(self.horizontalLayout_8)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout()
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.label_11 = QtWidgets.QLabel(parent=self.main_frame)
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.label_11.setFont(font)
-        self.label_11.setObjectName("label_11")
-        self.verticalLayout_3.addWidget(self.label_11)
-        self.textEdit_PROMPT = QtWidgets.QTextEdit(parent=self.main_frame)
-        font = QtGui.QFont()
-        font.setFamily("微软雅黑")
-        font.setPointSize(-1)
-        self.textEdit_PROMPT.setFont(font)
-        self.textEdit_PROMPT.setStyleSheet("QTextEdit {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    border-radius: 6px;\n"
-"    padding: 4px;\n"
-"    background-color: white;\n"
-"    color: black;\n"
-"    font-size: 14px;\n"
-"}\n"
-"\n"
-"QTextEdit:hover {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    background-color: rgba(30, 131, 255, 0.05);\n"
-"}\n"
-"\n"
-"QTextEdit:focus {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    background-color: rgba(30, 131, 255, 0.1);\n"
-"}\n"
-"\n"
-"QTextEdit:disabled {\n"
-"    border: 2px solid #cccccc;\n"
-"    background-color: #f0f0f0;\n"
-"    color: #999999;\n"
-"}")
-        self.textEdit_PROMPT.setObjectName("textEdit_PROMPT")
-        self.verticalLayout_3.addWidget(self.textEdit_PROMPT)
         self.verticalLayout_2.addLayout(self.verticalLayout_3)
         self.horizontalLayout_15 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_15.setObjectName("horizontalLayout_15")
@@ -628,14 +702,21 @@ class Ui_SettingWindow(object):
         self.label_5.setText(_translate("SettingWindow", "BUCKET_NAME："))
         self.lineEdit_BUCKET_NAME.setPlaceholderText(_translate("SettingWindow", "存储桶名称"))
         self.label_9.setText(_translate("SettingWindow", "COZE_API_KEY："))
-        self.lineEdit_COZE_API_KEY.setPlaceholderText(_translate("SettingWindow", "Ai识别服务密钥"))
-        self.label_10.setText(_translate("SettingWindow", "WORKFLOW_ID："))
-        self.lineEdit_WORKFLOW_ID.setPlaceholderText(_translate("SettingWindow", "工作流ID"))
-        self.label_7.setText(_translate("SettingWindow", "CONCURRENCY（多线程处理并发数）："))
-        self.label_6.setText(_translate("SettingWindow", "RETRY_TIMES（失败时重试次数）："))
+        self.lineEdit_COZE_API_KEY.setPlaceholderText(_translate("SettingWindow", "字节服务密钥"))
+        self.label_12.setText(_translate("SettingWindow", "BAIDU_API_KEY："))
+        self.lineEdit_BAIDU_API_KEY.setPlaceholderText(_translate("SettingWindow", "百度服务密钥"))
+        self.label_13.setText(_translate("SettingWindow", "BAIDU_SECRET_KEY："))
+        self.lineEdit_BAIDU_SECRET_KEY.setPlaceholderText(_translate("SettingWindow", "百度服务密钥"))
+        self.label_10.setText(_translate("SettingWindow", "ALI_KEY："))
+        self.lineEdit_ALI_CODE.setPlaceholderText(_translate("SettingWindow", "阿里服务CODE"))
+        self.label_7.setText(_translate("SettingWindow", "CONCURRENCY（线程并发数）："))
+        self.label_6.setText(_translate("SettingWindow", "RETRY_TIMES（重试次数）："))
+        self.label_11.setText(_translate("SettingWindow", "识别模式"))
+        self.comboBox_mode.setItemText(0, _translate("SettingWindow", "阿里云"))
+        self.comboBox_mode.setItemText(1, _translate("SettingWindow", "仅本地"))
+        self.comboBox_mode.setItemText(2, _translate("SettingWindow", "抖音云"))
+        self.comboBox_mode.setItemText(3, _translate("SettingWindow", "百度云"))
         self.label_8.setText(_translate("SettingWindow", "RE（Ai 识别结果校验）："))
         self.lineEdit_RE.setPlaceholderText(_translate("SettingWindow", "输入正则表达式"))
         self.pushButton_Password.setText(_translate("SettingWindow", "启动密码"))
-        self.label_11.setText(_translate("SettingWindow", "PROMPT"))
-        self.textEdit_PROMPT.setPlaceholderText(_translate("SettingWindow", "请识别图像中卡片上的标签：仅提取同时满足以下条件的内容 ——1. 格式为单个英文字母（A-K，在前）+ 单个数字（1-7，在后）；2. 文字颜色为红色；3. 符合示例（如 A1、B2）。无需任何多余说明，直接返回识别到的标签；若未识别到符合条件的内容，直接返回“识别失败”。"))
         self.pushButton_save.setText(_translate("SettingWindow", "保存设置"))

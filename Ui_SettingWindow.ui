@@ -436,7 +436,7 @@ QLineEdit:disabled {
 }</string>
                </property>
                <property name="placeholderText">
-                <string>Ai识别服务密钥</string>
+                <string>字节服务密钥</string>
                </property>
               </widget>
              </item>
@@ -452,12 +452,12 @@ QLineEdit:disabled {
                 </font>
                </property>
                <property name="text">
-                <string>WORKFLOW_ID：</string>
+                <string>ALI_KEY：</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_WORKFLOW_ID">
+              <widget class="QLineEdit" name="lineEdit_ALI_CODE">
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
@@ -491,7 +491,7 @@ QLineEdit:disabled {
 }</string>
                </property>
                <property name="placeholderText">
-                <string>工作流ID</string>
+                <string>阿里服务CODE</string>
                </property>
               </widget>
              </item>
@@ -504,6 +504,9 @@ QLineEdit:disabled {
            <property name="spacing">
             <number>12</number>
            </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <item>
@@ -514,7 +517,7 @@ QLineEdit:disabled {
                 </font>
                </property>
                <property name="text">
-                <string>CONCURRENCY（多线程处理并发数）：</string>
+                <string>CONCURRENCY（线程并发数）：</string>
                </property>
               </widget>
              </item>
@@ -595,7 +598,7 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
                 </font>
                </property>
                <property name="text">
-                <string>RETRY_TIMES（失败时重试次数）：</string>
+                <string>RETRY_TIMES（重试次数）：</string>
                </property>
               </widget>
              </item>
@@ -665,6 +668,111 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
                <property name="value">
                 <number>3</number>
                </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_16">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_11">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>识别模式</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="comboBox_mode">
+               <property name="styleSheet">
+                <string notr="true">QComboBox {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 4px;
+    padding: 2px;
+    background-color: white;
+    color: black;
+    font-size: 14px;
+}
+
+QComboBox:hover {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 1px;
+}
+
+QComboBox:focus {
+    border: 2px solid rgb(30, 131, 255);
+    padding: 1px;
+    background-color: #f8faff;
+}
+
+QComboBox:disabled {
+    border: 1px solid #cccccc;
+    background-color: #f0f0f0;
+    color: #999999;
+}
+
+/* 下拉按钮样式 */
+QComboBox::drop-down {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 16px;
+    height: 100%;
+    background-color: transparent;
+}
+
+/* 下拉箭头样式 */
+QComboBox::down-arrow {
+    image: url(:/icons/down_arrow.png); /* 可替换为实际箭头图标 */
+    width: 8px;
+    height: 8px;
+}
+
+QComboBox::drop-down:hover {
+    background-color: rgba(30, 131, 255, 0.1);
+}
+
+QComboBox::drop-down:pressed {
+    background-color: rgba(30, 131, 255, 0.2);
+}
+
+QComboBox:disabled::drop-down {
+    background-color: transparent;
+}
+
+/* 下拉列表样式 */
+QComboBox QAbstractItemView {
+    border: 1px solid rgb(30, 131, 255);
+    border-radius: 4px;
+    background-color: white;
+    selection-background-color: rgba(30, 131, 255, 0.2);
+    selection-color: black;
+}</string>
+               </property>
+               <item>
+                <property name="text">
+                 <string>阿里云</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>仅本地</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>抖音云</string>
+                </property>
+               </item>
               </widget>
              </item>
             </layout>
@@ -760,59 +868,7 @@ QPushButton:disabled {
           </layout>
          </item>
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QLabel" name="label_11">
-             <property name="font">
-              <font>
-               <pointsize>12</pointsize>
-              </font>
-             </property>
-             <property name="text">
-              <string>PROMPT</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QTextEdit" name="textEdit_PROMPT">
-             <property name="font">
-              <font>
-               <family>微软雅黑</family>
-               <pointsize>-1</pointsize>
-              </font>
-             </property>
-             <property name="styleSheet">
-              <string notr="true">QTextEdit {
-    border: 2px solid rgb(30, 131, 255);
-    border-radius: 6px;
-    padding: 4px;
-    background-color: white;
-    color: black;
-    font-size: 14px;
-}
-
-QTextEdit:hover {
-    border: 2px solid rgb(30, 131, 255);
-    background-color: rgba(30, 131, 255, 0.05);
-}
-
-QTextEdit:focus {
-    border: 2px solid rgb(30, 131, 255);
-    background-color: rgba(30, 131, 255, 0.1);
-}
-
-QTextEdit:disabled {
-    border: 2px solid #cccccc;
-    background-color: #f0f0f0;
-    color: #999999;
-}</string>
-             </property>
-             <property name="placeholderText">
-              <string>请识别图像中卡片上的标签：仅提取同时满足以下条件的内容 ——1. 格式为单个英文字母（A-K，在前）+ 单个数字（1-7，在后）；2. 文字颜色为红色；3. 符合示例（如 A1、B2）。无需任何多余说明，直接返回识别到的标签；若未识别到符合条件的内容，直接返回“识别失败”。</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_3"/>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_15">

@@ -40,11 +40,15 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             self.lineEdit_ENDPOINT.setText(config.get("ENDPOINT", ""))
             self.lineEdit_BUCKET_NAME.setText(config.get("BUCKET_NAME", ""))
             self.lineEdit_COZE_API_KEY.setText(config.get("COZE_API_KEY", ""))
-            self.lineEdit_WORKFLOW_ID.setText(config.get("WORKFLOW_ID", ""))
+            self.lineEdit_ALI_CODE.setText(config.get("ALI_CODE", ""))
+            self.lineEdit_BAIDU_API_KEY.setText(config.get("BAIDU_API_KEY", ""))
+            self.lineEdit_BAIDU_SECRET_KEY.setText(config.get("BAIDU_SECRET_KEY", ""))
             self.spinBox_CONCURRENCY.setValue(config.get("CONCURRENCY", 4))
             self.spinBox_RETRY_TIMES.setValue(config.get("RETRY_TIMES", 3))
             self.lineEdit_RE.setText(config.get("RE", r"^[A-K][1-7]$"))
-            self.textEdit_PROMPT.setPlainText(config.get("PROMPT", ""))
+            mode_index = config.get("MODE_INDEX", 0)
+            if 0 <= mode_index < self.comboBox_mode.count():
+                self.comboBox_mode.setCurrentIndex(mode_index)
         except Exception as e:
             QMessageBox.critical(self, "配置加载失败", f"读取配置时出错：{str(e)}")
             self._load_default_values()
@@ -55,22 +59,41 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         self.lineEdit_ENDPOINT.setText("oss-cn-hangzhou.aliyuncs.com")
         self.lineEdit_BUCKET_NAME.setText("")
         self.lineEdit_COZE_API_KEY.setText("")
-        self.lineEdit_WORKFLOW_ID.setText("")
+        self.lineEdit_ALI_CODE.setText("")
         self.spinBox_CONCURRENCY.setValue(4)
         self.spinBox_RETRY_TIMES.setValue(3)
         self.lineEdit_RE.setText(r"^[A-K][1-7]$")
-        self.textEdit_PROMPT.setPlainText("请识别图像中卡片上的红色标签，格式为A-K+1-7（如A1），直接返回结果或'识别失败'")
+        self.comboBox_mode.setCurrentIndex(0)
 
     def validate_required_fields(self):
+        # 根据当前模式确定必填字段
+        mode_index = self.comboBox_mode.currentIndex()
         required_fields = [
-            ("ACCESS_KEY_ID", self.lineEdit_ACCESS_KEY_ID),
-            ("ACCESS_KEY_SECRET", self.lineEdit_ACCESS_KEY_SECRET),
-            ("ENDPOINT", self.lineEdit_ENDPOINT),
-            ("BUCKET_NAME", self.lineEdit_BUCKET_NAME),
-            ("COZE_API_KEY", self.lineEdit_COZE_API_KEY),
-            ("WORKFLOW_ID", self.lineEdit_WORKFLOW_ID),
             ("RE（正则表达式）", self.lineEdit_RE)
         ]
+
+        # 阿里云模式必填字段
+        if mode_index == 0:
+            required_fields.extend([
+                ("ALI_CODE", self.lineEdit_ALI_CODE),
+                ("ACCESS_KEY_ID", self.lineEdit_ACCESS_KEY_ID),
+                ("ACCESS_KEY_SECRET", self.lineEdit_ACCESS_KEY_SECRET),
+                ("ENDPOINT", self.lineEdit_ENDPOINT),
+                ("BUCKET_NAME", self.lineEdit_BUCKET_NAME)
+            ])
+        # 抖音云模式必填字段
+        elif mode_index == 2:
+            required_fields.extend([
+                ("COZE_API_KEY", self.lineEdit_COZE_API_KEY)
+            ])
+        # 百度云模式必填字段
+        elif mode_index == 3:
+            required_fields.extend([
+                ("BAIDU_API_KEY", self.lineEdit_BAIDU_API_KEY),
+                ("BAIDU_SECRET_KEY", self.lineEdit_BAIDU_SECRET_KEY)
+            ])
+        # 本地模式不需要额外API密钥
+
         empty_fields = [label for label, widget in required_fields if not widget.text().strip()]
         if empty_fields:
             QMessageBox.warning(
@@ -100,14 +123,16 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 "CONCURRENCY": self.spinBox_CONCURRENCY.value(),
                 "RETRY_TIMES": self.spinBox_RETRY_TIMES.value(),
                 "COZE_API_KEY": self.lineEdit_COZE_API_KEY.text().strip(),
-                "WORKFLOW_ID": self.lineEdit_WORKFLOW_ID.text().strip(),
+                "ALI_CODE": self.lineEdit_ALI_CODE.text().strip(),
+                "BAIDU_API_KEY": self.lineEdit_BAIDU_API_KEY.text().strip(),
+                "BAIDU_SECRET_KEY": self.lineEdit_BAIDU_SECRET_KEY.text().strip(),
                 "SUMMARY_DIR": "summary",
                 "MAX_REQUESTS_PER_MINUTE": 300,
                 "RATE_LIMIT_BUFFER": 0.9,
                 "OPTIMAL_RATE": 270,
                 "IMAGE_PROCESSING_TIMEOUT": 30,
                 "RE": self.lineEdit_RE.text().strip(),
-                "PROMPT": self.textEdit_PROMPT.toPlainText().strip()
+                "MODE_INDEX": self.comboBox_mode.currentIndex()
             }
             with open(self.CONFIG_FILE, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
@@ -230,17 +255,18 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
     def _save_password(self, password):
         try:
             key = winreg.CreateKey(winreg.HKEY_CURRENT_USER, self.REG_PATH)
-            if not password:
+            if password:
+                password_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
+                winreg.SetValueEx(key, self.REG_PWD_KEY, 0, winreg.REG_SZ, password_hash)
+            else:
                 try:
                     winreg.DeleteValue(key, self.REG_PWD_KEY)
                 except FileNotFoundError:
-                    pass
-            else:
-                pwd_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
-                winreg.SetValueEx(key, self.REG_PWD_KEY, 0, winreg.REG_SZ, pwd_hash)
+                    pass  # 如果值不存在，忽略错误
             winreg.CloseKey(key)
             return True
-        except OSError:
+        except Exception as e:
+            print(f"保存密码失败: {str(e)}")
             return False
 
 

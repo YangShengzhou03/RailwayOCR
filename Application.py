@@ -215,7 +215,6 @@ def main():
                 msg_box.exec()
 
     window = MainWindow()
-    window.setWindowTitle("LeafView Railway")
     window.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))
 
     # 窗口居中显示

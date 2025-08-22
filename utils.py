@@ -5,6 +5,8 @@ import time
 from datetime import datetime
 
 main_window = None
+LOG_PATH = '_internal/log'
+MAX_LINES = 3000
 
 
 def get_resource_path(relative_path):
@@ -17,10 +19,61 @@ def get_resource_path(relative_path):
 
 file_path = get_resource_path('resources/Config.json')
 
+def log_print(log_info):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{timestamp}] {log_info}")
+
+    def ensure_log_file_exists():
+        """内部函数：确保日志文件存在，不存在则创建"""
+        try:
+            directory = os.path.dirname(LOG_PATH)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            if not os.path.exists(LOG_PATH):
+                with open(LOG_PATH, 'w', encoding='utf-8') as f:
+                    f.write("# Log file created at {}\n".format(datetime.now()))
+        except Exception:
+            pass
+
+    def rotate_log_if_needed():
+        """内部函数：检查日志行数，超过限制则进行旋转"""
+        try:
+            with open(LOG_PATH, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            if len(lines) > MAX_LINES:
+                with open(LOG_PATH, 'w', encoding='utf-8') as f:
+                    f.writelines(lines[-MAX_LINES:])
+        except Exception:
+            pass
+
+    try:
+        ensure_log_file_exists()
+        rotate_log_if_needed()
+        with open(LOG_PATH, 'a', encoding='utf-8') as f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{timestamp}] {log_info}\n")
+    except Exception:
+        pass
+
+
 
 def load_config():
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        log("ERROR", f"配置文件不存在: {file_path}")
+        # 返回默认配置
+        return {
+            "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
+            "SUMMARY_DIR": "summary"
+        }
+    except json.JSONDecodeError:
+        log("ERROR", f"配置文件格式错误: {file_path}")
+        return {
+            "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
+            "SUMMARY_DIR": "summary"
+        }
 
 
 Config = load_config()

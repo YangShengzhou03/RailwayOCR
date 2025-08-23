@@ -34,7 +34,7 @@
      <widget class="QFrame" name="main_frame">
       <property name="styleSheet">
        <string notr="true">QFrame{
-background-color: rgb(255, 255, 255);
+background-color: rgb(240, 249, 254);
 border:0px solid red;
 border-radius:18px
 }</string>
@@ -397,12 +397,12 @@ QLineEdit:disabled {
                 </font>
                </property>
                <property name="text">
-                <string>COZE_API_KEY：</string>
+                <string>DOUYIN_KEY：</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="lineEdit_COZE_API_KEY">
+              <widget class="QLineEdit" name="lineEdit_DOUYIN_API_KEY">
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
@@ -436,7 +436,7 @@ QLineEdit:disabled {
 }</string>
                </property>
                <property name="placeholderText">
-                <string>字节服务密钥</string>
+                <string>抖音服务密钥</string>
                </property>
               </widget>
              </item>
@@ -491,7 +491,7 @@ QLineEdit:disabled {
 }</string>
                </property>
                <property name="placeholderText">
-                <string>阿里服务CODE</string>
+                <string>阿里服务code</string>
                </property>
               </widget>
              </item>
@@ -517,7 +517,7 @@ QLineEdit:disabled {
                 </font>
                </property>
                <property name="text">
-                <string>CONCURRENCY（线程并发数）：</string>
+                <string>多线程并发数：</string>
                </property>
               </widget>
              </item>
@@ -598,7 +598,7 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
                 </font>
                </property>
                <property name="text">
-                <string>RETRY_TIMES（重试次数）：</string>
+                <string>出错重试次数：</string>
                </property>
               </widget>
              </item>
@@ -688,7 +688,7 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
                 </font>
                </property>
                <property name="text">
-                <string>识别模式</string>
+                <string>识别模式：</string>
                </property>
               </widget>
              </item>
@@ -760,17 +760,22 @@ QComboBox QAbstractItemView {
                </property>
                <item>
                 <property name="text">
-                 <string>阿里云</string>
+                 <string>阿里服务</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>仅本地</string>
+                 <string>本地模型</string>
                 </property>
                </item>
                <item>
                 <property name="text">
-                 <string>抖音云</string>
+                 <string>抖音服务</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>百度服务</string>
                 </property>
                </item>
               </widget>

@@ -266,7 +266,7 @@ class ProcessingThread(QtCore.QThread):
                 image_source = upload_result['signed_url']
                 signed_url = upload_result['signed_url']
 
-        max_attempts = self.Config["RETRY_TIMES"]
+        max_attempts = 1 if self.Config["MODE_INDEX"] == 1 else self.Config["RETRY_TIMES"]
         for attempt in range(max_attempts):
             if attempt > 0:
                 backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)

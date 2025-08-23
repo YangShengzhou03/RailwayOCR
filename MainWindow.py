@@ -29,7 +29,8 @@ class AliClient:
         self.REQUEST_URL = "https://gjbsb.market.alicloudapi.com/ocrservice/advanced"
         self.appcode = appcode
         self.context = ssl._create_unverified_context()
-        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.config = utils.load_config()
+        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
         self.client_type = 'ali'  # 添加客户端类型标识
 
     def get_img(self, img_file):
@@ -105,7 +106,8 @@ class AliClient:
 
 class LocalClient:
     def __init__(self, max_retries=3):
-        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.config = utils.load_config()
+        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
         self.client_type = 'local'  # 添加客户端类型标识
         self.reader = None
         self.max_retries = max_retries
@@ -174,16 +176,17 @@ class LocalClient:
 
 
 class DouyinClient:
-    def __init__(self, api_key=None, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0, proxies=None, config=None):
+    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0,
+                 proxies=None):
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout
         self.proxies = proxies
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
-        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
-        self.config = config or {}
-        self.client_type = 'douyin'  # 添加客户端类型标识
+        self.client_type = '抖音服务'  # 添加客户端类型标识
+        self.config = utils.load_config()
+        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
 
     def _create_session(self):
         session = requests.Session()
@@ -201,73 +204,157 @@ class DouyinClient:
         })
         return session
 
-    def get_img(self, img_file):
-        with open(os.path.expanduser(img_file), 'rb') as f:
-            data = f.read()
-        return str(base64.b64encode(data), 'utf-8')
+    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False, timeout=None):
+        api_url = f"{self.base_url}/workflow/run"
+        payload = {"workflow_id": workflow_id, "is_async": is_async}
 
-    def extract_matches(self, response_data):
-        if not response_data.get("success"):
+        if parameters:
+            payload["parameters"] = parameters
+        if bot_id:
+            payload["bot_id"] = bot_id
+
+        session = self._create_session()
+        try:
+            # 使用方法级超时参数，如果未提供则使用实例级默认值
+            request_timeout = timeout if timeout is not None else self.timeout
+
+            response = session.post(
+                api_url,
+                json=payload,
+                timeout=request_timeout,
+                proxies=self.proxies
+            )
+            response.raise_for_status()
+            result = response.json()
+
+            if result.get("code") == 0:
+                return {
+                    "success": True,
+                    "data": result.get("data"),
+                    "debug_url": result.get("debug_url"),
+                    "execute_id": result.get("execute_id"),
+                    "usage": result.get("usage")
+                }
+            else:
+                return {
+                    "success": False,
+                    "error_code": result.get("code"),
+                    "error_msg": result.get("msg"),
+                    "logid": result.get("detail", {}).get("logid")
+                }
+
+        except Exception as e:
+            return {"success": False, "error_msg": f"请求异常: {str(e)}"}
+        finally:
+            session.close()
+
+    def get_task_result(self, execute_id, timeout=None):
+        """获取异步任务结果"""
+        api_url = f"{self.base_url}/task/result"
+        payload = {"execute_id": execute_id}
+
+        session = self._create_session()
+        try:
+            # 使用方法级超时参数，如果未提供则使用实例级默认值
+            request_timeout = timeout if timeout is not None else self.timeout
+
+            response = session.post(
+                api_url,
+                json=payload,
+                timeout=request_timeout,
+                proxies=self.proxies
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except Exception as e:
+            return {"success": False, "error_msg": f"获取任务结果失败: {str(e)}"}
+        finally:
+            session.close()
+
+    def wait_for_task_completion(self, execute_id, max_attempts=10, check_interval=5, timeout=None):
+        """等待异步任务完成"""
+        for attempt in range(max_attempts):
+            result = self.get_task_result(execute_id, timeout=timeout)
+
+            if not result.get("success"):
+                return result
+
+            status = result.get("data", {}).get("status")
+
+            if status == "completed":
+                return result
+            elif status in ["failed", "cancelled"]:
+                return {"success": False, "error_msg": f"任务状态: {status}"}
+
+            time.sleep(check_interval)
+
+        return {"success": False, "error_msg": "等待任务完成超时"}
+
+    def extract_matches(self, response_text):
+        try:
+            data = json.loads(response_text)
+        except json.JSONDecodeError:
             return None
 
-        # 假设结果在data字段中，具体结构需要根据实际API响应调整
-        result_text = response_data.get("data", {}).get("result", "")
-        if self.pattern.fullmatch(result_text.strip()):
-            return result_text.strip().upper()
+        # 尝试从不同的字段中提取结果
+        result = data.get("data", {}).get("output", {}).get("text", "")
+        if not result:
+            result = data.get("result", "")
+
+        if self.pattern.fullmatch(result.strip()):
+            return result.strip().upper()
         return None
 
     def recognize(self, img_file, params=None):
         if not self.api_key:
             return {"success": False, "error": "未提供抖音API Key"}
 
-        img = self.get_img(img_file)
-        session = self._create_session()
+        # 从配置中获取workflow_id和bot_id
+        print(self.config)
+        workflow_id = self.config.get("DOUYIN_WORKFLOW_ID")
+        bot_id = self.config.get("DOUYIN_BOT_ID")
 
-        # 构建请求参数
-        request_params = {
-            "image": img
+        if not workflow_id:
+            return {"success": False, "error": "未配置抖音Workflow ID"}
+
+        # 准备参数
+        parameters = {
+            "image_path": img_file
         }
+
         if params:
-            request_params.update(params)
+            parameters.update(params)
 
-        try:
-            # 这里假设抖音API的工作流ID和机器人ID需要配置
-            workflow_id = self.config.get("DOUYIN_WORKFLOW_ID")
-            bot_id = self.config.get("DOUYIN_BOT_ID")
+        # 运行工作流
+        result = self.run_workflow(
+            workflow_id=workflow_id,
+            parameters=parameters,
+            bot_id=bot_id,
+            is_async=True
+        )
 
-            response = session.post(
-                f"{self.base_url}/workflow/run",
-                json={
-                    "workflow_id": workflow_id,
-                    "parameters": request_params,
-                    "bot_id": bot_id,
-                    "is_async": False
-                },
-                timeout=self.timeout,
-                proxies=self.proxies
-            )
+        if not result.get("success"):
+            return {"success": False, "error": result.get("error_msg", "运行工作流失败")}
 
-            response.raise_for_status()
-            result = response.json()
-            raw_result = json.dumps(result)
+        execute_id = result.get("execute_id")
+        if not execute_id:
+            return {"success": False, "error": "未获取到执行ID"}
 
-            if result.get("code") == 0:
-                data = result.get("data", {})
-                # 提取识别结果（需要根据实际API响应结构调整）
-                recognized_text = data.get("result", "")
-                matched_result = self.extract_matches({"success": True, "data": {"result": recognized_text}})
+        # 等待任务完成
+        task_result = self.wait_for_task_completion(execute_id)
 
-                if matched_result:
-                    return {"success": True, "result": matched_result, "raw": raw_result}
-                else:
-                    return {"success": False, "error": "未识别到匹配模式", "raw": raw_result}
-            else:
-                return {"success": False, "error": f"抖音API错误: {result.get('msg', '未知错误')}", "raw": raw_result}
+        if not task_result.get("success"):
+            return {"success": False, "error": task_result.get("error_msg", "任务执行失败")}
 
-        except Exception as e:
-            return {"success": False, "error": f"请求异常: {str(e)}", "raw": "{}"}
-        finally:
-            session.close()
+        # 提取结果
+        response_text = json.dumps(task_result)
+        matched_result = self.extract_matches(response_text)
+
+        if matched_result:
+            return {"success": True, "result": matched_result, "raw": response_text}
+        else:
+            return {"success": False, "error": "未识别到匹配模式", "raw": response_text}
 
 
 class BaiduClient:
@@ -277,7 +364,8 @@ class BaiduClient:
         self.secret_key = secret_key
         self.access_token = ''
         self.context = ssl._create_unverified_context()
-        self.pattern = re.compile(r'^[A-Za-z][0-9]$')
+        self.config = utils.load_config()
+        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
         self.client_type = 'baidu'  # 添加客户端类型标识
 
     def get_access_token(self):
@@ -548,7 +636,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     QMessageBox.critical(self, "错误", "未配置抖音API Key")
                     log("ERROR", "未配置抖音API Key")
                     return
-                client = DouyinClient(api_key=api_key, config=self.config)
+                client = DouyinClient(api_key=api_key)
                 log("INFO", "使用抖音云OCR模式")
             elif mode_index == 3:
                 # 百度云模式

@@ -39,10 +39,8 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             self.lineEdit_ACCESS_KEY_SECRET.setText(config.get("ACCESS_KEY_SECRET", ""))
             self.lineEdit_ENDPOINT.setText(config.get("ENDPOINT", ""))
             self.lineEdit_BUCKET_NAME.setText(config.get("BUCKET_NAME", ""))
-            self.lineEdit_COZE_API_KEY.setText(config.get("COZE_API_KEY", ""))
+            self.lineEdit_DOUYIN_API_KEY.setText(config.get("DOUYIN_API_KEY", ""))
             self.lineEdit_ALI_CODE.setText(config.get("ALI_CODE", ""))
-            self.lineEdit_BAIDU_API_KEY.setText(config.get("BAIDU_API_KEY", ""))
-            self.lineEdit_BAIDU_SECRET_KEY.setText(config.get("BAIDU_SECRET_KEY", ""))
             self.spinBox_CONCURRENCY.setValue(config.get("CONCURRENCY", 4))
             self.spinBox_RETRY_TIMES.setValue(config.get("RETRY_TIMES", 3))
             self.lineEdit_RE.setText(config.get("RE", r"^[A-K][1-7]$"))
@@ -58,7 +56,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         self.lineEdit_ACCESS_KEY_SECRET.setText("")
         self.lineEdit_ENDPOINT.setText("oss-cn-hangzhou.aliyuncs.com")
         self.lineEdit_BUCKET_NAME.setText("")
-        self.lineEdit_COZE_API_KEY.setText("")
+        self.lineEdit_DOUYIN_API_KEY.setText("")
         self.lineEdit_ALI_CODE.setText("")
         self.spinBox_CONCURRENCY.setValue(4)
         self.spinBox_RETRY_TIMES.setValue(3)
@@ -84,13 +82,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         # 抖音云模式必填字段
         elif mode_index == 2:
             required_fields.extend([
-                ("COZE_API_KEY", self.lineEdit_COZE_API_KEY)
-            ])
-        # 百度云模式必填字段
-        elif mode_index == 3:
-            required_fields.extend([
-                ("BAIDU_API_KEY", self.lineEdit_BAIDU_API_KEY),
-                ("BAIDU_SECRET_KEY", self.lineEdit_BAIDU_SECRET_KEY)
+                ("DOUYIN_API_KEY", self.lineEdit_DOUYIN_API_KEY)
             ])
         # 本地模式不需要额外API密钥
 
@@ -122,10 +114,8 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 "LOG_FILE": "ocr_processing.log",
                 "CONCURRENCY": self.spinBox_CONCURRENCY.value(),
                 "RETRY_TIMES": self.spinBox_RETRY_TIMES.value(),
-                "COZE_API_KEY": self.lineEdit_COZE_API_KEY.text().strip(),
+                "DOUYIN_API_KEY": self.lineEdit_DOUYIN_API_KEY.text().strip(),
                 "ALI_CODE": self.lineEdit_ALI_CODE.text().strip(),
-                "BAIDU_API_KEY": self.lineEdit_BAIDU_API_KEY.text().strip(),
-                "BAIDU_SECRET_KEY": self.lineEdit_BAIDU_SECRET_KEY.text().strip(),
                 "SUMMARY_DIR": "summary",
                 "MAX_REQUESTS_PER_MINUTE": 300,
                 "RATE_LIMIT_BUFFER": 0.9,

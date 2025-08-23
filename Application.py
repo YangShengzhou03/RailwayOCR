@@ -14,7 +14,6 @@ from utils import get_resource_path
 class PasswordDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        # 设置窗口样式
         self.setWindowTitle("请输入密码")
         self.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))
         self.setFixedSize(350, 180)
@@ -63,33 +62,27 @@ class PasswordDialog(QtWidgets.QDialog):
             }
         """)
 
-        # 创建布局
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.setContentsMargins(24, 24, 24, 20)
         main_layout.setSpacing(16)
 
-        # 标题标签
         title_label = QtWidgets.QLabel("请输入启动密码", self)
         title_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         main_layout.addWidget(title_label)
 
-        # 密码输入框
         self.password_edit = QtWidgets.QLineEdit(self)
         self.password_edit.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         self.password_edit.setPlaceholderText("输入密码")
         self.password_edit.setMinimumHeight(36)
         main_layout.addWidget(self.password_edit)
 
-        # 按钮布局
         button_layout = QtWidgets.QHBoxLayout()
         button_layout.setSpacing(12)
 
-        # 取消按钮
         self.cancel_button = QtWidgets.QPushButton("取消", self)
         self.cancel_button.setObjectName("cancelButton")
         self.cancel_button.setMinimumHeight(34)
 
-        # 确定按钮
         self.ok_button = QtWidgets.QPushButton("确定", self)
         self.ok_button.setObjectName("okButton")
         self.ok_button.setMinimumHeight(34)
@@ -99,12 +92,10 @@ class PasswordDialog(QtWidgets.QDialog):
         button_layout.addWidget(self.ok_button)
         main_layout.addLayout(button_layout)
 
-        # 连接信号槽
         self.ok_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
         self.password_edit.returnPressed.connect(self.accept)
 
-        # 设置焦点
         self.password_edit.setFocus()
 
     def get_password(self):
@@ -163,12 +154,10 @@ def main():
     app.setApplicationName("LeafView Railway")
     app.setOrganizationName("LeafView")
 
-    # 全局字体设置
     font = QFont()
     font.setFamily("Segoe UI, Microsoft YaHei, sans-serif")
     app.setFont(font)
 
-    # 全局样式设置
     app.setStyleSheet("""
         QMessageBox {
             background-color: #f5f5f7;
@@ -217,11 +206,9 @@ def main():
     window = MainWindow()
     window.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))
 
-    # 窗口居中显示
     if hasattr(window, 'centerOnScreen'):
         window.centerOnScreen()
     else:
-        # 自动居中实现
         qr = window.frameGeometry()
         cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
         qr.moveCenter(cp)
@@ -245,12 +232,10 @@ def handle_incoming_connection(server):
         if message == "bring_to_front":
             for widget in QtWidgets.QApplication.topLevelWidgets():
                 if isinstance(widget, QtWidgets.QMainWindow) and widget.windowTitle() == "LeafView Railway":
-                    # 窗口激活动画
                     widget.setWindowState(
                         widget.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive)
                     widget.activateWindow()
                     widget.raise_()
-                    # 添加焦点动画效果
                     widget.setStyleSheet("""
                         QMainWindow {
                             border: 1px solid #007aff;

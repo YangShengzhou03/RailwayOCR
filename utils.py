@@ -3,10 +3,21 @@ import os
 import sys
 import time
 from datetime import datetime
+import traceback
 
 main_window = None
 LOG_PATH = '_internal/log'
 MAX_LINES = 3000
+
+LOG_LEVELS = {
+    "DEBUG": 10,
+    "INFO": 20,
+    "WARNING": 30,
+    "ERROR": 40,
+    "CRITICAL": 50
+}
+
+CURRENT_LOG_LEVEL = LOG_LEVELS["INFO"]
 
 
 def get_resource_path(relative_path):
@@ -19,41 +30,66 @@ def get_resource_path(relative_path):
 
 file_path = get_resource_path('resources/Config.json')
 
-def log_print(log_info):
+def set_log_level(level):
+    global CURRENT_LOG_LEVEL
+    if level in LOG_LEVELS:
+        CURRENT_LOG_LEVEL = LOG_LEVELS[level]
+        log_print(f"日志级别已设置为: {level}", level="INFO")
+    else:
+        log_print(f"无效的日志级别: {level}", level="ERROR")
+
+
+def log_print(log_info, level="INFO"):
+    if LOG_LEVELS.get(level, 20) < CURRENT_LOG_LEVEL:
+        return
+
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"[{timestamp}] {log_info}")
+    formatted_log = f"[{timestamp}] [{level}] {log_info}"
+    print(formatted_log)
 
     def ensure_log_file_exists():
-        """内部函数：确保日志文件存在，不存在则创建"""
         try:
             directory = os.path.dirname(LOG_PATH)
             if not os.path.exists(directory):
                 os.makedirs(directory)
             if not os.path.exists(LOG_PATH):
                 with open(LOG_PATH, 'w', encoding='utf-8') as f:
-                    f.write("# Log file created at {}\n".format(datetime.now()))
-        except Exception:
-            pass
+                    f.write(f"# Log file created at {datetime.now()}\n")
+        except Exception as e:
+            print(f"创建日志文件失败: {str(e)}")
 
     def rotate_log_if_needed():
-        """内部函数：检查日志行数，超过限制则进行旋转"""
         try:
-            with open(LOG_PATH, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            if len(lines) > MAX_LINES:
-                with open(LOG_PATH, 'w', encoding='utf-8') as f:
-                    f.writelines(lines[-MAX_LINES:])
-        except Exception:
-            pass
+            if os.path.exists(LOG_PATH):
+                with open(LOG_PATH, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                if len(lines) > MAX_LINES:
+                    with open(LOG_PATH, 'w', encoding='utf-8') as f:
+                        f.writelines(lines[-MAX_LINES:])
+        except Exception as e:
+            print(f"日志旋转失败: {str(e)}")
 
     try:
         ensure_log_file_exists()
         rotate_log_if_needed()
         with open(LOG_PATH, 'a', encoding='utf-8') as f:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            f.write(f"[{timestamp}] {log_info}\n")
-    except Exception:
-        pass
+            f.write(f"{formatted_log}\n")
+
+        if main_window and hasattr(main_window, 'textEdit_log'):
+            colors = {
+                "INFO": "#691bfd",
+                "ERROR": "#FF0000",
+                "WARNING": "#FFA500",
+                "DEBUG": "#008000",
+                "CRITICAL": "#8B0000"
+            }
+            color = colors.get(level, "#000000")
+            ui_log = f'<span style="color:{color}">{formatted_log}</span>'
+            main_window.textEdit_log.append(ui_log)
+            main_window.textEdit_log.ensureCursorVisible()
+    except Exception as e:
+        print(f"写入日志文件失败: {str(e)}")
+        print(traceback.format_exc())
 
 
 
@@ -62,40 +98,53 @@ def load_config():
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        log("ERROR", f"配置文件不存在: {file_path}")
-        # 返回默认配置
+        log_print(f"配置文件不存在: {file_path}", level="ERROR")
         return {
             "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
             "SUMMARY_DIR": "summary",
             "DOUYIN_WORKFLOW_ID": "",
-            "DOUYIN_PROMPT": "请识别图像中的内容"
+            "DOUYIN_PROMPT": "请识别图像中的内容",
+            "LOG_LEVEL": "INFO"
         }
     except json.JSONDecodeError:
-        log("ERROR", f"配置文件格式错误: {file_path}")
+        log_print(f"配置文件格式错误: {file_path}", level="ERROR")
         return {
             "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
             "SUMMARY_DIR": "summary",
             "DOUYIN_WORKFLOW_ID": "",
-            "DOUYIN_PROMPT": "请识别图像中的内容"
+            "DOUYIN_PROMPT": "请识别图像中的内容",
+            "LOG_LEVEL": "INFO"
         }
 
 
 Config = load_config()
 
+set_log_level(Config.get("LOG_LEVEL", "INFO"))
+
+
 
 def log(level, message):
-    timestamp = time.strftime("%m-%d %H:%M:%S")
-    colors = {
-        "INFO": "#691bfd",
-        "ERROR": "#FF0000",
-        "WARNING": "#FFA500",
-        "DEBUG": "#008000"
-    }
-    color = colors.get(level, "#000000")
-    formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
-    if main_window and hasattr(main_window, 'textEdit_log'):
-        main_window.textEdit_log.append(formatted_message)
-        main_window.textEdit_log.ensureCursorVisible()
+    log_print(message, level=level)
+
+
+def log_debug(message):
+    log_print(message, level="DEBUG")
+
+
+def log_info(message):
+    log_print(message, level="INFO")
+
+
+def log_warning(message):
+    log_print(message, level="WARNING")
+
+
+def log_error(message):
+    log_print(message, level="ERROR")
+
+
+def log_critical(message):
+    log_print(message, level="CRITICAL")
 
 
 def save_summary(results):

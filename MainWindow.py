@@ -104,53 +104,67 @@ class AliClient:
             return {"success": False, "error": "未识别到匹配模式", "raw": response}
 
 
+import multiprocessing
+
 class LocalClient:
-    def __init__(self, max_retries=3):
+    def __init__(self, max_retries=3, gpu=False):
         self.config = utils.load_config()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
-        self.client_type = 'local'  # 添加客户端类型标识
+        self.pattern = re.compile(self.config.get("RE", r'^[A-K][1-7]$'))
+        self.client_type = 'local'
         self.reader = None
         self.max_retries = max_retries
+        self.gpu = gpu
+        
+        cpu_count = multiprocessing.cpu_count()
+        max_threads_limit = max(1, cpu_count // 4)
+        json_threads = self.config.get("CONCURRENCY", 1)
+        self.max_threads = min(json_threads, max_threads_limit)
+        log_info(f"CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
+        
         self._initialize_reader()
 
     def _initialize_reader(self):
-        import time
         retry_count = 0
         while retry_count < self.max_retries:
             try:
-                log_print(f"正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
-                self.reader = easyocr.Reader(['en'], gpu=False)
-                log_print("OCR模型加载成功")
+                log_info(f"正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
+                if retry_count == 0:
+                    import time
+                self.reader = easyocr.Reader(['en'], gpu=self.gpu, thread_count=self.max_threads)
+                log_info("OCR模型加载成功")
                 return
             except Exception as e:
                 error_msg = f"模型加载失败: {str(e)}"
-                log_print(error_msg)
+                log_error(error_msg)
                 retry_count += 1
                 if retry_count < self.max_retries:
                     wait_time = min(2 ** retry_count, 10)  # 指数退避，最大10秒
-                    log_print(f"{wait_time}秒后重试...")
+                    log_info(f"{wait_time}秒后重试...")
                     time.sleep(wait_time)
                 else:
-                    log_print(f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
+                    log_critical(f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
                     # 仍然抛出异常，让调用者知道初始化失败
                     raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}")
 
     def get_img(self, img_file):
-        return img_file  # 本地识别直接使用文件路径
+        return img_file
 
     def optimized_preprocess(self, img_path, max_size=800):
         try:
             image = Image.open(img_path)
 
-            if max(image.size) > max_size:
+            if not self.gpu and max(image.size) > max_size:
                 scale = max_size / max(image.size)
                 new_size = (int(image.size[0] * scale), int(image.size[1] * scale))
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
+                log_debug(f"图像已缩放至: {new_size}")
+            elif self.gpu:
+                log_debug("使用GPU加速，不缩放图像")
 
             gray_image = image.convert('L')
             return np.array(gray_image)
         except Exception as e:
-            log_print(f"图像预处理错误: {str(e)}")
+            log_error(f"图像预处理错误: {str(e)}")
             return None
 
     def extract_matches(self, texts):
@@ -160,18 +174,30 @@ class LocalClient:
         return None
 
     def recognize(self, img_file, params=None):
+        start_time = time.time()
         processed_image = self.optimized_preprocess(img_file)
 
         if processed_image is not None:
-            result = self.reader.readtext(processed_image, detail=0)
-            matched_result = self.extract_matches(result)
-            raw_result = json.dumps({"texts": result})
+            try:
+                result = self.reader.readtext(processed_image, detail=0)
+                matched_result = self.extract_matches(result)
+                raw_result = json.dumps({"texts": result})
+                processing_time = time.time() - start_time
 
-            if matched_result:
-                return {"success": True, "result": matched_result, "raw": raw_result}
-            else:
-                return {"success": False, "error": "未识别到匹配模式", "raw": raw_result}
+                log_debug(f"本地OCR识别完成，耗时: {processing_time:.2f}秒")
+
+                if matched_result:
+                    log_info(f"识别成功: {matched_result}")
+                    return {"success": True, "result": matched_result, "raw": raw_result, "processing_time": processing_time}
+                else:
+                    log_warning("未识别到匹配模式")
+                    return {"success": False, "error": "未识别到匹配模式", "raw": raw_result, "processing_time": processing_time}
+            except Exception as e:
+                error_msg = f"OCR识别异常: {str(e)}"
+                log_error(error_msg)
+                return {"success": False, "error": error_msg, "raw": str(e)}
         else:
+            log_error("图像预处理失败")
             return {"success": False, "error": "图像预处理失败", "raw": "{}"}
 
 
@@ -185,13 +211,18 @@ class DouyinClient:
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
         self.client_type = "抖音服务"
+        # 从配置加载工作流ID
+        self.config = utils.load_config()
+        self.workflow_id = self.config.get("DOUYIN_WORKFLOW_ID", "7514709270924361743")
+        self.prompt = self.config.get("DOUYIN_PROMPT", "识别图像中【纯白色小卡片】上的红色目标文字...")
 
     def _create_session(self):
+        """创建带重试策略的requests会话"""
         session = requests.Session()
         retry_strategy = requests.adapters.Retry(
             total=self.max_retries,
             backoff_factor=self.backoff_factor,
-            status_forcelist=[500, 502, 503, 504]
+            status_forcelist=[500, 502, 503, 504]  # 只对标准HTTP错误码进行重试
         )
         adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)
@@ -203,6 +234,7 @@ class DouyinClient:
         return session
 
     def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False):
+        """运行抖音工作流"""
         api_url = f"{self.base_url}/workflow/run"
         payload = {"workflow_id": workflow_id, "is_async": is_async}
 
@@ -231,83 +263,98 @@ class DouyinClient:
                     "usage": result.get("usage")
                 }
             else:
+                error_code = result.get("code")
+                error_msg = result.get("msg", "工作流运行失败")
+                log_error(f"工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
                 return {
                     "success": False,
-                    "error_code": result.get("code"),
-                    "error_msg": result.get("msg"),
+                    "error_code": error_code,
+                    "error_msg": error_msg,
                     "logid": result.get("detail", {}).get("logid")
                 }
 
+        except requests.exceptions.Timeout:
+            log_error(f"请求超时: {self.timeout}秒")
+            return {"success": False, "error_msg": f"请求超时: {self.timeout}秒"}
+        except requests.exceptions.ConnectionError:
+            log_error("网络连接错误")
+            return {"success": False, "error_msg": "网络连接错误"}
+        except requests.exceptions.HTTPError as e:
+            log_error(f"HTTP错误: {e.response.status_code}, {e.response.text}")
+            return {"success": False, "error_msg": f"HTTP错误: {e.response.status_code}"}
         except Exception as e:
+            log_error(f"请求异常: {str(e)}")
             return {"success": False, "error_msg": f"请求异常: {str(e)}"}
         finally:
             session.close()
 
     def recognize(self, img_file, params=None):
-        """统一接口：处理图像识别，兼容本地文件路径和URL"""
+        """统一接口：处理图像识别，兼容本地文件路径和URL
+           针对抖音API 4024错误码(请求频率过高)和网络异常实现指数退避重试策略"""
         # 处理参数，设置超时
         retry_count = 0
         max_retries = self.max_retries
         backoff_factor = self.backoff_factor
-
-        while retry_count <= max_retries:
-            # 计算退避时间
-            if retry_count > 0:
-                sleep_time = backoff_factor * (2 ** (retry_count - 1))
-                log_print(f"请求失败，{sleep_time:.2f}秒后重试...")
-                time.sleep(sleep_time)
-
-            try:
         request_timeout = self.timeout
+
         if params and isinstance(params, dict):
             request_timeout = params.get('timeout', self.timeout)
 
+        # 检查必要参数
         if not self.api_key:
-            return {"success": False, "error": "未提供抖音API Key", "raw": ""}
+            error_msg = "未提供抖音API Key"
+            log_error(error_msg)
+            return {"success": False, "error": error_msg, "raw": ""}
 
-        # 从配置中获取workflow_id
-        workflow_id = "7514709270924361743"
-        if not workflow_id:
-            return {"success": False, "error": "缺少必要配置参数: DOUYIN_WORKFLOW_ID", "raw": ""}
+        if not self.workflow_id:
+            error_msg = "缺少必要配置参数: DOUYIN_WORKFLOW_ID"
+            log_error(error_msg)
+            return {"success": False, "error": error_msg, "raw": ""}
 
-        # 准备参数，支持本地文件路径和URL
-        image_url = img_file
-
-        parameters = {
-            "prompt": "识别图像中【纯白色小卡片】上的红色目标文字：  1. 卡片特征：纯白色背景（无其他颜色或图案），尺寸较小（通常占图像面积5%-20%），可能倾斜/部分边缘轻微遮挡（遮挡不超过20%），表面有黑色手写数字（与目标无关，可忽略）。 2. 目标文字要求：   - 颜色：正红色（RGB参考值255,0,0，非暗红/粉红）；   - 字体：无衬线大写字母（如Arial、Helvetica风格，无装饰性笔画）；   - 格式：严格为1个大写字母（A-K，仅A至K）直接衔接1个数字（1-7，仅1至7），无空格/符号/多余字符。 3. 输出规则：仅输出符合上述全部条件的标签（如：B3）；若未识别到或存在多个符合项，输出“识别失败”。无需任何额外说明。",
-            "image": image_url
+        # 准备默认参数
+        default_params = {
+            "prompt": self.prompt,
+            "image": img_file
         }
 
         if params:
-            parameters.update(params)
+            default_params.update(params)
 
+        while retry_count <= max_retries:
+            # 计算退避时间并等待
+            if retry_count > 0:
+                sleep_time = backoff_factor * (2 ** (retry_count - 1))
+                log_info(f"请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
+                time.sleep(sleep_time)
+
+            try:
                 # 运行工作流
                 result = self.run_workflow(
-                    workflow_id=workflow_id,
-                    parameters=parameters,
+                    workflow_id=self.workflow_id,
+                    parameters=default_params,
                     bot_id=None,
-                    is_async=False,  # 修改为同步执行以便获取结果
+                    is_async=False,  # 同步执行以便获取结果
                 )
 
-                log_print(f"请求结果: {result}")
+                log_debug(f"请求结果: {result}")
 
-                # 解析并打印结果
+                # 解析结果
                 parsed_result = self.parse_ocr_result(result)
-                log_print(f"工作流处理结果: {parsed_result}")
+                log_info(f"工作流处理结果: {parsed_result}")
 
-                # 即使没有execute_id也继续，因为有些API响应可能不包含它
+                # 即使没有execute_id也继续
                 execute_id = result.get('execute_id')
                 
                 if not result['success']:
                     error_code = result.get('error_code')
                     error_msg = result.get('error_msg', '工作流运行失败')
-                     
+                      
                     # 对错误码4024(请求频率过高)进行重试
                     if error_code == 4024 and retry_count < max_retries:
                         retry_count += 1
-                        log_print(f"请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
+                        log_warning(f"请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
                         continue
-                     
+                      
                     return {
                         'success': False,
                         'error': error_msg,
@@ -326,16 +373,19 @@ class DouyinClient:
                 # 网络异常也可以重试
                 if retry_count < max_retries:
                     retry_count += 1
-                    log_print(f"请求异常: {str(e)}，正在进行第{retry_count}次重试...")
+                    log_warning(f"请求异常: {str(e)}，正在进行第{retry_count}次重试...")
                     continue
                 error_msg = f'识别过程异常: {str(e)}'
-                log_print(error_msg)
+                log_error(error_msg)
                 return {'success': False, 'error': error_msg, 'raw': str(e)}
 
         # 达到最大重试次数
-        return {'success': False, 'error': f'达到最大重试次数({max_retries})，请求失败', 'raw': ''}
+        error_msg = f'达到最大重试次数({max_retries})，请求失败'
+        log_error(error_msg)
+        return {'success': False, 'error': error_msg, 'raw': ''}
 
     def parse_ocr_result(self, ocr_data):
+        """解析OCR结果"""
         if not ocr_data.get('success'):
             return f"处理失败: {ocr_data.get('error_msg', '未知错误')}"
 
@@ -352,11 +402,13 @@ class DouyinClient:
             text = str(data)
 
         # 应用正则表达式验证结果格式
-        pattern = re.compile(".*")
-        if pattern.match(text):
-            return text.upper()
+        pattern = re.compile(r'^[A-K][1-7]$')  # 匹配A-K followed by 1-7
+        if pattern.match(text.strip()):
+            return text.strip().upper()
+        elif text.strip() == "识别失败":
+            return text.strip()
         else:
-            return text if text else "未识别到有效内容"
+            return f"未识别到有效内容: {text}" if text else "未识别到有效内容"
 
 
 class BaiduClient:
@@ -444,6 +496,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
+        # 初始化变量
         self.source_dir = ""
         self.dest_dir = ""
         self.is_move_mode = False
@@ -451,23 +504,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.image_files = []
         self.processing = False
         self.processing_start_time = 0
-
         self.dragging = False
         self.drag_position = QtCore.QPoint()
 
+        # 设置全局引用和配置
         utils.main_window = self
         self.config = utils.load_config()
+
+        # 初始化UI和连接
         self._init_ui_components()
         self.setup_connections()
 
+        # 设置窗口属性
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
 
-        log("INFO", "LeafView-RailwayOCR 启动成功.")
+        log_info("LeafView-RailwayOCR 启动成功")
 
     def _init_ui_components(self):
+        """初始化UI组件"""
         self.total_files_label.setText("0")
         self.processed_label.setText("0")
         self.success_label.setText("0")
@@ -480,6 +537,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.textEdit_log.setReadOnly(True)
 
     def setup_connections(self):
+        """设置信号与槽的连接"""
         self.pushButton_src_folder.clicked.connect(self.browse_source_directory)
         self.pushButton_dst_folder.clicked.connect(self.browse_dest_directory)
 
@@ -492,10 +550,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.toolButton_mini.clicked.connect(self.minimize_window)
 
     def open_setting(self):
+        """打开设置窗口"""
         self.setting_window = SettingWindow()
         self.setting_window.show()
+        log_debug("打开设置窗口")
 
     def mousePressEvent(self, event):
+        """鼠标按下事件，用于窗口拖动"""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.dragging = True
             self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()

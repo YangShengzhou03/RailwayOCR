@@ -42,7 +42,6 @@ class ProcessingThread(QtCore.QThread):
         self.signal_processor_running = True
         client_type = getattr(client, 'client_type', '未知')
         log("WARNING", f"初始化处理线程，使用 {client_type} 识别模式")
-        # 记录客户端类型用于特殊处理
         self.client_type = client_type
 
     def _load_config(self):
@@ -128,7 +127,6 @@ class ProcessingThread(QtCore.QThread):
                         self.processed_count += 1
                         self.results.append(result)
 
-                        # 统一获取识别结果，兼容不同客户端
                         recognition = result.get('recognition') or result.get('result')
 
                         if result['success']:
@@ -212,7 +210,6 @@ class ProcessingThread(QtCore.QThread):
         with self.lock:
             self.is_running = False
 
-        # 清空队列
         while not self.file_queue.empty():
             try:
                 self.file_queue.get_nowait()
@@ -220,7 +217,6 @@ class ProcessingThread(QtCore.QThread):
                 continue
             self.file_queue.task_done()
 
-        # 等待所有工作线程完成
         for worker in self.workers:
             if worker.is_alive():
                 worker.join(timeout=1.0)
@@ -252,15 +248,12 @@ class ProcessingThread(QtCore.QThread):
         filename = os.path.basename(local_file_path)
         log_print(f"开始处理图像文件: {filename}")
 
-        # 根据客户端类型决定是否需要上传文件
         if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
-            # 本地识别模式，直接使用本地文件路径
             log_print(f"使用本地识别模式处理文件: {filename}")
             image_source = local_file_path
             oss_path = None
             signed_url = None
         else:
-            # 其他识别模式，上传文件到OSS
             oss_path = f"RailwayOCR/images/{datetime.now().strftime('%Y%m%d')}/{filename}"
             upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
 
@@ -284,18 +277,15 @@ class ProcessingThread(QtCore.QThread):
 
                 time.sleep(self.request_interval)
 
-                # 统一处理不同客户端的返回结果
                 if ocr_result['success']:
-                    # 提取识别结果，兼容不同客户端的键名
                     result_value = ocr_result.get('result') or ocr_result.get('recognition')
                     log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
 
-                    # 标准化返回格式
                     result = {
                         'filename': filename,
                         'success': True,
-                        'result': result_value,  # 统一使用'result'键
-                        'recognition': result_value  # 保留'recognition'键用于兼容
+                        'result': result_value,
+                        'recognition': result_value
                     }
                     if oss_path:
                         result['oss_path'] = oss_path

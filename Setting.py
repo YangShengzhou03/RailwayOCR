@@ -64,13 +64,11 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         self.comboBox_mode.setCurrentIndex(0)
 
     def validate_required_fields(self):
-        # 根据当前模式确定必填字段
         mode_index = self.comboBox_mode.currentIndex()
         required_fields = [
             ("RE（正则表达式）", self.lineEdit_RE)
         ]
 
-        # 阿里云模式必填字段
         if mode_index == 0:
             required_fields.extend([
                 ("ALI_CODE", self.lineEdit_ALI_CODE),
@@ -79,12 +77,10 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 ("ENDPOINT", self.lineEdit_ENDPOINT),
                 ("BUCKET_NAME", self.lineEdit_BUCKET_NAME)
             ])
-        # 抖音云模式必填字段
         elif mode_index == 2:
             required_fields.extend([
                 ("DOUYIN_API_KEY", self.lineEdit_DOUYIN_API_KEY)
             ])
-        # 本地模式不需要额外API密钥
 
         empty_fields = [label for label, widget in required_fields if not widget.text().strip()]
         if empty_fields:
@@ -104,7 +100,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         if not self.validate_required_fields():
             return
         try:
-            # 首先加载现有的配置
             if os.path.exists(self.CONFIG_FILE):
                 with open(self.CONFIG_FILE, 'r', encoding='utf-8') as f:
                     config = json.load(f)
@@ -112,7 +107,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 config = {}
                 QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
 
-            # 更新用户可以修改的字段
             config.update({
                 "ACCESS_KEY_ID": self.lineEdit_ACCESS_KEY_ID.text().strip(),
                 "ACCESS_KEY_SECRET": self.lineEdit_ACCESS_KEY_SECRET.text().strip(),
@@ -126,7 +120,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 "MODE_INDEX": self.comboBox_mode.currentIndex()
             })
 
-            # 确保必要字段存在
             required_defaults = {
                 "EXPIRES_IN": 1800,
                 "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],

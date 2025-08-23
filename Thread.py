@@ -40,7 +40,10 @@ class ProcessingThread(QtCore.QThread):
         self.workers = []
         self.signal_queue = Queue()
         self.signal_processor_running = True
-        log("WARNING", f"初始化处理线程，使用 {getattr(client, 'client_type', '未知')} 识别模式")
+        client_type = getattr(client, 'client_type', '未知')
+        log("WARNING", f"初始化处理线程，使用 {client_type} 识别模式")
+        # 记录客户端类型用于特殊处理
+        self.client_type = client_type
 
     def _load_config(self):
         try:
@@ -125,10 +128,13 @@ class ProcessingThread(QtCore.QThread):
                         self.processed_count += 1
                         self.results.append(result)
 
+                        # 统一获取识别结果，兼容不同客户端
+                        recognition = result.get('recognition') or result.get('result')
+
                         if result['success']:
                             self.success_count += 1
                             result['category_dir'] = self.copy_to_classified_folder(
-                                file_path, result['recognition'], self.dest_dir, self.is_move_mode)
+                                file_path, recognition, self.dest_dir, self.is_move_mode)
                         else:
                             self.failed_count += 1
                             self.copy_to_classified_folder(file_path, None, self.dest_dir, self.is_move_mode)
@@ -274,14 +280,22 @@ class ProcessingThread(QtCore.QThread):
 
             try:
                 ocr_result = self.client.recognize(image_source)
+                print(ocr_result)
+
                 time.sleep(self.request_interval)
 
+                # 统一处理不同客户端的返回结果
                 if ocr_result['success']:
-                    log_print(f"OCR识别成功: {filename}, 结果: {ocr_result['result']}")
+                    # 提取识别结果，兼容不同客户端的键名
+                    result_value = ocr_result.get('result') or ocr_result.get('recognition')
+                    log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
+
+                    # 标准化返回格式
                     result = {
                         'filename': filename,
                         'success': True,
-                        'recognition': ocr_result['result']
+                        'result': result_value,  # 统一使用'result'键
+                        'recognition': result_value  # 保留'recognition'键用于兼容
                     }
                     if oss_path:
                         result['oss_path'] = oss_path
@@ -291,14 +305,15 @@ class ProcessingThread(QtCore.QThread):
                 else:
                     error_msg = ocr_result.get('error', '未知错误')
                     raw_result = ocr_result.get('raw', '无原始数据')
-                    log_print(f"OCR识别失败 (尝试 {attempt+1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result}")
+                    log_print(
+                        f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result}")
                     if attempt == max_attempts - 1:
                         log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
-                        return {'filename': filename, 'success': False, 'error': error_msg}
+                        return {'filename': filename, 'success': False, 'error': error_msg, 'raw': raw_result}
 
             except Exception as e:
                 error_msg = f'识别异常: {str(e)}'
-                log_print(f"OCR识别异常 (尝试 {attempt+1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                 if attempt == max_attempts - 1:
                     return {'filename': filename, 'success': False, 'error': error_msg}
 

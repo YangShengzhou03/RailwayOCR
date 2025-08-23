@@ -104,26 +104,43 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         if not self.validate_required_fields():
             return
         try:
-            config = {
+            # 首先加载现有的配置
+            if os.path.exists(self.CONFIG_FILE):
+                with open(self.CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+            else:
+                config = {}
+                QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
+
+            # 更新用户可以修改的字段
+            config.update({
                 "ACCESS_KEY_ID": self.lineEdit_ACCESS_KEY_ID.text().strip(),
                 "ACCESS_KEY_SECRET": self.lineEdit_ACCESS_KEY_SECRET.text().strip(),
                 "ENDPOINT": self.lineEdit_ENDPOINT.text().strip(),
                 "BUCKET_NAME": self.lineEdit_BUCKET_NAME.text().strip(),
-                "EXPIRES_IN": 1800,
-                "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
-                "LOG_FILE": "ocr_processing.log",
                 "CONCURRENCY": self.spinBox_CONCURRENCY.value(),
                 "RETRY_TIMES": self.spinBox_RETRY_TIMES.value(),
                 "DOUYIN_API_KEY": self.lineEdit_DOUYIN_API_KEY.text().strip(),
                 "ALI_CODE": self.lineEdit_ALI_CODE.text().strip(),
+                "RE": self.lineEdit_RE.text().strip(),
+                "MODE_INDEX": self.comboBox_mode.currentIndex()
+            })
+
+            # 确保必要字段存在
+            required_defaults = {
+                "EXPIRES_IN": 1800,
+                "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
+                "LOG_FILE": "ocr_processing.log",
                 "SUMMARY_DIR": "summary",
                 "MAX_REQUESTS_PER_MINUTE": 300,
                 "RATE_LIMIT_BUFFER": 0.9,
                 "OPTIMAL_RATE": 270,
-                "IMAGE_PROCESSING_TIMEOUT": 30,
-                "RE": self.lineEdit_RE.text().strip(),
-                "MODE_INDEX": self.comboBox_mode.currentIndex()
+                "IMAGE_PROCESSING_TIMEOUT": 30
             }
+            for key, value in required_defaults.items():
+                if key not in config:
+                    config[key] = value
+
             with open(self.CONFIG_FILE, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
             QMessageBox.information(self, "保存成功", "配置已成功保存")

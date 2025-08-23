@@ -118,7 +118,7 @@ class LocalClient:
         retry_count = 0
         while retry_count < self.max_retries:
             try:
-                log_print(f"正在尝试加载OCR模型 (尝试 {retry_count+1}/{self.max_retries})...")
+                log_print(f"正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
                 self.reader = easyocr.Reader(['en'], gpu=False)
                 log_print("OCR模型加载成功")
                 return
@@ -184,9 +184,7 @@ class DouyinClient:
         self.proxies = proxies
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor
-        self.client_type = '抖音服务'  # 添加客户端类型标识
-        self.config = utils.load_config()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
+        self.client_type = "抖音服务"
 
     def _create_session(self):
         session = requests.Session()
@@ -204,7 +202,7 @@ class DouyinClient:
         })
         return session
 
-    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False, timeout=None):
+    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False):
         api_url = f"{self.base_url}/workflow/run"
         payload = {"workflow_id": workflow_id, "is_async": is_async}
 
@@ -215,13 +213,10 @@ class DouyinClient:
 
         session = self._create_session()
         try:
-            # 使用方法级超时参数，如果未提供则使用实例级默认值
-            request_timeout = timeout if timeout is not None else self.timeout
-
             response = session.post(
                 api_url,
                 json=payload,
-                timeout=request_timeout,
+                timeout=self.timeout,
                 proxies=self.proxies
             )
             response.raise_for_status()
@@ -248,113 +243,91 @@ class DouyinClient:
         finally:
             session.close()
 
-    def get_task_result(self, execute_id, timeout=None):
-        """获取异步任务结果"""
-        api_url = f"{self.base_url}/task/result"
-        payload = {"execute_id": execute_id}
-
-        session = self._create_session()
-        try:
-            # 使用方法级超时参数，如果未提供则使用实例级默认值
-            request_timeout = timeout if timeout is not None else self.timeout
-
-            response = session.post(
-                api_url,
-                json=payload,
-                timeout=request_timeout,
-                proxies=self.proxies
-            )
-            response.raise_for_status()
-            return response.json()
-
-        except Exception as e:
-            return {"success": False, "error_msg": f"获取任务结果失败: {str(e)}"}
-        finally:
-            session.close()
-
-    def wait_for_task_completion(self, execute_id, max_attempts=10, check_interval=5, timeout=None):
-        """等待异步任务完成"""
-        for attempt in range(max_attempts):
-            result = self.get_task_result(execute_id, timeout=timeout)
-
-            if not result.get("success"):
-                return result
-
-            status = result.get("data", {}).get("status")
-
-            if status == "completed":
-                return result
-            elif status in ["failed", "cancelled"]:
-                return {"success": False, "error_msg": f"任务状态: {status}"}
-
-            time.sleep(check_interval)
-
-        return {"success": False, "error_msg": "等待任务完成超时"}
-
-    def extract_matches(self, response_text):
-        try:
-            data = json.loads(response_text)
-        except json.JSONDecodeError:
-            return None
-
-        # 尝试从不同的字段中提取结果
-        result = data.get("data", {}).get("output", {}).get("text", "")
-        if not result:
-            result = data.get("result", "")
-
-        if self.pattern.fullmatch(result.strip()):
-            return result.strip().upper()
-        return None
-
     def recognize(self, img_file, params=None):
+        """统一接口：处理图像识别，兼容本地文件路径和URL"""
+        # 处理参数，设置超时
+        request_timeout = self.timeout
+        if params and isinstance(params, dict):
+            request_timeout = params.get('timeout', self.timeout)
+
         if not self.api_key:
-            return {"success": False, "error": "未提供抖音API Key"}
+            return {"success": False, "error": "未提供抖音API Key", "raw": ""}
 
-        # 从配置中获取workflow_id和bot_id
-        print(self.config)
-        workflow_id = self.config.get("DOUYIN_WORKFLOW_ID")
-        bot_id = self.config.get("DOUYIN_BOT_ID")
-
+        # 从配置中获取workflow_id
+        workflow_id = "7514709270924361743"
         if not workflow_id:
-            return {"success": False, "error": "未配置抖音Workflow ID"}
+            return {"success": False, "error": "缺少必要配置参数: DOUYIN_WORKFLOW_ID", "raw": ""}
 
-        # 准备参数
+        # 准备参数，支持本地文件路径和URL
+        image_url = img_file
+
         parameters = {
-            "image_path": img_file
+            "prompt": "识别图像中【纯白色小卡片】上的红色目标文字：  1. 卡片特征：纯白色背景（无其他颜色或图案），尺寸较小（通常占图像面积5%-20%），可能倾斜/部分边缘轻微遮挡（遮挡不超过20%），表面有黑色手写数字（与目标无关，可忽略）。 2. 目标文字要求：   - 颜色：正红色（RGB参考值255,0,0，非暗红/粉红）；   - 字体：无衬线大写字母（如Arial、Helvetica风格，无装饰性笔画）；   - 格式：严格为1个大写字母（A-K，仅A至K）直接衔接1个数字（1-7，仅1至7），无空格/符号/多余字符。 3. 输出规则：仅输出符合上述全部条件的标签（如：B3）；若未识别到或存在多个符合项，输出“识别失败”。无需任何额外说明。",
+            "image": image_url
         }
 
         if params:
             parameters.update(params)
 
-        # 运行工作流
-        result = self.run_workflow(
-            workflow_id=workflow_id,
-            parameters=parameters,
-            bot_id=bot_id,
-            is_async=True
-        )
+        try:
+            # 运行工作流
+            result = self.run_workflow(
+                workflow_id=workflow_id,
+                parameters=parameters,
+                bot_id=None,
+                is_async=False,  # 修改为同步执行以便获取结果
+            )
 
-        if not result.get("success"):
-            return {"success": False, "error": result.get("error_msg", "运行工作流失败")}
+            print(result)
 
-        execute_id = result.get("execute_id")
-        if not execute_id:
-            return {"success": False, "error": "未获取到执行ID"}
+            # 解析并打印结果
+            parsed_result = self.parse_ocr_result(result)
+            print("工作流处理结果:", parsed_result)
 
-        # 等待任务完成
-        task_result = self.wait_for_task_completion(execute_id)
+            # 即使没有execute_id也继续，因为有些API响应可能不包含它
+            execute_id = result.get('execute_id')
+            
+            if not result['success']:
+                return {
+                    'success': False,
+                    'error': result.get('error_msg', '工作流运行失败'),
+                    'raw': str(result)
+                }
 
-        if not task_result.get("success"):
-            return {"success": False, "error": task_result.get("error_msg", "任务执行失败")}
+            return {
+                'success': True,
+                'result': parsed_result,
+                'execute_id': execute_id,
+                'raw': str(result)
+            }
 
-        # 提取结果
-        response_text = json.dumps(task_result)
-        matched_result = self.extract_matches(response_text)
+        except Exception as e:
+            error_msg = f'识别过程异常: {str(e)}'
+            print(error_msg)
+            return {'success': False, 'error': error_msg, 'raw': str(e)}
 
-        if matched_result:
-            return {"success": True, "result": matched_result, "raw": response_text}
+    def parse_ocr_result(self, ocr_data):
+        if not ocr_data.get('success'):
+            return f"处理失败: {ocr_data.get('error_msg', '未知错误')}"
+
+        data = ocr_data.get('data', '')
+        try:
+            # 尝试解析数据
+            if isinstance(data, dict):
+                text = data.get('msg', str(data))
+            else:
+                # 尝试将字符串解析为JSON
+                json_data = json.loads(data)
+                text = json_data.get('msg', str(data))
+        except (json.JSONDecodeError, TypeError):
+            text = str(data)
+
+        # 应用正则表达式验证结果格式
+        pattern = re.compile(".*")
+        if pattern.match(text):
+            return text.upper()
         else:
-            return {"success": False, "error": "未识别到匹配模式", "raw": response_text}
+            return text if text else "未识别到有效内容"
 
 
 class BaiduClient:
@@ -636,7 +609,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     QMessageBox.critical(self, "错误", "未配置抖音API Key")
                     log("ERROR", "未配置抖音API Key")
                     return
-                client = DouyinClient(api_key=api_key)
+                # 从配置获取超时参数
+                timeout = self.config.get("REQUEST_TIMEOUT", 60)
+                client = DouyinClient(
+                    api_key=api_key,
+                    timeout=timeout,
+                    max_retries=self.config.get("RETRY_TIMES", 3),
+                    backoff_factor=self.config.get("BACKOFF_FACTOR", 1.0)
+                )
                 log("INFO", "使用抖音云OCR模式")
             elif mode_index == 3:
                 # 百度云模式

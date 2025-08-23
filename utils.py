@@ -66,13 +66,17 @@ def load_config():
         # 返回默认配置
         return {
             "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
-            "SUMMARY_DIR": "summary"
+            "SUMMARY_DIR": "summary",
+            "DOUYIN_WORKFLOW_ID": "",
+            "DOUYIN_PROMPT": "请识别图像中的内容"
         }
     except json.JSONDecodeError:
         log("ERROR", f"配置文件格式错误: {file_path}")
         return {
             "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
-            "SUMMARY_DIR": "summary"
+            "SUMMARY_DIR": "summary",
+            "DOUYIN_WORKFLOW_ID": "",
+            "DOUYIN_PROMPT": "请识别图像中的内容"
         }
 
 

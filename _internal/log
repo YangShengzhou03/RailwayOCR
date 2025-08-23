@@ -1846,3 +1846,454 @@
 [2025-08-23 08:11:24] 处理完成，总耗时: 0:02:15
 [2025-08-23 08:11:24] 总文件数: 6, 成功: 0, 失败: 6, 识别率: 0.00%
 [2025-08-23 08:11:24] 统计信息已保存到summary文件夹
+[2025-08-23 08:17:17] 开始处理 85 个图像文件
+[2025-08-23 08:17:17] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:17:17] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 08:17:17] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:17:17] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:17:17] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:17:17] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:17:21] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:17:21] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:17:21] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:17:21] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:17:21] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:17:22] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:17:23] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 未识别到匹配模式, 原始结果: {"error": "HTTP\u9519\u8bef: 403", "details": ""}
+[2025-08-23 08:17:23] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 未识别到匹配模式, 原始结果: {"error": "HTTP\u9519\u8bef: 403", "details": ""}
+[2025-08-23 08:17:23] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 未识别到匹配模式, 原始结果: {"error": "HTTP\u9519\u8bef: 403", "details": ""}
+[2025-08-23 08:17:23] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 未识别到匹配模式, 原始结果: {"error": "HTTP\u9519\u8bef: 403", "details": ""}
+[2025-08-23 08:17:23] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 未识别到匹配模式, 原始结果: {"error": "HTTP\u9519\u8bef: 403", "details": ""}
+[2025-08-23 08:17:23] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 未识别到匹配模式, 原始结果: {"error": "HTTP\u9519\u8bef: 403", "details": ""}
+[2025-08-23 08:18:15] 开始处理 85 个图像文件
+[2025-08-23 08:18:15] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 08:18:15] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:18:15] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:18:15] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:18:15] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:18:15] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:18:18] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:18:18] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:18:18] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:18:18] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:18:18] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:18:19] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:18:19] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:19] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:19] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:19] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:19] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:19] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:21] OCR识别失败 (尝试 2/8): IMG_0844.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:21] OCR识别失败 (尝试 2/8): IMG_0841.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:21] OCR识别失败 (尝试 2/8): IMG_0842.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:21] OCR识别失败 (尝试 2/8): IMG_0843.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:21] OCR识别失败 (尝试 2/8): IMG_0845.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:18:22] OCR识别失败 (尝试 2/8): IMG_0846.JPG, 错误: 未配置抖音Workflow ID, 原始结果: 无原始数据
+[2025-08-23 08:20:09] 开始处理 85 个图像文件
+[2025-08-23 08:20:09] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:20:09] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:20:09] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 08:20:09] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:20:09] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:20:09] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:20:15] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:20:15] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:20:15] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:20:15] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:20:15] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:20:15] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:20:18] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:18] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:18] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:18] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:18] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:18] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:21] OCR识别失败 (尝试 2/8): IMG_0844.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:21] OCR识别失败 (尝试 2/8): IMG_0845.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:21] OCR识别失败 (尝试 2/8): IMG_0841.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:21] OCR识别失败 (尝试 2/8): IMG_0842.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:20:21] OCR识别失败 (尝试 2/8): IMG_0843.JPG, 错误: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request., 原始结果: 无原始数据
+[2025-08-23 08:35:24] 开始处理 85 个图像文件
+[2025-08-23 08:35:24] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:35:24] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:35:24] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:35:24] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:35:24] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:35:29] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:35:29] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:35:29] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:35:29] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:35:29] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:35:29] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:35:29] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:35:30] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:35:30] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:35:30] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:35:30] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:35:30] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:35:32] OCR识别失败 (尝试 2/8): IMG_0842.JPG, 错误: 缺少必要配置参数: DOUYIN_BOT_ID, 原始结果: 无原始数据
+[2025-08-23 08:40:47] 开始处理 85 个图像文件
+[2025-08-23 08:40:47] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 08:40:47] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:40:47] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:40:47] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:40:47] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:40:47] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:40:53] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:40:53] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:40:53] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:40:53] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:40:53] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:40:53] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:40:57] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:40:57] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:40:57] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:40:57] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:40:57] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:40:57] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:42:57] 开始处理 85 个图像文件
+[2025-08-23 08:42:57] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:42:57] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 08:42:57] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:42:57] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:42:57] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:42:57] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:43:01] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:43:02] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:43:02] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:43:02] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:43:02] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:43:02] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:43:05] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:43:05] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:43:05] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:43:05] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:43:05] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:43:05] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 运行工作流失败: Missing required parameters. Please review the API documentation and ensure all mandatory fields are included in your request. (错误码: 4000), 原始结果: 无原始数据
+[2025-08-23 08:54:08] 开始处理 85 个图像文件
+[2025-08-23 08:54:08] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 08:54:08] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 08:54:08] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 08:54:08] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 08:54:08] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 08:54:08] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 08:54:13] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 08:54:13] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 08:54:13] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 08:54:13] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 08:54:13] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 08:54:13] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 08:54:17] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 08:54:17] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 08:54:17] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 08:54:17] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 08:54:17] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 08:54:17] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 09:02:17] 开始处理 85 个图像文件
+[2025-08-23 09:02:17] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 09:02:17] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 09:02:17] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 09:02:17] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 09:02:17] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 09:02:17] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 09:02:22] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 09:02:22] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 09:02:22] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 09:02:22] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 09:02:23] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 09:02:23] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 09:02:25] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:02:25] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:02:25] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:02:25] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:02:25] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:02:25] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:02:29] OCR识别失败 (尝试 2/8): IMG_0844.JPG, 错误: 未知错误, 原始结果: 无原始数据
+[2025-08-23 09:14:52] 开始处理 85 个图像文件
+[2025-08-23 09:14:52] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 09:14:52] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 09:14:52] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 09:14:52] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 09:14:52] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 09:14:52] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 09:14:56] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 09:14:56] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 09:14:56] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 09:14:56] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 09:14:57] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 09:15:00] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 09:15:02] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 09:15:02] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 09:15:02] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 09:15:03] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 09:15:03] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 无原始数据
+[2025-08-23 09:18:25] 开始处理 85 个图像文件
+[2025-08-23 09:18:25] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 09:18:25] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 09:18:25] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 09:18:25] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 09:18:25] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 09:18:25] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 09:18:29] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 09:18:29] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 09:18:29] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 09:18:29] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 09:18:29] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 09:18:29] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 09:18:33] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584231157530675/result, 原始结果: 无原始数据
+[2025-08-23 09:18:33] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584223078432768/result, 原始结果: 无原始数据
+[2025-08-23 09:18:33] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584216779243574/result, 原始结果: 无原始数据
+[2025-08-23 09:18:33] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584220739043391/result, 原始结果: 无原始数据
+[2025-08-23 09:18:33] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584228221091878/result, 原始结果: 无原始数据
+[2025-08-23 09:18:34] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584227197190178/result, 原始结果: 无原始数据
+[2025-08-23 09:18:38] OCR识别失败 (尝试 2/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584240699654198/result, 原始结果: 无原始数据
+[2025-08-23 09:18:38] OCR识别失败 (尝试 2/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584250282901555/result, 原始结果: 无原始数据
+[2025-08-23 09:18:39] OCR识别失败 (尝试 2/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584248739938347/result, 原始结果: 无原始数据
+[2025-08-23 09:18:41] OCR识别失败 (尝试 2/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584259515007030/result, 原始结果: 无原始数据
+[2025-08-23 09:18:44] OCR识别失败 (尝试 2/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584275473235977/result, 原始结果: 无原始数据
+[2025-08-23 09:18:45] OCR识别失败 (尝试 3/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584279832035367/result, 原始结果: 无原始数据
+[2025-08-23 09:18:45] OCR识别失败 (尝试 2/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584273246715904/result, 原始结果: 无原始数据
+[2025-08-23 09:18:45] OCR识别失败 (尝试 3/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584276991508534/result, 原始结果: 无原始数据
+[2025-08-23 09:18:45] OCR识别失败 (尝试 3/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584281363447858/result, 原始结果: 无原始数据
+[2025-08-23 09:18:49] OCR识别失败 (尝试 3/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584294998868009/result, 原始结果: 无原始数据
+[2025-08-23 09:18:50] OCR识别失败 (尝试 3/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584304523083802/result, 原始结果: 无原始数据
+[2025-08-23 09:18:51] OCR识别失败 (尝试 3/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584304204939314/result, 原始结果: 无原始数据
+[2025-08-23 09:18:55] OCR识别失败 (尝试 4/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584325884657700/result, 原始结果: 无原始数据
+[2025-08-23 09:18:56] OCR识别失败 (尝试 4/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584329295200294/result, 原始结果: 无原始数据
+[2025-08-23 09:18:56] OCR识别失败 (尝试 4/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584321397735476/result, 原始结果: 无原始数据
+[2025-08-23 09:19:00] OCR识别失败 (尝试 4/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584336568647721/result, 原始结果: 无原始数据
+[2025-08-23 09:19:01] OCR识别失败 (尝试 4/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584352514654218/result, 原始结果: 无原始数据
+[2025-08-23 09:19:02] OCR识别失败 (尝试 4/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584352136740914/result, 原始结果: 无原始数据
+[2025-08-23 09:19:14] OCR识别失败 (尝试 5/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584398040743972/result, 原始结果: 无原始数据
+[2025-08-23 09:19:14] OCR识别失败 (尝试 5/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584410367361034/result, 原始结果: 无原始数据
+[2025-08-23 09:19:14] OCR识别失败 (尝试 5/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584408987123762/result, 原始结果: 无原始数据
+[2025-08-23 09:19:18] OCR识别失败 (尝试 5/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584425868460042/result, 原始结果: 无原始数据
+[2025-08-23 09:19:19] OCR识别失败 (尝试 5/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584426507255834/result, 原始结果: 无原始数据
+[2025-08-23 09:19:21] OCR识别失败 (尝试 5/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584433913430059/result, 原始结果: 无原始数据
+[2025-08-23 09:19:47] OCR识别失败 (尝试 6/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584549831000116/result, 原始结果: 无原始数据
+[2025-08-23 09:19:47] OCR识别失败 (尝试 6/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584553387884596/result, 原始结果: 无原始数据
+[2025-08-23 09:19:47] OCR识别失败 (尝试 6/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584550109249571/result, 原始结果: 无原始数据
+[2025-08-23 09:19:51] OCR识别失败 (尝试 6/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584561223254016/result, 原始结果: 无原始数据
+[2025-08-23 09:19:52] OCR识别失败 (尝试 6/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584562108416043/result, 原始结果: 无原始数据
+[2025-08-23 09:19:53] OCR识别失败 (尝试 6/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/workflows/execute/7541584564604813352/result, 原始结果: 无原始数据
+[2025-08-23 09:35:14] 开始处理 85 个图像文件
+[2025-08-23 09:35:14] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 09:35:14] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 09:35:14] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 09:35:14] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 09:35:14] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 09:35:14] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 09:35:19] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 09:35:19] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 09:35:19] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 09:35:19] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 09:35:19] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 09:35:19] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 09:35:23] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result
+[2025-08-23 09:35:23] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result
+[2025-08-23 09:35:23] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result
+[2025-08-23 09:35:23] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result
+[2025-08-23 09:35:24] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result
+[2025-08-23 09:35:24] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/task/result
+[2025-08-23 09:37:45] 开始处理 85 个图像文件
+[2025-08-23 09:37:45] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 09:37:45] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 09:37:45] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 09:37:45] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 09:37:45] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 09:37:45] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 09:37:49] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 09:37:49] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 09:37:49] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 09:37:49] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 09:37:50] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 09:37:52] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: Login verification is invalid, 原始结果: {'code': 700012006, 'msg': 'Login verification is invalid'}
+[2025-08-23 09:37:52] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: Login verification is invalid, 原始结果: {'code': 700012006, 'msg': 'Login verification is invalid'}
+[2025-08-23 09:37:52] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: Login verification is invalid, 原始结果: {'code': 700012006, 'msg': 'Login verification is invalid'}
+[2025-08-23 09:37:52] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: Login verification is invalid, 原始结果: {'code': 700012006, 'msg': 'Login verification is invalid'}
+[2025-08-23 09:37:52] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: Login verification is invalid, 原始结果: {'code': 700012006, 'msg': 'Login verification is invalid'}
+[2025-08-23 09:37:53] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: Login verification is invalid, 原始结果: {'code': 700012006, 'msg': 'Login verification is invalid'}
+[2025-08-23 22:41:06] 开始处理 85 个图像文件
+[2025-08-23 22:41:06] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 22:41:06] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 22:41:06] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 22:41:06] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 22:41:06] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 22:41:06] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 22:41:13] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 22:41:13] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 22:41:13] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 22:41:13] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 22:41:13] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 22:41:13] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 22:41:18] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result
+[2025-08-23 22:41:18] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result
+[2025-08-23 22:41:18] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result
+[2025-08-23 22:41:18] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result
+[2025-08-23 22:41:18] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result
+[2025-08-23 22:41:18] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: 获取任务结果失败: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result, 原始结果: 404 Client Error: Not Found for url: https://api.coze.cn/v1/api/v2/task/result
+[2025-08-23 22:58:56] 开始处理 85 个图像文件
+[2025-08-23 22:58:56] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 22:58:56] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 22:58:56] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 22:58:56] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 22:58:56] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 22:58:56] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 22:59:01] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 22:59:01] OCR识别异常 (尝试 1/8): IMG_0843.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:01] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 22:59:01] OCR识别异常 (尝试 1/8): IMG_0842.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:01] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 22:59:01] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 22:59:01] OCR识别异常 (尝试 1/8): IMG_0841.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:01] OCR识别异常 (尝试 1/8): IMG_0844.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:01] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 22:59:01] OCR识别异常 (尝试 1/8): IMG_0845.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:02] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 22:59:02] OCR识别异常 (尝试 1/8): IMG_0846.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:03] OCR识别异常 (尝试 2/8): IMG_0843.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:03] OCR识别异常 (尝试 2/8): IMG_0842.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:03] OCR识别异常 (尝试 2/8): IMG_0841.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:03] OCR识别异常 (尝试 2/8): IMG_0844.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:03] OCR识别异常 (尝试 2/8): IMG_0845.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 22:59:04] OCR识别异常 (尝试 2/8): IMG_0846.JPG, 错误: 识别异常: 'DouyinClient' object has no attribute 'config'
+[2025-08-23 23:01:22] 开始处理 85 个图像文件
+[2025-08-23 23:01:22] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:01:22] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:01:22] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 23:01:22] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:01:22] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 23:01:22] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 23:01:28] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:01:29] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 23:01:29] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 23:01:29] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:01:31] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 23:01:31] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 23:01:33] OCR识别异常 (尝试 1/8): IMG_0845.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:01:33] OCR识别异常 (尝试 1/8): IMG_0841.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:01:33] OCR识别异常 (尝试 1/8): IMG_0844.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:01:33] OCR识别异常 (尝试 1/8): IMG_0842.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:01:34] OCR识别异常 (尝试 1/8): IMG_0846.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:01:35] OCR识别异常 (尝试 1/8): IMG_0843.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:06:47] 开始处理 85 个图像文件
+[2025-08-23 23:06:47] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:06:47] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:06:47] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:06:47] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 23:06:47] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 23:06:47] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 23:06:51] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:06:51] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:06:51] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 23:06:51] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 23:06:52] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 23:06:52] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 23:06:55] OCR识别异常 (尝试 1/8): IMG_0842.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:06:55] OCR识别异常 (尝试 1/8): IMG_0845.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:06:55] OCR识别异常 (尝试 1/8): IMG_0843.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:06:55] OCR识别异常 (尝试 1/8): IMG_0846.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:06:56] OCR识别异常 (尝试 1/8): IMG_0844.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:06:56] OCR识别异常 (尝试 1/8): IMG_0841.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:13:23] 开始处理 85 个图像文件
+[2025-08-23 23:13:23] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:13:23] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:13:23] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:13:23] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 23:13:23] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 23:13:23] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 23:13:28] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 23:13:28] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:13:28] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:13:28] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 23:13:28] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 23:13:29] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 23:13:31] OCR识别异常 (尝试 1/8): IMG_0841.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:13:31] OCR识别异常 (尝试 1/8): IMG_0843.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:13:32] OCR识别异常 (尝试 1/8): IMG_0844.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:13:32] OCR识别异常 (尝试 1/8): IMG_0845.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:13:32] OCR识别异常 (尝试 1/8): IMG_0842.JPG, 错误: 识别异常: 'NoneType' object is not subscriptable
+[2025-08-23 23:23:46] 开始处理 85 个图像文件
+[2025-08-23 23:23:46] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:23:46] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:23:46] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:23:46] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 23:23:46] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 23:23:46] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 23:23:54] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:23:54] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 23:23:54] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 23:23:55] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:23:55] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 23:23:55] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 23:23:58] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:23:58] OCR识别失败 (尝试 1/8): IMG_0844.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:23:58] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:23:58] OCR识别失败 (尝试 1/8): IMG_0846.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:23:59] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:24:01] OCR识别失败 (尝试 2/8): IMG_0841.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:24:02] OCR识别失败 (尝试 2/8): IMG_0843.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:24:02] OCR识别失败 (尝试 2/8): IMG_0844.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:24:02] OCR识别失败 (尝试 2/8): IMG_0846.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:34:00] 开始处理 85 个图像文件
+[2025-08-23 23:34:00] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:34:00] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:34:00] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:34:00] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 23:34:00] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 23:34:00] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 23:34:06] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:34:06] OCR识别异常 (尝试 1/8): IMG_0841.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:06] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:34:06] OCR识别异常 (尝试 1/8): IMG_0842.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:06] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 23:34:06] OCR识别异常 (尝试 1/8): IMG_0843.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:07] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 23:34:07] OCR识别异常 (尝试 1/8): IMG_0844.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:08] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 23:34:08] OCR识别异常 (尝试 1/8): IMG_0845.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:08] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 23:34:08] OCR识别异常 (尝试 1/8): IMG_0846.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:08] OCR识别异常 (尝试 2/8): IMG_0841.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:08] OCR识别异常 (尝试 2/8): IMG_0842.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:08] OCR识别异常 (尝试 2/8): IMG_0843.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:09] OCR识别异常 (尝试 2/8): IMG_0844.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:34:10] OCR识别异常 (尝试 2/8): IMG_0845.JPG, 错误: 识别异常: name 'CONFIG' is not defined
+[2025-08-23 23:35:40] 开始处理 85 个图像文件
+[2025-08-23 23:35:40] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:35:40] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:35:40] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:35:40] 开始处理图像文件: IMG_0844.JPG
+[2025-08-23 23:35:40] 开始处理图像文件: IMG_0845.JPG
+[2025-08-23 23:35:40] 开始处理图像文件: IMG_0846.JPG
+[2025-08-23 23:35:45] 文件上传成功: IMG_0843.JPG, 获取到签名URL
+[2025-08-23 23:35:45] 文件上传成功: IMG_0844.JPG, 获取到签名URL
+[2025-08-23 23:35:45] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:35:45] 文件上传成功: IMG_0845.JPG, 获取到签名URL
+[2025-08-23 23:35:45] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:35:45] 文件上传成功: IMG_0846.JPG, 获取到签名URL
+[2025-08-23 23:35:48] OCR识别失败 (尝试 1/8): IMG_0843.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:35:48] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:35:48] OCR识别失败 (尝试 1/8): IMG_0845.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:35:48] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:36:37] 开始处理 85 个图像文件
+[2025-08-23 23:36:37] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:36:37] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:36:39] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:36:39] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:36:40] OCR识别失败 (尝试 1/8): IMG_0842.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:37:26] 开始处理 85 个图像文件
+[2025-08-23 23:37:27] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:37:32] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:37:44] OCR识别失败 (尝试 1/8): IMG_0841.JPG, 错误: 未获取到执行ID, 原始结果: {'success': True, 'data': '{"msg":"E5"}', 'debug_url': 'https://www.coze.cn/work_flow?execute_id=7541805599718768666&space_id=7492323504994435122&workflow_id=7514709270924361743&execute_mode=2', 'execute_id': None, 'usage': {'input_count': 0, 'output_count': 0, 'token_count': 0}}
+[2025-08-23 23:37:47] OCR识别失败 (尝试 2/8): IMG_0841.JPG, 错误: Plugin request rate-limited. Please retry after a brief interval., 原始结果: {'success': False, 'error_code': 4024, 'error_msg': 'Plugin request rate-limited. Please retry after a brief interval.', 'logid': None}
+[2025-08-23 23:43:46] 开始处理 85 个图像文件
+[2025-08-23 23:43:46] 开始处理图像文件: IMG_0841.JPG
+[2025-08-23 23:43:50] 文件上传成功: IMG_0841.JPG, 获取到签名URL
+[2025-08-23 23:44:02] OCR识别成功: IMG_0841.JPG, 结果: E5
+[2025-08-23 23:44:02] 开始处理图像文件: IMG_0842.JPG
+[2025-08-23 23:44:04] 文件上传成功: IMG_0842.JPG, 获取到签名URL
+[2025-08-23 23:44:14] OCR识别成功: IMG_0842.JPG, 结果: E5
+[2025-08-23 23:44:14] 开始处理图像文件: IMG_0843.JPG
+[2025-08-23 23:44:17] 文件上传成功: IMG_0843.JPG, 获取到签名URL

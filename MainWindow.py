@@ -246,6 +246,18 @@ class DouyinClient:
     def recognize(self, img_file, params=None):
         """统一接口：处理图像识别，兼容本地文件路径和URL"""
         # 处理参数，设置超时
+        retry_count = 0
+        max_retries = self.max_retries
+        backoff_factor = self.backoff_factor
+
+        while retry_count <= max_retries:
+            # 计算退避时间
+            if retry_count > 0:
+                sleep_time = backoff_factor * (2 ** (retry_count - 1))
+                log_print(f"请求失败，{sleep_time:.2f}秒后重试...")
+                time.sleep(sleep_time)
+
+            try:
         request_timeout = self.timeout
         if params and isinstance(params, dict):
             request_timeout = params.get('timeout', self.timeout)
@@ -269,42 +281,59 @@ class DouyinClient:
         if params:
             parameters.update(params)
 
-        try:
-            # 运行工作流
-            result = self.run_workflow(
-                workflow_id=workflow_id,
-                parameters=parameters,
-                bot_id=None,
-                is_async=False,  # 修改为同步执行以便获取结果
-            )
+                # 运行工作流
+                result = self.run_workflow(
+                    workflow_id=workflow_id,
+                    parameters=parameters,
+                    bot_id=None,
+                    is_async=False,  # 修改为同步执行以便获取结果
+                )
 
-            print(result)
+                log_print(f"请求结果: {result}")
 
-            # 解析并打印结果
-            parsed_result = self.parse_ocr_result(result)
-            print("工作流处理结果:", parsed_result)
+                # 解析并打印结果
+                parsed_result = self.parse_ocr_result(result)
+                log_print(f"工作流处理结果: {parsed_result}")
 
-            # 即使没有execute_id也继续，因为有些API响应可能不包含它
-            execute_id = result.get('execute_id')
-            
-            if not result['success']:
+                # 即使没有execute_id也继续，因为有些API响应可能不包含它
+                execute_id = result.get('execute_id')
+                
+                if not result['success']:
+                    error_code = result.get('error_code')
+                    error_msg = result.get('error_msg', '工作流运行失败')
+                     
+                    # 对错误码4024(请求频率过高)进行重试
+                    if error_code == 4024 and retry_count < max_retries:
+                        retry_count += 1
+                        log_print(f"请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
+                        continue
+                     
+                    return {
+                        'success': False,
+                        'error': error_msg,
+                        'error_code': error_code,
+                        'raw': str(result)
+                    }
+
                 return {
-                    'success': False,
-                    'error': result.get('error_msg', '工作流运行失败'),
+                    'success': True,
+                    'result': parsed_result,
+                    'execute_id': execute_id,
                     'raw': str(result)
                 }
 
-            return {
-                'success': True,
-                'result': parsed_result,
-                'execute_id': execute_id,
-                'raw': str(result)
-            }
+            except Exception as e:
+                # 网络异常也可以重试
+                if retry_count < max_retries:
+                    retry_count += 1
+                    log_print(f"请求异常: {str(e)}，正在进行第{retry_count}次重试...")
+                    continue
+                error_msg = f'识别过程异常: {str(e)}'
+                log_print(error_msg)
+                return {'success': False, 'error': error_msg, 'raw': str(e)}
 
-        except Exception as e:
-            error_msg = f'识别过程异常: {str(e)}'
-            print(error_msg)
-            return {'success': False, 'error': error_msg, 'raw': str(e)}
+        # 达到最大重试次数
+        return {'success': False, 'error': f'达到最大重试次数({max_retries})，请求失败', 'raw': ''}
 
     def parse_ocr_result(self, ocr_data):
         if not ocr_data.get('success'):

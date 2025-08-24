@@ -2856,3 +2856,750 @@ E5
 [2025-08-24 12:04:59] [INFO] 工作流处理结果: 处理失败: Plugin request rate-limited. Please retry after a brief interval.
 [2025-08-24 12:04:59] [DEBUG] 请求频率过高(错误码4024)，正在进行第1次重试...
 [2025-08-24 12:04:59] [DEBUG] 请求失败，1.00秒后重试... (重试 1/8)
+[2025-08-24 23:22:04] 初始化处理线程，使用 抖音服务 识别模式
+[2025-08-24 23:22:04] 工作线程 1 已启动
+[2025-08-24 23:22:04] 开始处理图像文件: IMG_0841.JPG
+[2025-08-24 23:22:06] 文件 IMG_0841.JPG 上传成功，获取到签名URL
+[2025-08-24 23:22:23] [DEBUG] 请求结果: {'success': True, 'data': '{"msg":"图中展示的是一个打卡界面。界面上方是打卡时间“2023/8/21 星期二”，浙江省绍兴市柯桥区钱清街道常州恒鑫钱清站点，晴 30℃，30.12°N,120.41°E，马克相机已验证照片真实性。打卡界面下方是一些零部件，还有一张写有“安全阀垫片 E5”的纸条。整个界面给人一种严肃、正式的感觉。"}', 'debug_url': 'https://www.coze.cn/work_flow?execute_id=7542172717856882731&space_id=7492323504994435122&workflow_id=7514709270924361743&execute_mode=2', 'execute_id': None, 'usage': {'input_count': 0, 'output_count': 0, 'token_count': 0}}
+[2025-08-24 23:22:23] [INFO] 工作流处理结果: 未识别到有效内容: 图中展示的是一个打卡界面。界面上方是打卡时间“2023/8/21 星期二”，浙江省绍兴市柯桥区钱清街道常州恒鑫钱清站点，晴 30℃，30.12°N,120.41°E，马克相机已验证照片真实性。打卡界面下方是一些零部件，还有一张写有“安全阀垫片 E5”的纸条。整个界面给人一种严肃、正式的感觉。
+[2025-08-24 23:22:23] OCR识别结果: {"success": true, "result": "未识别到有效内容: 图中展示的是一个打卡界面。界面上方是打卡时间“2023/8/21 星期二”，浙江省绍兴市柯桥区钱清街道常州恒鑫钱清站点，晴 30℃，30.12°N,120.41°E，马克相机已验证照片真实性。打卡界面下方是一些零部件，还有一张写有“安全阀垫片 E5”的纸条。整个界面给人一种严肃、正式的感觉。", "execute_id": null, "raw": "{'success': True, 'data': '{\"msg\":\"图中展示的是一个打卡界面。界面上方是打卡时间“2023/8/21 星期二”，浙江省绍兴市柯桥区钱清街道常州恒鑫钱清站点，晴 30℃，30.12°N,120.41°E，马克相机已验证照片真实性。打卡界面下方是一些零部件，还有一张写有“安全阀垫片 E5”的纸条。整个界面给人一种严肃、正式的感觉。\"}', 'debug_url': 'https://www.coze.cn/work_flow?execute_id=7542172717856882731&space_id=7492323504994435122&workflow_id=7514709270924361743&execute_mode=2', 'execute_id': None, 'usage': {'input_count': 0, 'output_count': 0, 'token_count': 0}}"}
+[2025-08-24 23:22:24] OCR识别成功: IMG_0841.JPG, 结果: 未识别到有效内容: 图中展示的是一个打卡界面。界面上方是打卡时间“2023/8/21 星期二”，浙江省绍兴市柯桥区钱清街道常州恒鑫钱清站点，晴 30℃，30.12°N,120.41°E，马克相机已验证照片真实性。打卡界面下方是一些零部件，还有一张写有“安全阀垫片 E5”的纸条。整个界面给人一种严肃、正式的感觉。
+[2025-08-24 23:22:24] 已复制文件: IMG_0841.JPG -> 未识别到有效内容
+[2025-08-24 23:22:24] 开始处理图像文件: IMG_0842.JPG
+[2025-08-24 23:22:25] 文件 IMG_0842.JPG 上传成功，获取到签名URL
+[2025-08-24 23:23:00] [DEBUG] CPU核心数: 16, 最大限制线程数: 4, JSON配置线程数: 4, 最终设置线程数: 4
+[2025-08-24 23:23:00] [DEBUG] 正在尝试加载OCR模型 (尝试 1/5)...
+[2025-08-24 23:23:02] 初始化处理线程，使用 local 识别模式
+[2025-08-24 23:23:02] 工作线程 1 已启动
+[2025-08-24 23:23:02] 工作线程 2 已启动
+[2025-08-24 23:23:02] 工作线程 3 已启动
+[2025-08-24 23:23:31] [DEBUG] CPU核心数: 16, 最大限制线程数: 4, JSON配置线程数: 4, 最终设置线程数: 4
+[2025-08-24 23:23:31] [DEBUG] 正在尝试加载OCR模型 (尝试 1/5)...
+[2025-08-24 23:23:33] 初始化处理线程，使用 local 识别模式
+[2025-08-24 23:23:33] 工作线程 1 已启动
+[2025-08-24 23:23:33] 工作线程 2 已启动
+[2025-08-24 23:23:33] 工作线程 3 已启动
+[2025-08-24 23:23:33] 工作线程 4 已启动
+[2025-08-24 23:23:33] 开始处理图像文件: IMG_0841.JPG
+[2025-08-24 23:23:33] 使用本地识别模式处理文件: IMG_0841.JPG
+[2025-08-24 23:23:33] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:23:34] 开始处理图像文件: IMG_0842.JPG
+[2025-08-24 23:23:34] 使用本地识别模式处理文件: IMG_0842.JPG
+[2025-08-24 23:23:35] 开始处理图像文件: IMG_0843.JPG
+[2025-08-24 23:23:35] 使用本地识别模式处理文件: IMG_0843.JPG
+[2025-08-24 23:24:12] 检查密码时出错: [WinError 2] 系统找不到指定的文件。
+[2025-08-24 23:24:13] LeafView-RailwayOCR 启动成功
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:13] 写入日志文件失败: QMetaObject.invokeMethod() call failed
+[2025-08-24 23:24:53] [DEBUG] CPU核心数: 16, 最大限制线程数: 4, JSON配置线程数: 4, 最终设置线程数: 4
+[2025-08-24 23:24:53] [DEBUG] 正在尝试加载OCR模型 (尝试 1/5)...
+[2025-08-24 23:24:54] 初始化处理线程，使用 local 识别模式
+[2025-08-24 23:24:54] 工作线程 1 已启动
+[2025-08-24 23:24:54] 工作线程 2 已启动
+[2025-08-24 23:24:54] 工作线程 3 已启动
+[2025-08-24 23:24:54] 工作线程 4 已启动
+[2025-08-24 23:24:55] 开始处理图像文件: IMG_0841.JPG
+[2025-08-24 23:24:55] 使用本地识别模式处理文件: IMG_0841.JPG
+[2025-08-24 23:35:38] [DEBUG] CPU核心数: 16, 最大限制线程数: 4, JSON配置线程数: 4, 最终设置线程数: 4
+[2025-08-24 23:35:38] [DEBUG] 正在尝试加载OCR模型 (尝试 1/5)...
+[2025-08-24 23:35:39] 初始化处理线程，使用 local 识别模式
+[2025-08-24 23:35:39] 工作线程 1 已启动
+[2025-08-24 23:35:39] 工作线程 2 已启动
+[2025-08-24 23:35:39] 工作线程 3 已启动
+[2025-08-24 23:35:39] 工作线程 4 已启动
+[2025-08-24 23:35:39] 工作线程 5 已启动
+[2025-08-24 23:35:39] 工作线程 6 已启动
+[2025-08-24 23:35:39] 工作线程 7 已启动
+[2025-08-24 23:35:39] 工作线程 8 已启动
+[2025-08-24 23:35:40] 开始处理图像文件: IMG_0841.JPG
+[2025-08-24 23:35:40] 使用本地识别模式处理文件: IMG_0841.JPG
+[2025-08-24 23:35:40] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:40] 开始处理图像文件: IMG_0842.JPG
+[2025-08-24 23:35:40] 使用本地识别模式处理文件: IMG_0842.JPG
+[2025-08-24 23:35:40] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:41] 开始处理图像文件: IMG_0843.JPG
+[2025-08-24 23:35:41] 使用本地识别模式处理文件: IMG_0843.JPG
+[2025-08-24 23:35:41] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:41] 开始处理图像文件: IMG_0844.JPG
+[2025-08-24 23:35:41] 使用本地识别模式处理文件: IMG_0844.JPG
+[2025-08-24 23:35:41] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:42] 开始处理图像文件: IMG_0845.JPG
+[2025-08-24 23:35:42] 使用本地识别模式处理文件: IMG_0845.JPG
+[2025-08-24 23:35:42] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:42] 开始处理图像文件: IMG_0846.JPG
+[2025-08-24 23:35:42] 使用本地识别模式处理文件: IMG_0846.JPG
+[2025-08-24 23:35:42] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:43] 开始处理图像文件: IMG_0847.JPG
+[2025-08-24 23:35:43] 使用本地识别模式处理文件: IMG_0847.JPG
+[2025-08-24 23:35:43] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:43] 开始处理图像文件: IMG_0848.JPG
+[2025-08-24 23:35:43] 使用本地识别模式处理文件: IMG_0848.JPG
+[2025-08-24 23:35:43] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:43] 已复制文件: IMG_0841.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0842.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0843.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0844.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0845.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0846.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0847.JPG -> 识别失败
+[2025-08-24 23:35:43] 已复制文件: IMG_0848.JPG -> 识别失败
+[2025-08-24 23:35:44] 开始处理图像文件: IMG_0849.JPG
+[2025-08-24 23:35:44] 使用本地识别模式处理文件: IMG_0849.JPG
+[2025-08-24 23:35:44] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:44] 开始处理图像文件: IMG_0850.JPG
+[2025-08-24 23:35:44] 使用本地识别模式处理文件: IMG_0850.JPG
+[2025-08-24 23:35:44] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:45] 开始处理图像文件: IMG_0851.JPG
+[2025-08-24 23:35:45] 使用本地识别模式处理文件: IMG_0851.JPG
+[2025-08-24 23:35:45] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:45] 正在停止处理线程
+[2025-08-24 23:35:45] 开始处理图像文件: IMG_0852.JPG
+[2025-08-24 23:35:45] 使用本地识别模式处理文件: IMG_0852.JPG
+[2025-08-24 23:35:45] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:46] 开始处理图像文件: IMG_0853.JPG
+[2025-08-24 23:35:46] 使用本地识别模式处理文件: IMG_0853.JPG
+[2025-08-24 23:35:46] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:46] 开始处理图像文件: IMG_0854.JPG
+[2025-08-24 23:35:46] 使用本地识别模式处理文件: IMG_0854.JPG
+[2025-08-24 23:35:46] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:47] 开始处理图像文件: IMG_0855.JPG
+[2025-08-24 23:35:47] 使用本地识别模式处理文件: IMG_0855.JPG
+[2025-08-24 23:35:47] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:47] 开始处理图像文件: IMG_0860.JPG
+[2025-08-24 23:35:47] 使用本地识别模式处理文件: IMG_0860.JPG
+[2025-08-24 23:35:47] 处理图像文件时发生致命错误: 'ProcessingThread' object has no attribute 'Config'
+[2025-08-24 23:35:47] 已复制文件: IMG_0849.JPG -> 识别失败
+[2025-08-24 23:35:47] 已复制文件: IMG_0850.JPG -> 识别失败
+[2025-08-24 23:35:47] 已复制文件: IMG_0851.JPG -> 识别失败
+[2025-08-24 23:35:47] 已复制文件: IMG_0852.JPG -> 识别失败
+[2025-08-24 23:35:47] 工作线程 4 已结束
+[2025-08-24 23:35:47] 已复制文件: IMG_0853.JPG -> 识别失败
+[2025-08-24 23:35:47] 工作线程 5 已结束
+[2025-08-24 23:35:47] 已复制文件: IMG_0854.JPG -> 识别失败
+[2025-08-24 23:35:47] 工作线程 6 已结束
+[2025-08-24 23:35:47] 已复制文件: IMG_0855.JPG -> 识别失败
+[2025-08-24 23:35:47] 工作线程 7 已结束
+[2025-08-24 23:35:47] 已复制文件: IMG_0860.JPG -> 识别失败
+[2025-08-24 23:35:47] 工作线程 8 已结束
+[2025-08-24 23:35:49] 已复制文件: IMG_0862.JPG -> 识别失败
+[2025-08-24 23:35:49] 工作线程 1 已结束
+[2025-08-24 23:35:49] 已复制文件: IMG_0863.JPG -> 识别失败
+[2025-08-24 23:35:49] 工作线程 2 已结束
+[2025-08-24 23:35:49] 已复制文件: IMG_0864.JPG -> 识别失败
+[2025-08-24 23:35:49] 工作线程 3 已结束
+[2025-08-24 23:35:49] 处理线程已停止
+[2025-08-24 23:40:12] [DEBUG] CPU核心数: 16, 最大限制线程数: 4, JSON配置线程数: 4, 最终设置线程数: 4
+[2025-08-24 23:40:12] [DEBUG] 正在尝试加载OCR模型 (尝试 1/5)...
+[2025-08-24 23:40:14] 初始化处理线程，使用 local 识别模式
+[2025-08-24 23:40:14] 工作线程 1 已启动
+[2025-08-24 23:40:14] 工作线程 2 已启动
+[2025-08-24 23:40:14] 工作线程 3 已启动
+[2025-08-24 23:40:14] 工作线程 4 已启动
+[2025-08-24 23:40:14] 开始处理图像文件: IMG_0841.JPG
+[2025-08-24 23:40:14] 使用本地识别模式处理文件: IMG_0841.JPG
+[2025-08-24 23:40:14] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:15] 开始处理图像文件: IMG_0842.JPG
+[2025-08-24 23:40:15] 使用本地识别模式处理文件: IMG_0842.JPG
+[2025-08-24 23:40:15] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:15] 开始处理图像文件: IMG_0843.JPG
+[2025-08-24 23:40:15] 使用本地识别模式处理文件: IMG_0843.JPG
+[2025-08-24 23:40:15] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:16] 开始处理图像文件: IMG_0844.JPG
+[2025-08-24 23:40:16] 使用本地识别模式处理文件: IMG_0844.JPG
+[2025-08-24 23:40:16] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:16] [DEBUG] 本地OCR识别完成，耗时: 2.03秒
+[2025-08-24 23:40:16] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:16] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"IJ+07.42\", \"2025108/21- Lvp4\", \"e7m11\", \"6LzlLs\", \"Ehu\", \"Lita\", \"Fh 30\\\"C-\", \"30112*N,120.41*5\", \"Sra112\", \"BKt\", \"it@u ## )i\", \"35\", \"7REQ#EtL\", \"055\", \"[6u5 UUGGQDBSNHSUPZ\", \"noal\"]}", "processing_time": 2.027904987335205}
+[2025-08-24 23:40:17] OCR识别失败 (尝试 1/1): IMG_0841.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["IJ+07.42", "2025108/21- Lvp4", "e7m11"
+[2025-08-24 23:40:17] 文件 IMG_0841.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:17] 已复制文件: IMG_0841.JPG -> 识别失败
+[2025-08-24 23:40:17] 开始处理图像文件: IMG_0845.JPG
+[2025-08-24 23:40:17] 使用本地识别模式处理文件: IMG_0845.JPG
+[2025-08-24 23:40:18] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:18] [DEBUG] 本地OCR识别完成，耗时: 3.64秒
+[2025-08-24 23:40:18] [INFO] 识别成功: E5
+[2025-08-24 23:40:18] OCR识别结果: {"success": true, "result": "E5", "raw": "{\"texts\": [\"IJ+07.44\", \"6LZLLS\", \"npal\", \"2025/08121  ituipq\", \"##lig#tdilt\", \"Eils\", \"Diras\", \"0a 30-C\", \"30.12*N,120.41f\", \"3218412\", \"TBkl\", \"'\\u20ac liOJ5\", \"Ie\", \"E5\", \"35\", \"7KEQ#EtL\", \"(nsehJia]\", \"00h IUUGGQDBMNHSSV J\"]}", "processing_time": 3.6444568634033203}
+[2025-08-24 23:40:19] OCR识别成功: IMG_0842.JPG, 结果: E5
+[2025-08-24 23:40:19] 已复制文件: IMG_0842.JPG -> E5
+[2025-08-24 23:40:19] 开始处理图像文件: IMG_0846.JPG
+[2025-08-24 23:40:19] 使用本地识别模式处理文件: IMG_0846.JPG
+[2025-08-24 23:40:20] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:21] [DEBUG] 本地OCR识别完成，耗时: 5.30秒
+[2025-08-24 23:40:21] [INFO] 识别成功: E5
+[2025-08-24 23:40:21] OCR识别结果: {"success": true, "result": "E5", "raw": "{\"texts\": [\"1J+] 07:461\", \"2025/08/21 !Iupq\", \"mit xmtjt\", \"Ehndin M\", \"117ta\", \"30\\\"C\", \"30.12*N,120,\", \"Bsta*1e\", \"'i HII lie] #Jf HV\", \"&7} %e\", \"E5\", \"195\", \"7KEp Ietn\", \"Aschyja}\", \"@hifh UUGGQDBSNH8R53\", \"noa1\", \"6L119\"]}", "processing_time": 5.3022541999816895}
+[2025-08-24 23:40:21] OCR识别成功: IMG_0843.JPG, 结果: E5
+[2025-08-24 23:40:21] 已复制文件: IMG_0843.JPG -> E5
+[2025-08-24 23:40:22] 开始处理图像文件: IMG_0847.JPG
+[2025-08-24 23:40:22] 使用本地识别模式处理文件: IMG_0847.JPG
+[2025-08-24 23:40:22] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:22] [DEBUG] 本地OCR识别完成，耗时: 6.58秒
+[2025-08-24 23:40:22] [INFO] 识别成功: E5
+[2025-08-24 23:40:22] OCR识别结果: {"success": true, "result": "E5", "raw": "{\"texts\": [\"Q\", \"IJ+J 07.46\", \"noa1\", \"2025/08/21\", \"Xwm4\", \"mrexmlutm\", \"E#auji\", \"Ghiy\", \"K17tg\", \"30\\\"C _\", \"30.12N,120.61\\\"E\", \"MRRA\", \" l 6i #]\", \"Ie\", \"E5\", \"7kED IE\", \"ASCAI\", \"M0J\", \"UUGGQDBMNH8OE\", \"GLZ1LS\"]}", "processing_time": 6.578526973724365}
+[2025-08-24 23:40:23] OCR识别成功: IMG_0844.JPG, 结果: E5
+[2025-08-24 23:40:23] 已复制文件: IMG_0844.JPG -> E5
+[2025-08-24 23:40:23] 开始处理图像文件: IMG_0848.JPG
+[2025-08-24 23:40:23] 使用本地识别模式处理文件: IMG_0848.JPG
+[2025-08-24 23:40:24] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:24] [DEBUG] 本地OCR识别完成，耗时: 6.73秒
+[2025-08-24 23:40:24] [INFO] 识别成功: E5
+[2025-08-24 23:40:24] OCR识别结果: {"success": true, "result": "E5", "raw": "{\"texts\": [\"1J+] 07:471\", \"2025/08/21 4/2Jpq\", \"noa1\", \"mt xmxu\", \"Eitanujin\", \"Th\", \"11t7tb\", \"30\\\"0\", \"30.12*1.120.41*E\", \"1498\", \"JR liu iij # E}\", \"E5\", \"38\", \"KEQ#E\", \"P5 UUGGQDBSNH8PZL\", \"GLZLLS\"]}", "processing_time": 6.731281042098999}
+[2025-08-24 23:40:25] OCR识别成功: IMG_0845.JPG, 结果: E5
+[2025-08-24 23:40:25] 已复制文件: IMG_0845.JPG -> E5
+[2025-08-24 23:40:25] 开始处理图像文件: IMG_0849.JPG
+[2025-08-24 23:40:25] 使用本地识别模式处理文件: IMG_0849.JPG
+[2025-08-24 23:40:25] [DEBUG] 图像已缩放至: (800, 600)
+[2025-08-24 23:40:26] [DEBUG] 本地OCR识别完成，耗时: 6.10秒
+[2025-08-24 23:40:26] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:26] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"IJ+J 08:01\", \"2025/08421\", \"Ktnja\", \"BH 30*c\", \"30.12*N,120.41*E\", \"Raateiitrrkt\", \"Oo\", \"2\", \"3\", \"@\", \"GQDBSI\", \"H8B?\"]}", "processing_time": 6.096184730529785}
+[2025-08-24 23:40:26] OCR识别失败 (尝试 1/1): IMG_0846.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["IJ+J 08:01", "2025/08421", "Ktnja", "B
+[2025-08-24 23:40:26] 文件 IMG_0846.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:26] 已复制文件: IMG_0846.JPG -> 识别失败
+[2025-08-24 23:40:27] 开始处理图像文件: IMG_0850.JPG
+[2025-08-24 23:40:27] 使用本地识别模式处理文件: IMG_0850.JPG
+[2025-08-24 23:40:27] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:27] [DEBUG] 本地OCR识别完成，耗时: 5.42秒
+[2025-08-24 23:40:27] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:27] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"1\", \"2\", \"4JF 08:01\", \"Jiln\", \"Eilmn\", \"0t30*0\", \"30.12\\\"N,120l41\\\"E\", \"Wb0H UUGG\", \"Lsanzee=\"]}", "processing_time": 5.417038679122925}
+[2025-08-24 23:40:28] OCR识别失败 (尝试 1/1): IMG_0847.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["1", "2", "4JF 08:01", "Jiln", "Eilmn",
+[2025-08-24 23:40:28] 文件 IMG_0847.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:28] 已复制文件: IMG_0847.JPG -> 识别失败
+[2025-08-24 23:40:28] 开始处理图像文件: IMG_0851.JPG
+[2025-08-24 23:40:28] 使用本地识别模式处理文件: IMG_0851.JPG
+[2025-08-24 23:40:28] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:28] [DEBUG] 本地OCR识别完成，耗时: 5.12秒
+[2025-08-24 23:40:28] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:28] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"10+\", \"08.04\", \"2025/08/21 {itpy\\\"\", \"TE4\", \"Bl 30*\", \"L0.OD?\", \"MampI\", \"2\", \"3\", \"@\", \"QDZSNH8T\", \"0,00\\\"\"]}", "processing_time": 5.115281581878662}
+[2025-08-24 23:40:29] OCR识别失败 (尝试 1/1): IMG_0848.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["10+", "08.04", "2025/08/21 {itpy\"", "
+[2025-08-24 23:40:29] 文件 IMG_0848.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:29] 已复制文件: IMG_0848.JPG -> 识别失败
+[2025-08-24 23:40:30] 开始处理图像文件: IMG_0852.JPG
+[2025-08-24 23:40:30] 使用本地识别模式处理文件: IMG_0852.JPG
+[2025-08-24 23:40:30] [DEBUG] 图像已缩放至: (800, 600)
+[2025-08-24 23:40:30] [DEBUG] 本地OCR识别完成，耗时: 4.95秒
+[2025-08-24 23:40:30] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:30] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"TBGU 574996 [\", \"4J\", \"08.04\", \"2025108,\", \"'7+J4\", \"Gmi\", \"81*0]\", \"30nz\\\"\", \"120,41\\\"E\", \"7KEQ#\", \"rhnesirka\", \"Gz4v\", \"[hbhj UUGGQDBMNH87MJ\"]}", "processing_time": 4.95169997215271}
+[2025-08-24 23:40:31] OCR识别失败 (尝试 1/1): IMG_0849.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["TBGU 574996 [", "4J", "08.04", "202510
+[2025-08-24 23:40:31] 文件 IMG_0849.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:31] 已复制文件: IMG_0849.JPG -> 识别失败
+[2025-08-24 23:40:31] 开始处理图像文件: IMG_0853.JPG
+[2025-08-24 23:40:31] 使用本地识别模式处理文件: IMG_0853.JPG
+[2025-08-24 23:40:31] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:31] [DEBUG] 本地OCR识别完成，耗时: 4.91秒
+[2025-08-24 23:40:31] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:31] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"38\", \"@\", \"8\", \"I\", \"2\", \"4J+1 08:05\", \"2025/08721\", \"30.12*N.1Z0,\", \"3rmu2\", \"9#\", \"3KEQIEI\", \"QDBSNH86WK\"]}", "processing_time": 4.912662029266357}
+[2025-08-24 23:40:32] OCR识别失败 (尝试 1/1): IMG_0850.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["38", "@", "8", "I", "2", "4J+1 08:05",
+[2025-08-24 23:40:32] 文件 IMG_0850.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:32] 已复制文件: IMG_0850.JPG -> 识别失败
+[2025-08-24 23:40:32] 正在停止处理线程
+[2025-08-24 23:40:32] 开始处理图像文件: IMG_0854.JPG
+[2025-08-24 23:40:32] 使用本地识别模式处理文件: IMG_0854.JPG
+[2025-08-24 23:40:33] [DEBUG] 图像已缩放至: (600, 800)
+[2025-08-24 23:40:33] [DEBUG] 本地OCR识别完成，耗时: 5.29秒
+[2025-08-24 23:40:33] [INFO] 识别成功: C5
+[2025-08-24 23:40:33] OCR识别结果: {"success": true, "result": "C5", "raw": "{\"texts\": [\"IJ+ 08;22\", \"2025/08/21 !/#pq\", \"#rea tmitatf\", \"Euntin Mt\", \"117rg\", \"BH 31*\\u20ac\", \"30.12*N,120.41PE\", \"6/8 7 &\", \"3rmm1B411MK\", \"Tm\", \"'i # lvOJ\", \"5328796\", \"Iei\", \"C5\", \"4\", \"7KEptg\", \"SCRyI\", \"W0j\", \"UUGGODBSNHTNRJ\", \"na94\"]}", "processing_time": 5.289831161499023}
+[2025-08-24 23:40:34] OCR识别成功: IMG_0851.JPG, 结果: C5
+[2025-08-24 23:40:34] 已复制文件: IMG_0851.JPG -> C5
+[2025-08-24 23:40:34] 工作线程 3 已结束
+[2025-08-24 23:40:34] 工作线程未正常结束，已超时
+[2025-08-24 23:40:35] [DEBUG] 本地OCR识别完成，耗时: 5.55秒
+[2025-08-24 23:40:35] [WARNING] 未识别到匹配模式
+[2025-08-24 23:40:35] OCR识别结果: {"success": false, "error": "未识别到匹配模式", "raw": "{\"texts\": [\"4\", \"3\", \"9\", \"8\", \"4J008.23\", \"2025/08/21 #+npg\", \"3610443 Krhtauf\", \"Kietimii 7miz\", \"Iitiiuas\", \"9\\\"\", \"Bi 31*C\", \"30.12*N,120.41\\\"E\", \"7kEp#Eu\", \"armm28wr64\", \"67ijI\", \"Tt\", \"05 05 WUUGCQDBMNHTMW2\", \"6\"]}", "processing_time": 5.553879976272583}
+[2025-08-24 23:40:36] OCR识别失败 (尝试 1/1): IMG_0852.JPG, 错误: 未识别到匹配模式, 原始结果: {"texts": ["4", "3", "9", "8", "4J008.23", "2025/0
+[2025-08-24 23:40:36] 文件 IMG_0852.JPG 识别失败: 未识别到匹配模式
+[2025-08-24 23:40:36] 已复制文件: IMG_0852.JPG -> 识别失败
+[2025-08-24 23:40:36] 工作线程 4 已结束
+[2025-08-24 23:40:37] 工作线程未正常结束，已超时
+[2025-08-24 23:40:37] 处理线程已停止

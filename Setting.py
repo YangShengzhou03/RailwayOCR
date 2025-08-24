@@ -10,12 +10,16 @@ from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDialog, QVB
 from Ui_SettingWindow import Ui_SettingWindow
 from utils import get_resource_path, log, log_print
 
+class SettingWindow(QMainWindow, Ui_SettingWindow):
+    # 定义配置更改信号
+    config_updated = QtCore.pyqtSignal()
+
 
 class SettingWindow(QMainWindow, Ui_SettingWindow):
     def __init__(self):
         super().__init__()
         # 配置文件路径
-        self.CONFIG_FILE = os.path.join(get_resource_path(), "resources", "Config.json")
+        self.CONFIG_FILE = os.path.join(get_resource_path("resources/Config.json"))
         self.REG_PATH = r"SOFTWARE\RailwayOCR"
         self.REG_PWD_KEY = "PasswordHash"
         self.setupUi(self)
@@ -132,57 +136,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             self.lineEdit_RE.setFocus()
             return False
 
-        # 验证API密钥格式
-        if mode_index == 0:
-            if not re.match(r'^[A-Za-z0-9]{20,32}$', self.lineEdit_ALI_CODE.text().strip()):
-                QMessageBox.warning(
-                    self, "ALI_CODE格式错误",
-                    "ALI_CODE格式无效，应为20-32位字母和数字组合"
-                )
-                self.lineEdit_ALI_CODE.setFocus()
-                return False
-
-            if not re.match(r'^[A-Za-z0-9]{16,24}$', self.lineEdit_ACCESS_KEY_ID.text().strip()):
-                QMessageBox.warning(
-                    self, "ACCESS_KEY_ID格式错误",
-                    "ACCESS_KEY_ID格式无效，应为16-24位字母和数字组合"
-                )
-                self.lineEdit_ACCESS_KEY_ID.setFocus()
-                return False
-
-            if not re.match(r'^[A-Za-z0-9]{30,40}$', self.lineEdit_ACCESS_KEY_SECRET.text().strip()):
-                QMessageBox.warning(
-                    self, "ACCESS_KEY_SECRET格式错误",
-                    "ACCESS_KEY_SECRET格式无效，应为30-40位字母和数字组合"
-                )
-                self.lineEdit_ACCESS_KEY_SECRET.setFocus()
-                return False
-
-            if not re.match(r'^[a-zA-Z0-9\-\.]+$', self.lineEdit_ENDPOINT.text().strip()):
-                QMessageBox.warning(
-                    self, "ENDPOINT格式错误",
-                    "ENDPOINT格式无效，只能包含字母、数字、连字符和点"
-                )
-                self.lineEdit_ENDPOINT.setFocus()
-                return False
-
-            if not re.match(r'^[a-z0-9\-]+$', self.lineEdit_BUCKET_NAME.text().strip()):
-                QMessageBox.warning(
-                    self, "BUCKET_NAME格式错误",
-                    "BUCKET_NAME格式无效，只能包含小写字母、数字和连字符"
-                )
-                self.lineEdit_BUCKET_NAME.setFocus()
-                return False
-
-        elif mode_index == 2:
-            if not re.match(r'^[A-Za-z0-9]{20,40}$', self.lineEdit_DOUYIN_API_KEY.text().strip()):
-                QMessageBox.warning(
-                    self, "DOUYIN_API_KEY格式错误",
-                    "DOUYIN_API_KEY格式无效，应为20-40位字母和数字组合"
-                )
-                self.lineEdit_DOUYIN_API_KEY.setFocus()
-                return False
-
         # 验证并发数范围
         if self.spinBox_CONCURRENCY.value() <= 0 or self.spinBox_CONCURRENCY.value() > 32:
             QMessageBox.warning(
@@ -204,40 +157,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         return True
 
     def _validate_config(self, config):
-        """
-        验证配置的有效性
-
-        参数:
-            config: 配置字典
-
-        抛出:
-            ValueError: 当配置无效时抛出
-        """
-        # 验证API密钥格式
-        if "ACCESS_KEY_ID" in config:
-            if not isinstance(config["ACCESS_KEY_ID"], str):
-                raise ValueError("ACCESS_KEY_ID必须是字符串")
-            if config["ACCESS_KEY_ID"] and not re.match(r'^[A-Za-z0-9]{16,24}$', config["ACCESS_KEY_ID"]):
-                raise ValueError("ACCESS_KEY_ID格式无效，应为16-24位字母和数字组合")
-
-        if "ACCESS_KEY_SECRET" in config:
-            if not isinstance(config["ACCESS_KEY_SECRET"], str):
-                raise ValueError("ACCESS_KEY_SECRET必须是字符串")
-            if config["ACCESS_KEY_SECRET"] and not re.match(r'^[A-Za-z0-9]{30,40}$', config["ACCESS_KEY_SECRET"]):
-                raise ValueError("ACCESS_KEY_SECRET格式无效，应为30-40位字母和数字组合")
-
-        if "DOUYIN_API_KEY" in config:
-            if not isinstance(config["DOUYIN_API_KEY"], str):
-                raise ValueError("DOUYIN_API_KEY必须是字符串")
-            if config["DOUYIN_API_KEY"] and not re.match(r'^[A-Za-z0-9]{20,40}$', config["DOUYIN_API_KEY"]):
-                raise ValueError("DOUYIN_API_KEY格式无效，应为20-40位字母和数字组合")
-
-        if "ALI_CODE" in config:
-            if not isinstance(config["ALI_CODE"], str):
-                raise ValueError("ALI_CODE必须是字符串")
-            if config["ALI_CODE"] and not re.match(r'^[A-Za-z0-9]{20,32}$', config["ALI_CODE"]):
-                raise ValueError("ALI_CODE格式无效，应为20-32位字母和数字组合")
-
         # 验证正则表达式
         if "RE" in config:
             if not isinstance(config["RE"], str):
@@ -336,6 +255,8 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 json.dump(config, f, ensure_ascii=False, indent=2)
             log("INFO", f"配置已保存到 {self.CONFIG_FILE}")
             QMessageBox.information(self, "保存成功", "配置已成功保存")
+            # 发送配置更新信号
+            self.config_updated.emit()
             self.close()
         except json.JSONDecodeError:
             log("ERROR", f"配置数据格式错误")

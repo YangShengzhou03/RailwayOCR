@@ -11,7 +11,7 @@ from Client import LocalClient, AliClient, DouyinClient, BaiduClient
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import save_summary, get_resource_path, log
+from utils import save_summary, get_resource_path, log_print, log
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -68,7 +68,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_setting(self):
         self.setting_window = SettingWindow()
+        # 连接配置更新信号到处理函数
+        self.setting_window.config_updated.connect(self.on_config_updated)
         self.setting_window.show()
+
+    def on_config_updated(self):
+        # 重新加载配置
+        log_print("配置已更新，正在重新加载...")
+        self.config = utils.load_config()
+        log_print("配置重新加载成功")
+        # 如果正在运行中，可能需要更新线程池配置等
+        if hasattr(self, 'processing_thread') and self.processing_thread:
+            self.processing_thread._load_config()
+            log_print("处理线程配置已更新")
         log("INFO", "打开设置窗口")
 
     def mousePressEvent(self, event):
@@ -190,11 +202,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return True
 
         self.processing_thread.stop()
-        # 等待线程终止，最多等待10秒
+        # 使用QEventLoop等待线程终止，避免UI卡顿
+        loop = QtCore.QEventLoop()
+        timer = QtCore.QTimer()
+        timer.setInterval(100)
+        timer.timeout.connect(loop.quit)
+        
         start_time = time.time()
-        while self.processing_thread.isRunning() and (time.time() - start_time) < 10:
+        max_wait_time = 10.0  # 最多等待10秒
+        
+        while self.processing_thread.isRunning() and (time.time() - start_time) < max_wait_time:
+            timer.start(100)
+            loop.exec()
+            timer.stop()
             QApplication.processEvents()
-            time.sleep(0.1)
 
         if self.processing_thread.isRunning():
             log("ERROR", "无法正常停止处理线程")
@@ -202,8 +223,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             try:
                 # 在线程对象上设置一个标志，通知线程必须立即终止
                 self.processing_thread.is_running = False
-                # 再次等待短暂时间
-                time.sleep(0.5)
+                # 使用事件循环等待短暂时间
+                timer.start(500)
+                loop.exec()
+                timer.stop()
+                
                 if self.processing_thread.isRunning():
                     log("ERROR", "线程仍在运行，可能导致资源泄漏")
                     return False
@@ -353,20 +377,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if reply == QMessageBox.StandardButton.Yes:
             log("WARNING", "用户请求停止处理")
-            self.pushButton_start.setText("正在停止...")
+            self.pushButton_start.setText("正在刹停...")
             self.pushButton_start.setEnabled(False)
             self.processing = False
 
             if self.processing_thread and self.processing_thread.isRunning():
                 # 安全停止线程
-                success = self._safe_stop_thread()
-                if not success:
-                    log("ERROR", "停止处理线程失败")
-                    QMessageBox.critical(self, "错误", "无法正常停止处理线程，可能导致资源泄漏")
+                self._safe_stop_thread()
+                # 无论成功与否，都通过定时器更新UI
+                QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
+            else:
+                # 线程未运行，直接更新UI
+                QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
 
-            # 更新UI状态
-            self.pushButton_start.setEnabled(True)
-            self.pushButton_start.setText("开始分类")
+    def _update_ui_after_stop(self):
+        """
+        停止处理后更新UI状态
+        """
+        self.pushButton_start.setEnabled(True)
+        self.pushButton_start.setText("开始分类")
 
     @QtCore.pyqtSlot(int, str)
     def on_progress_updated(self, value, message):
@@ -431,8 +460,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             log("INFO", "处理已停止")
             self.processing = False
-            self.pushButton_start.setEnabled(True)
-            self.pushButton_start.setText("开始分类")
+            # 通过定时器更新UI，确保在主线程执行
+            QtCore.QTimer.singleShot(0, self._update_ui_after_stop)
             # 清理线程资源
             if self.processing_thread:
                 self.processing_thread = None

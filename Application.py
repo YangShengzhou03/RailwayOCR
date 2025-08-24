@@ -2,6 +2,7 @@ import hashlib
 import sys
 import traceback
 import winreg
+from multiprocessing import shared_memory
 
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtGui import QIcon, QFont

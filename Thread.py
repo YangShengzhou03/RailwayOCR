@@ -6,6 +6,8 @@ import time
 from datetime import datetime, timedelta
 from queue import Queue, Empty
 
+import oss2
+import requests
 from PyQt6 import QtCore
 
 from utils import load_config, log_print, log
@@ -31,6 +33,16 @@ class ProcessingThread(QtCore.QThread):
         self.success_count = 0
         self.failed_count = 0
         self.lock = threading.Lock()
+        # 初始化配置相关属性
+        cpu_count = os.cpu_count() or 4
+        self.worker_count = min(max(1, cpu_count // 2), 8)
+        self.max_requests_per_minute = 60
+        self.backoff_factor = 2.0
+        self.request_interval = 0.5
+        self.max_backoff_time = 30
+        self.request_timeout = 60
+        self.Config = {}
+        # 加载配置
         self._load_config()
         self.requests_counter = 0
         self.window_start = datetime.now()
@@ -46,23 +58,50 @@ class ProcessingThread(QtCore.QThread):
 
     def _load_config(self):
         """
-        加载配置参数，设置线程池和请求限制等参数
+        加载配置参数，设置线程池和请求限制等参数。可被外部调用以更新配置。
         """
         try:
-            self.Config = load_config()
-            # 从配置中获取线程池大小，默认为CPU核心数的一半，但不超过8
+            # 重新加载配置
+            new_config = load_config()
+            
+            # 从配置中获取新参数值
             cpu_count = os.cpu_count() or 4
             default_worker_count = min(max(1, cpu_count // 2), 8)
-            self.worker_count = self.Config.get("CONCURRENCY", default_worker_count)
+            new_worker_count = new_config.get("CONCURRENCY", default_worker_count)
+            new_max_requests_per_minute = new_config.get("MAX_REQUESTS_PER_MINUTE", 60)
+            new_backoff_factor = new_config.get("BACKOFF_FACTOR", 2.0)
+            new_request_interval = new_config.get("REQUEST_INTERVAL", 0.5)
+            new_max_backoff_time = new_config.get("MAX_BACKOFF_TIME", 30)
+            new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
             
-            # 请求限制和退避参数
-            self.max_requests_per_minute = self.Config.get("MAX_REQUESTS_PER_MINUTE", 60)
-            self.backoff_factor = self.Config.get("BACKOFF_FACTOR", 2.0)
-            self.request_interval = self.Config.get("REQUEST_INTERVAL", 0.5)
-            self.max_backoff_time = self.Config.get("MAX_BACKOFF_TIME", 30)
-            self.request_timeout = self.Config.get("REQUEST_TIMEOUT", 60)
+            # 检查配置是否有变化
+            config_changed = False
+            if new_worker_count != self.worker_count:
+                self.worker_count = new_worker_count
+                config_changed = True
+            if new_max_requests_per_minute != self.max_requests_per_minute:
+                self.max_requests_per_minute = new_max_requests_per_minute
+                config_changed = True
+            if new_backoff_factor != self.backoff_factor:
+                self.backoff_factor = new_backoff_factor
+                config_changed = True
+            if new_request_interval != self.request_interval:
+                self.request_interval = new_request_interval
+                config_changed = True
+            if new_max_backoff_time != self.max_backoff_time:
+                self.max_backoff_time = new_max_backoff_time
+                config_changed = True
+            if new_request_timeout != self.request_timeout:
+                self.request_timeout = new_request_timeout
+                config_changed = True
             
-            log("INFO", f"线程池配置: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
+            # 更新配置对象
+            self.Config = new_config
+            
+            if config_changed:
+                log("INFO", f"线程池配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
+            else:
+                log("INFO", f"线程池配置: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
         except Exception as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4

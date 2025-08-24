@@ -100,19 +100,27 @@ def log_print(formatted_log):
             log_handle.write(f"{formatted_log}\n")
             log_handle.flush()
 
+        # 确保在主线程中更新UI
         if main_window and hasattr(main_window, 'textEdit_log') and main_window.textEdit_log:
-            from PyQt6.QtCore import QMetaObject, Qt
-            QMetaObject.invokeMethod(
-                main_window.textEdit_log,
-                "append",
-                Qt.ConnectionType.QueuedConnection,
-                QtCore.Q_ARG(str, formatted_log)
-            )
-            QMetaObject.invokeMethod(
-                main_window.textEdit_log,
-                "ensureCursorVisible",
-                Qt.ConnectionType.QueuedConnection
-            )
+            from PyQt6.QtCore import QMetaObject, Qt, QCoreApplication
+            # 检查当前线程是否为主线程
+            if QCoreApplication.instance().thread() != main_window.thread():
+                # 使用QueuedConnection确保在主线程执行
+                QMetaObject.invokeMethod(
+                    main_window.textEdit_log,
+                    "append",
+                    Qt.ConnectionType.QueuedConnection,
+                    QtCore.Q_ARG(str, formatted_log)
+                )
+                QMetaObject.invokeMethod(
+                    main_window.textEdit_log,
+                    "ensureCursorVisible",
+                    Qt.ConnectionType.QueuedConnection
+                )
+            else:
+                # 如果已经是主线程，直接更新
+                main_window.textEdit_log.append(formatted_log)
+                main_window.textEdit_log.ensureCursorVisible()
     except Exception as e:
         log("DEBUG", f"写入日志文件失败: {str(e)}")
         log("DEBUG", f"详细错误信息: {traceback.format_exc()}")
@@ -161,14 +169,7 @@ Config = load_config()
 
 
 def log(level, message):
-    # 检查日志级别
-    log_levels = {"DEBUG": 1, "INFO": 2, "WARNING": 3, "ERROR": 4}
-    current_level = log_levels.get(Config.get("LOG_LEVEL", "INFO"), 2)
-    message_level = log_levels.get(level, 2)
-
-    if message_level < current_level:
-        return
-
+    print(f"{level} {message}")
     timestamp = time.strftime("%m-%d %H:%M:%S")
     colors = {
         "INFO": "#691bfd",
@@ -178,19 +179,9 @@ def log(level, message):
     }
     color = colors.get(level, "#000000")
     formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
-    if main_window and hasattr(main_window, 'textEdit_log') and main_window.textEdit_log:
-        from PyQt6.QtCore import QMetaObject, Qt
-        QMetaObject.invokeMethod(
-            main_window.textEdit_log,
-            "append",
-            Qt.ConnectionType.QueuedConnection,
-            QtCore.Q_ARG(str, formatted_message)
-        )
-        QMetaObject.invokeMethod(
-            main_window.textEdit_log,
-            "ensureCursorVisible",
-            Qt.ConnectionType.QueuedConnection
-        )
+    if main_window and hasattr(main_window, 'textEdit_log'):
+        main_window.textEdit_log.append(formatted_message)
+        main_window.textEdit_log.ensureCursorVisible()
 
 
 def save_summary(results):

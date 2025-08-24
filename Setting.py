@@ -2,21 +2,22 @@ import json
 import os
 import winreg
 import hashlib
+import re
 from PyQt6 import QtCore, QtGui
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, \
     QPushButton, QHBoxLayout, QWidget
 
 from Ui_SettingWindow import Ui_SettingWindow
-from utils import get_resource_path, log_print
+from utils import get_resource_path, log, log_print
 
 
 class SettingWindow(QMainWindow, Ui_SettingWindow):
-    CONFIG_FILE = get_resource_path("resources/Config.json")
-    REG_PATH = r"SOFTWARE\RailwayOCR"
-    REG_PWD_KEY = "PasswordHash"
-
     def __init__(self):
         super().__init__()
+        # 配置文件路径
+        self.CONFIG_FILE = os.path.join(get_resource_path(), "resources", "Config.json")
+        self.REG_PATH = r"SOFTWARE\RailwayOCR"
+        self.REG_PWD_KEY = "PasswordHash"
         self.setupUi(self)
         self.setWindowTitle('RailwayOCR Setting')
         self.pushButton_save.clicked.connect(self.save_config)
@@ -27,18 +28,30 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
         self.load_and_populate_config()
 
+
+
     def load_and_populate_config(self):
         try:
             if os.path.exists(self.CONFIG_FILE):
                 with open(self.CONFIG_FILE, 'r', encoding='utf-8') as f:
                     config = json.load(f)
+                # 验证配置
+                self._validate_config(config)
             else:
                 config = {}
-            log_print("首次启动，使用默认配置模板")
-            QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
+                log("INFO", "配置文件不存在，使用默认配置")
+                # 只在首次创建配置时显示提示
+                if not os.path.exists(os.path.dirname(self.CONFIG_FILE)):
+                    try:
+                        os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
+                        log("INFO", f"创建配置目录: {os.path.dirname(self.CONFIG_FILE)}")
+                    except Exception as e:
+                        log("ERROR", f"创建配置目录失败: {str(e)}")
+                        QMessageBox.critical(self, "配置错误", f"创建配置目录失败: {str(e)}")
+                QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
             self.lineEdit_ACCESS_KEY_ID.setText(config.get("ACCESS_KEY_ID", ""))
             self.lineEdit_ACCESS_KEY_SECRET.setText(config.get("ACCESS_KEY_SECRET", ""))
-            self.lineEdit_ENDPOINT.setText(config.get("ENDPOINT", ""))
+            self.lineEdit_ENDPOINT.setText(config.get("ENDPOINT", "oss-cn-hangzhou.aliyuncs.com"))
             self.lineEdit_BUCKET_NAME.setText(config.get("BUCKET_NAME", ""))
             self.lineEdit_DOUYIN_API_KEY.setText(config.get("DOUYIN_API_KEY", ""))
             self.lineEdit_ALI_CODE.setText(config.get("ALI_CODE", ""))
@@ -48,8 +61,12 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             mode_index = config.get("MODE_INDEX", 0)
             if 0 <= mode_index < self.comboBox_mode.count():
                 self.comboBox_mode.setCurrentIndex(mode_index)
+        except json.JSONDecodeError:
+            log("ERROR", f"配置文件格式错误: {self.CONFIG_FILE}")
+            QMessageBox.critical(self, "配置加载失败", f"配置文件格式错误: {self.CONFIG_FILE}")
+            self._load_default_values()
         except Exception as e:
-            log_print(f"配置加载失败: {str(e)}")
+            log("ERROR", f"配置加载失败: {str(e)}")
             QMessageBox.critical(self, "配置加载失败", f"读取配置时出错：{str(e)}")
             self._load_default_values()
 
@@ -96,7 +113,51 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                         widget.setFocus()
                         break
             return False
+
+        # 验证正则表达式
+        try:
+            re.compile(self.lineEdit_RE.text().strip())
+        except re.error:
+            QMessageBox.warning(
+                self, "正则表达式错误",
+                f"无效的正则表达式: {self.lineEdit_RE.text().strip()}\n{str(e)}"
+            )
+            self.lineEdit_RE.setFocus()
+            return False
+
         return True
+
+    def _validate_config(self, config):
+        """
+        验证配置的有效性
+        """
+        # 验证API密钥格式
+        if "ACCESS_KEY_ID" in config and not isinstance(config["ACCESS_KEY_ID"], str):
+            raise ValueError("ACCESS_KEY_ID必须是字符串")
+
+        if "ACCESS_KEY_SECRET" in config and not isinstance(config["ACCESS_KEY_SECRET"], str):
+            raise ValueError("ACCESS_KEY_SECRET必须是字符串")
+
+        if "DOUYIN_API_KEY" in config and not isinstance(config["DOUYIN_API_KEY"], str):
+            raise ValueError("DOUYIN_API_KEY必须是字符串")
+
+        # 验证正则表达式
+        if "RE" in config:
+            try:
+                re.compile(config["RE"])
+            except re.error as e:
+                raise ValueError(f"正则表达式无效: {config['RE']}\n{str(e)}")
+
+        # 验证数值类型
+        if "CONCURRENCY" in config and not isinstance(config["CONCURRENCY"], int):
+            raise ValueError("CONCURRENCY必须是整数")
+
+        if "RETRY_TIMES" in config and not isinstance(config["RETRY_TIMES"], int):
+            raise ValueError("RETRY_TIMES必须是整数")
+
+        # 验证目录路径
+        if "SUMMARY_DIR" in config and not isinstance(config["SUMMARY_DIR"], str):
+            raise ValueError("SUMMARY_DIR必须是字符串")
 
     def save_config(self):
         if not self.validate_required_fields():
@@ -107,7 +168,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                     config = json.load(f)
             else:
                 config = {}
-                QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
 
             config.update({
                 "ACCESS_KEY_ID": self.lineEdit_ACCESS_KEY_ID.text().strip(),
@@ -136,12 +196,27 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 if key not in config:
                     config[key] = value
 
+            # 验证配置
+            self._validate_config(config)
+
+            # 确保目录存在
+            try:
+                os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
+            except Exception as e:
+                log("ERROR", f"创建配置目录失败: {str(e)}")
+                QMessageBox.critical(self, "保存失败", f"创建配置目录失败: {str(e)}")
+                return
+
             with open(self.CONFIG_FILE, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
+            log("INFO", f"配置已保存到 {self.CONFIG_FILE}")
             QMessageBox.information(self, "保存成功", "配置已成功保存")
             self.close()
+        except json.JSONDecodeError:
+            log("ERROR", f"配置数据格式错误")
+            QMessageBox.critical(self, "保存失败", "配置数据格式错误")
         except Exception as e:
-            log_print(f"保存配置失败: {str(e)}")
+            log("ERROR", f"保存配置失败: {str(e)}")
             QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}")
 
     def handle_password(self):

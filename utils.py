@@ -52,25 +52,47 @@ def _get_log_file_handle():
     return _log_file_handle
 
 
+def close_log_file():
+    """
+    关闭日志文件句柄
+    """
+    global _log_file_handle
+    if _log_file_handle and not _log_file_handle.closed:
+        try:
+            _log_file_handle.close()
+            _log_file_handle = None
+            log("DEBUG", "日志文件已关闭")
+        except Exception as e:
+            print(f"[ERROR] 关闭日志文件失败: {str(e)}")
+
+
 def log_print(formatted_log):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_log = f"[{timestamp}] {formatted_log}"
     print(formatted_log)
 
     try:
-        if os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > 600 * 1024:
-            with open(LOG_PATH, 'r', encoding='utf-8') as f:
-                f.seek(0, 2)
-                pos, lines = f.tell(), 0
-                while pos > 0 and lines < MAX_LINES:
-                    pos -= 1
-                    f.seek(pos)
-                    if f.read(1) == '\n':
-                        lines += 1
-                if pos > 0:
-                    f.seek(pos + 1)
-                    with open(LOG_PATH, 'w', encoding='utf-8') as f_write:
-                        f_write.write(f.read())
+        # 日志轮转
+        log_rotation_size = Config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
+        log_backup_count = Config.get("LOG_BACKUP_COUNT", 3)
+
+        if os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > log_rotation_size:
+            # 执行日志轮转
+            for i in range(log_backup_count - 1, 0, -1):
+                backup_path = f"{LOG_PATH}.{i}"
+                prev_backup_path = f"{LOG_PATH}.{i-1}"
+                if os.path.exists(prev_backup_path):
+                    if os.path.exists(backup_path):
+                        os.remove(backup_path)
+                    os.rename(prev_backup_path, backup_path)
+            # 重命名当前日志文件为 .1
+            backup_path = f"{LOG_PATH}.1"
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+            os.rename(LOG_PATH, backup_path)
+            # 创建新的日志文件
+            with open(LOG_PATH, 'w', encoding='utf-8') as f:
+                f.write(f"# Log file created at {datetime.now()}\n")
 
         log_handle = _get_log_file_handle()
         if log_handle:
@@ -101,17 +123,24 @@ def load_config():
         "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
         "SUMMARY_DIR": "summary",
         "DOUYIN_WORKFLOW_ID": "",
-        "DOUYIN_PROMPT": "请识别图像中的内容"
+        "DOUYIN_PROMPT": "请识别图像中的内容",
+        "LOG_LEVEL": "INFO",  # 日志级别: DEBUG, INFO, WARNING, ERROR
+        "LOG_ROTATION_SIZE": 5 * 1024 * 1024,  # 5MB
+        "LOG_BACKUP_COUNT": 3  # 保留的备份文件数
     }
 
     try:
         if not os.path.exists(file_path):
             log("DEBUG", f"配置文件不存在: {file_path}")
             log("DEBUG", "正在创建默认配置文件...")
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'w', encoding='utf-8') as f:
-                json.dump(default_config, f, ensure_ascii=False, indent=2)
-            log("DEBUG", f"默认配置文件已创建: {file_path}")
+            try:
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    json.dump(default_config, f, ensure_ascii=False, indent=2)
+                log("DEBUG", f"默认配置文件已创建: {file_path}")
+            except Exception as e:
+                log("ERROR", f"创建默认配置文件失败: {str(e)}")
+                QMessageBox.critical(None, "配置错误", f"创建默认配置文件失败: {str(e)}")
             return default_config
 
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -131,8 +160,23 @@ Config = load_config()
 
 
 def log(level, message):
+    # 检查日志级别
+    log_levels = {"DEBUG": 1, "INFO": 2, "WARNING": 3, "ERROR": 4}
+    current_level = log_levels.get(Config.get("LOG_LEVEL", "INFO"), 2)
+    message_level = log_levels.get(level, 2)
+
+    if message_level < current_level:
+        return
+
     timestamp = time.strftime("%m-%d %H:%M:%S")
-    formatted_message = f"[{timestamp}] [{level}] {message}"
+    colors = {
+        "INFO": "#691bfd",
+        "ERROR": "#FF0000",
+        "WARNING": "#FFA500",
+        "DEBUG": "#008000"
+    }
+    color = colors.get(level, "#000000")
+    formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
     if main_window and hasattr(main_window, 'textEdit_log') and main_window.textEdit_log:
         from PyQt6.QtCore import QMetaObject, Qt
         QMetaObject.invokeMethod(

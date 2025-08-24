@@ -70,7 +70,6 @@ class ProcessingThread(QtCore.QThread):
                 self.processing_finished.emit([])
                 return
 
-            self._create_directories()
             self.stats_updated.emit(0, 0, 0)
             self.progress_updated.emit(0, "开始处理...")
 
@@ -181,13 +180,6 @@ class ProcessingThread(QtCore.QThread):
             finally:
                 self.signal_queue.task_done()
 
-    def _create_directories(self):
-        try:
-            self.create_output_directories(self.dest_dir)
-        except Exception as e:
-            self.error_occurred.emit(f"创建输出目录失败: {str(e)}")
-            raise
-
     def rate_limited_process(self, file_path):
         if not self.is_running:
             return {'filename': os.path.basename(file_path), 'success': False, 'error': '处理已取消'}
@@ -291,6 +283,7 @@ class ProcessingThread(QtCore.QThread):
         filename = os.path.basename(local_file_path)
         log_print(f"开始处理图像文件: {filename}")
 
+        # 本地识别模式不进行OSS上传
         if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
             log_print(f"使用本地识别模式处理文件: {filename}")
             image_source = local_file_path
@@ -358,10 +351,6 @@ class ProcessingThread(QtCore.QThread):
 
         return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
 
-    def create_output_directories(self, output_dir):
-        os.makedirs(output_dir, exist_ok=True)
-        os.makedirs(os.path.join(output_dir, "识别失败"), exist_ok=True)
-
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
         filename = os.path.basename(local_file_path)
 
@@ -376,10 +365,18 @@ class ProcessingThread(QtCore.QThread):
             if '未识别到有效内容' in category:
                 category = '未识别到有效内容'
         else:
+            # 只有识别失败时才使用"识别失败"分类
             category = "识别失败"
 
         category_dir = os.path.join(output_dir, category)
-        os.makedirs(category_dir, exist_ok=True)
+        # 只有实际需要时才创建目录
+        if not os.path.exists(category_dir):
+            try:
+                os.makedirs(category_dir, exist_ok=True)
+            except Exception as e:
+                log_print(f"创建目录失败: {str(e)}")
+                return None
+
         dest_path = os.path.join(category_dir, filename)
         counter = 1
 

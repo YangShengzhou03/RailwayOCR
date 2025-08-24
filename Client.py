@@ -12,6 +12,7 @@ import easyocr
 import numpy as np
 import requests
 from PIL import Image
+import multiprocessing
 
 from utils import load_config, log_print, log
 
@@ -96,9 +97,6 @@ class AliClient:
             return {"success": False, "error": "未识别到匹配模式", "raw": response}
 
 
-import multiprocessing
-
-
 class LocalClient:
     def __init__(self, max_retries=3, gpu=False):
         self.config = load_config()
@@ -107,6 +105,7 @@ class LocalClient:
         self.reader = None
         self.max_retries = max_retries
         self.gpu = gpu
+        self._reader_lock = multiprocessing.Lock()
 
         cpu_count = multiprocessing.cpu_count()
         max_threads_limit = max(1, cpu_count // 4)
@@ -121,9 +120,8 @@ class LocalClient:
         while retry_count < self.max_retries:
             try:
                 log_print(f"[DEBUG] 正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
-                if retry_count == 0:
-                    import time
-                self.reader = easyocr.Reader(['en'], gpu=self.gpu)
+                with self._reader_lock:
+                    self.reader = easyocr.Reader(['en'], gpu=self.gpu)
                 log("INFO", "OCR模型加载成功")
                 return
             except Exception as e:
@@ -155,7 +153,9 @@ class LocalClient:
                 log_print(f"[DEBUG] 使用GPU加速，不缩放图像")
 
             gray_image = image.convert('L')
-            return np.array(gray_image)
+            result = np.array(gray_image)
+            image.close()
+            return result
         except Exception as e:
             error_msg = f"图像预处理错误: {str(e)}"
             log("ERROR", error_msg)
@@ -174,7 +174,8 @@ class LocalClient:
 
         if processed_image is not None:
             try:
-                result = self.reader.readtext(processed_image, detail=0)
+                with self._reader_lock:
+                    result = self.reader.readtext(processed_image, detail=0)
                 matched_result = self.extract_matches(result)
                 raw_result = json.dumps({"texts": result})
                 processing_time = time.time() - start_time
@@ -196,6 +197,8 @@ class LocalClient:
                 log("ERROR", error_msg)
                 log_print(f"[ERROR] {error_msg}")
                 return {"success": False, "error": error_msg, "raw": str(e)}
+            finally:
+                del processed_image  # 显式释放内存
         else:
             log("ERROR", "图像预处理失败")
             log_print("[ERROR] 图像预处理失败")

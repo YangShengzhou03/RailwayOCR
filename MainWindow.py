@@ -11,7 +11,7 @@ from Client import LocalClient, AliClient, DouyinClient, BaiduClient
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import save_summary, get_resource_path
+from utils import save_summary, get_resource_path, log
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -112,11 +112,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log("WARNING", "源文件夹不存在或未设置")
             return
 
-        for root, _, files in os.walk(self.source_dir):
-            for file in files:
-                if any(file.lower().endswith(ext) for ext in self.config["ALLOWED_EXTENSIONS"]):
-                    file_path = os.path.abspath(os.path.join(root, file))
-                    self.image_files.append(file_path)
+        try:
+            for root, _, files in os.walk(self.source_dir):
+                for file in files:
+                    try:
+                        if any(file.lower().endswith(ext) for ext in self.config["ALLOWED_EXTENSIONS"]):
+                            file_path = os.path.abspath(os.path.join(root, file))
+                            self.image_files.append(file_path)
+                    except Exception as e:
+                        log("ERROR", f"处理文件 {file} 时出错: {str(e)}")
+                        continue
+        except PermissionError:
+            log("ERROR", f"访问文件夹 {self.source_dir} 时权限不足")
+            QMessageBox.warning(self, "权限错误", f"无法访问文件夹 {self.source_dir}，权限不足")
+            return
+        except Exception as e:
+            log("ERROR", f"扫描文件夹时出错: {str(e)}")
+            QMessageBox.warning(self, "扫描错误", f"扫描文件夹时出错: {str(e)}")
+            return
 
         total_count = len(self.image_files)
         self.total_files_label.setText(str(total_count))
@@ -157,6 +170,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.processing:
             self.stop_processing()
         else:
+            # 确保之前的线程已经终止
+            if self.processing_thread and self.processing_thread.isRunning():
+                log("WARNING", "存在正在运行的处理线程，尝试停止")
+                self.processing_thread.stop()
+                # 等待线程终止，最多等待5秒
+                import time
+                start_time = time.time()
+                while self.processing_thread.isRunning() and (time.time() - start_time) < 5:
+                    QApplication.processEvents()
+                    time.sleep(0.1)
+                if self.processing_thread.isRunning():
+                    log("ERROR", "无法正常停止处理线程，强制启动新线程")
             self.start_processing()
 
     def start_processing(self):
@@ -241,7 +266,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.error_occurred.connect(self.on_error_occurred)
 
             self.processing_thread.start()
-            log("INFO", "正在连接到OSS和图像识别服务器，请耐心等待")
+            log("INFO", "正在处理图像，请耐心等待")
 
         except Exception as e:
             error_msg = f"启动处理线程失败: {str(e)}"

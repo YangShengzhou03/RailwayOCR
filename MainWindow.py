@@ -1,540 +1,17 @@
-import base64
-import json
 import os
-import re
-import ssl
 import sys
 import time
-import urllib.parse
 from datetime import timedelta
-from urllib.error import HTTPError
-from urllib.request import Request, urlopen
 
-import easyocr
-import numpy as np
-import requests
-from PIL import Image
 from PyQt6 import QtCore, QtGui
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog)
 
 import utils
+from Client import LocalClient, AliClient, DouyinClient, BaiduClient
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import save_summary, get_resource_path, log_print, log
-
-
-class AliClient:
-    def __init__(self, appcode=None):
-        self.REQUEST_URL = "https://gjbsb.market.alicloudapi.com/ocrservice/advanced"
-        self.appcode = appcode
-        self.context = ssl._create_unverified_context()
-        self.config = utils.load_config()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
-        self.client_type = 'ali'  # 添加客户端类型标识
-
-    def get_img(self, img_file):
-        if img_file.startswith("http"):
-            return img_file
-        else:
-            with open(os.path.expanduser(img_file), 'rb') as f:
-                data = f.read()
-        try:
-            return str(base64.b64encode(data), 'utf-8')
-        except TypeError:
-            return base64.b64encode(data)
-
-    def posturl(self, headers, body):
-        try:
-            params = json.dumps(body).encode(encoding='UTF8')
-            req = Request(self.REQUEST_URL, params, headers)
-            r = urlopen(req, context=self.context)
-            return r.read().decode("utf8")
-        except HTTPError as e:
-            return json.dumps({"error": f"HTTP错误: {e.code}", "details": e.read().decode("utf8")})
-
-    def extract_matches(self, response_text):
-        try:
-            data = json.loads(response_text)
-        except json.JSONDecodeError:
-            return None
-
-        words_info = data.get("prism_wordsInfo", [])
-        for item in words_info:
-            word = item.get("word", "").strip()
-            if self.pattern.fullmatch(word):
-                return word.upper()
-        return None
-
-    def recognize(self, img_file, params=None):
-        if not self.appcode:
-            return {"success": False, "error": "未提供AppCode"}
-
-        if params is None:
-            params = {
-                "prob": False,
-                "charInfo": False,
-                "rotate": False,
-                "table": False,
-                "sortPage": False,
-                "noStamp": False,
-                "figure": False,
-                "row": False,
-                "paragraph": False,
-                "oricoord": False
-            }
-
-        img = self.get_img(img_file)
-        if img.startswith('http'):
-            params.update({'url': img})
-        else:
-            params.update({'img': img})
-
-        headers = {
-            'Authorization': f'APPCODE {self.appcode}',
-            'Content-Type': 'application/json; charset=UTF-8'
-        }
-
-        response = self.posturl(headers, params)
-        result = self.extract_matches(response)
-
-        if result:
-            return {"success": True, "result": result, "raw": response}
-        else:
-            return {"success": False, "error": "未识别到匹配模式", "raw": response}
-
-
-import multiprocessing
-
-
-class LocalClient:
-    def __init__(self, max_retries=3, gpu=False):
-        self.config = utils.load_config()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-K][1-7]$'))
-        self.client_type = 'local'
-        self.reader = None
-        self.max_retries = max_retries
-        self.gpu = gpu
-
-        cpu_count = multiprocessing.cpu_count()
-        max_threads_limit = max(1, cpu_count // 4)
-        json_threads = self.config.get("CONCURRENCY", 1)
-        self.max_threads = min(json_threads, max_threads_limit)
-        # 开发者调试信息使用log_print
-        log_print(f"[DEBUG] CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
-
-        self._initialize_reader()
-
-    def _initialize_reader(self):
-        retry_count = 0
-        while retry_count < self.max_retries:
-            try:
-                # 开发者调试信息使用log_print
-                log_print(f"[DEBUG] 正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
-                if retry_count == 0:
-                    import time
-                # 使用正确的参数名 'workers' 代替 'thread_count'
-                self.reader = easyocr.Reader(['en'], gpu=self.gpu)
-                # 模型加载成功是用户需要知道的信息，使用log
-                log("INFO", "OCR模型加载成功")
-                return
-            except Exception as e:
-                error_msg = f"模型加载失败: {str(e)}"
-                # 错误信息对用户和开发者都重要，同时使用两种日志
-                log("ERROR", error_msg)
-                log_print(f"[ERROR] {error_msg}")
-                retry_count += 1
-                if retry_count < self.max_retries:
-                    wait_time = min(2 ** retry_count, 10)  # 指数退避，最大10秒
-                    # 重试信息是开发者调试用
-                    log_print(f"[DEBUG] {wait_time}秒后重试...")
-                    time.sleep(wait_time)
-                else:
-                    log("ERROR", f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
-                    # 仍然抛出异常，让调用者知道初始化失败
-                    raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}")
-
-    def get_img(self, img_file):
-        return img_file
-
-    def optimized_preprocess(self, img_path, max_size=800):
-        try:
-            image = Image.open(img_path)
-
-            if not self.gpu and max(image.size) > max_size:
-                scale = max_size / max(image.size)
-                new_size = (int(image.size[0] * scale), int(image.size[1] * scale))
-                image = image.resize(new_size, Image.Resampling.LANCZOS)
-                # 图像缩放是内部处理，使用log_print
-                log_print(f"[DEBUG] 图像已缩放至: {new_size}")
-            elif self.gpu:
-                # GPU使用信息是内部处理，使用log_print
-                log_print(f"[DEBUG] 使用GPU加速，不缩放图像")
-
-            gray_image = image.convert('L')
-            return np.array(gray_image)
-        except Exception as e:
-            # 图像预处理错误需要通知用户
-            error_msg = f"图像预处理错误: {str(e)}"
-            log("ERROR", error_msg)
-            log_print(f"[ERROR] {error_msg}")
-            return None
-
-    def extract_matches(self, texts):
-        for text in texts:
-            if self.pattern.fullmatch(text.strip()):
-                return text.strip().upper()
-        return None
-
-    def recognize(self, img_file, params=None):
-        start_time = time.time()
-        processed_image = self.optimized_preprocess(img_file)
-
-        if processed_image is not None:
-            try:
-                result = self.reader.readtext(processed_image, detail=0)
-                matched_result = self.extract_matches(result)
-                raw_result = json.dumps({"texts": result})
-                processing_time = time.time() - start_time
-
-                # 识别耗时是开发者调试信息
-                log_print(f"[DEBUG] 本地OCR识别完成，耗时: {processing_time:.2f}秒")
-
-                if matched_result:
-                    # 识别成功信息需要通知用户
-                    log("INFO", f"识别成功: {matched_result}")
-                    log_print(f"[INFO] 识别成功: {matched_result}")
-                    return {"success": True, "result": matched_result, "raw": raw_result,
-                            "processing_time": processing_time}
-                else:
-                    # 未识别到模式需要通知用户
-                    log("WARNING", "未识别到匹配模式")
-                    log_print("[WARNING] 未识别到匹配模式")
-                    return {"success": False, "error": "未识别到匹配模式", "raw": raw_result,
-                            "processing_time": processing_time}
-            except Exception as e:
-                error_msg = f"OCR识别异常: {str(e)}"
-                # OCR识别异常需要通知用户
-                log("ERROR", error_msg)
-                log_print(f"[ERROR] {error_msg}")
-                return {"success": False, "error": error_msg, "raw": str(e)}
-        else:
-            # 图像预处理失败需要通知用户
-            log("ERROR", "图像预处理失败")
-            log_print("[ERROR] 图像预处理失败")
-            return {"success": False, "error": "图像预处理失败", "raw": "{}"}
-
-
-class DouyinClient:
-    def __init__(self, api_key, base_url="https://api.coze.cn/v1", timeout=30, max_retries=3, backoff_factor=1.0,
-                 proxies=None):
-        self.api_key = api_key
-        self.base_url = base_url
-        self.timeout = timeout
-        self.proxies = proxies
-        self.max_retries = max_retries
-        self.backoff_factor = backoff_factor
-        self.client_type = "抖音服务"
-        # 从配置加载工作流ID
-        self.config = utils.load_config()
-        self.workflow_id = self.config.get("DOUYIN_WORKFLOW_ID", "7514709270924361743")
-        self.prompt = self.config.get("DOUYIN_PROMPT", "识别图像中【纯白色小卡片】上的红色目标文字...")
-
-    def _create_session(self):
-        """创建带重试策略的requests会话"""
-        session = requests.Session()
-        retry_strategy = requests.adapters.Retry(
-            total=self.max_retries,
-            backoff_factor=self.backoff_factor,
-            status_forcelist=[500, 502, 503, 504]  # 只对标准HTTP错误码进行重试
-        )
-        adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
-        session.mount("https://", adapter)
-        session.mount("http://", adapter)
-        session.headers.update({
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        })
-        return session
-
-    def run_workflow(self, workflow_id, parameters=None, bot_id=None, is_async=False):
-        """运行抖音工作流"""
-        api_url = f"{self.base_url}/workflow/run"
-        payload = {"workflow_id": workflow_id, "is_async": is_async}
-
-        if parameters:
-            payload["parameters"] = parameters
-        if bot_id:
-            payload["bot_id"] = bot_id
-
-        session = self._create_session()
-        try:
-            response = session.post(
-                api_url,
-                json=payload,
-                timeout=self.timeout,
-                proxies=self.proxies
-            )
-            response.raise_for_status()
-            result = response.json()
-
-            if result.get("code") == 0:
-                return {
-                    "success": True,
-                    "data": result.get("data"),
-                    "debug_url": result.get("debug_url"),
-                    "execute_id": result.get("execute_id"),
-                    "usage": result.get("usage")
-                }
-            else:
-                error_code = result.get("code")
-                error_msg = result.get("msg", "工作流运行失败")
-                # 工作流运行失败需要通知用户
-                log("ERROR", f"工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
-                log_print(f"[ERROR] 工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
-                return {
-                    "success": False,
-                    "error_code": error_code,
-                    "error_msg": error_msg,
-                    "logid": result.get("detail", {}).get("logid")
-                }
-
-        except requests.exceptions.Timeout:
-            # 请求超时需要通知用户
-            log("ERROR", f"请求超时: {self.timeout}秒")
-            log_print(f"[ERROR] 请求超时: {self.timeout}秒")
-            return {"success": False, "error_msg": f"请求超时: {self.timeout}秒"}
-        except requests.exceptions.ConnectionError:
-            # 网络连接错误需要通知用户
-            log("ERROR", "网络连接错误")
-            log_print("[ERROR] 网络连接错误")
-            return {"success": False, "error_msg": "网络连接错误"}
-        except requests.exceptions.HTTPError as e:
-            # HTTP错误需要通知用户
-            log("ERROR", f"HTTP错误: {e.response.status_code}, {e.response.text}")
-            log_print(f"[ERROR] HTTP错误: {e.response.status_code}, {e.response.text}")
-            return {"success": False, "error_msg": f"HTTP错误: {e.response.status_code}"}
-        except Exception as e:
-            # 请求异常需要通知用户
-            log("ERROR", f"请求异常: {str(e)}")
-            log_print(f"[ERROR] 请求异常: {str(e)}")
-            return {"success": False, "error_msg": f"请求异常: {str(e)}"}
-        finally:
-            session.close()
-
-    def recognize(self, img_file, params=None):
-        """统一接口：处理图像识别，兼容本地文件路径和URL
-           针对抖音API 4024错误码(请求频率过高)和网络异常实现指数退避重试策略"""
-        # 处理参数，设置超时
-        retry_count = 0
-        max_retries = self.max_retries
-        backoff_factor = self.backoff_factor
-        request_timeout = self.timeout
-
-        if params and isinstance(params, dict):
-            request_timeout = params.get('timeout', self.timeout)
-
-        # 检查必要参数
-        if not self.api_key:
-            error_msg = "未提供抖音API Key"
-            # 识别过程异常需要通知用户
-            log("ERROR", error_msg)
-            log_print(f"[ERROR] {error_msg}")
-            return {"success": False, "error": error_msg, "raw": ""}
-
-        if not self.workflow_id:
-            error_msg = "缺少必要配置参数: DOUYIN_WORKFLOW_ID"
-            # 达到最大重试次数需要通知用户
-            log("ERROR", error_msg)
-            log_print(f"[ERROR] {error_msg}")
-            return {"success": False, "error": error_msg, "raw": ""}
-
-        # 准备默认参数
-        default_params = {
-            "prompt": self.prompt,
-            "image": img_file
-        }
-
-        if params:
-            default_params.update(params)
-
-        while retry_count <= max_retries:
-            # 计算退避时间并等待
-            if retry_count > 0:
-                sleep_time = backoff_factor * (2 ** (retry_count - 1))
-                # 请求重试信息是开发者调试用
-                log_print(f"[DEBUG] 请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
-                time.sleep(sleep_time)
-
-            try:
-                # 运行工作流
-                result = self.run_workflow(
-                    workflow_id=self.workflow_id,
-                    parameters=default_params,
-                    bot_id=None,
-                    is_async=False,  # 同步执行以便获取结果
-                )
-
-                # 请求结果是开发者调试信息
-                log_print(f"[DEBUG] 请求结果: {result}")
-
-                # 解析结果
-                parsed_result = self.parse_ocr_result(result)
-                # 工作流处理结果需要通知用户
-                log("INFO", f"工作流处理结果: {parsed_result}")
-                log_print(f"[INFO] 工作流处理结果: {parsed_result}")
-
-                # 即使没有execute_id也继续
-                execute_id = result.get('execute_id')
-
-                if not result['success']:
-                    error_code = result.get('error_code')
-                    error_msg = result.get('error_msg', '工作流运行失败')
-
-                    # 对错误码4024(请求频率过高)进行重试
-                    if error_code == 4024 and retry_count < max_retries:
-                        retry_count += 1
-                        # 请求频率过高信息是开发者调试用
-                        log_print(f"[DEBUG] 请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
-                        continue
-
-                    return {
-                        'success': False,
-                        'error': error_msg,
-                        'error_code': error_code,
-                        'raw': str(result)
-                    }
-
-                return {
-                    'success': True,
-                    'result': parsed_result,
-                    'execute_id': execute_id,
-                    'raw': str(result)
-                }
-
-            except Exception as e:
-                # 网络异常也可以重试
-                if retry_count < max_retries:
-                    retry_count += 1
-                    # 请求异常重试信息是开发者调试用
-                    log_print(f"[DEBUG] 请求异常: {str(e)}，正在进行第{retry_count}次重试...")
-                    continue
-                error_msg = f'识别过程异常: {str(e)}'
-                log_print(error_msg)
-                return {'success': False, 'error': error_msg, 'raw': str(e)}
-
-        # 达到最大重试次数
-        error_msg = f'达到最大重试次数({max_retries})，请求失败'
-        log_print(error_msg)
-        return {'success': False, 'error': error_msg, 'raw': ''}
-
-    def parse_ocr_result(self, ocr_data):
-        """解析OCR结果"""
-        if not ocr_data.get('success'):
-            return f"处理失败: {ocr_data.get('error_msg', '未知错误')}"
-
-        data = ocr_data.get('data', '')
-        try:
-            # 尝试解析数据
-            if isinstance(data, dict):
-                text = data.get('msg', str(data))
-            else:
-                # 尝试将字符串解析为JSON
-                json_data = json.loads(data)
-                text = json_data.get('msg', str(data))
-        except (json.JSONDecodeError, TypeError):
-            text = str(data)
-
-        # 应用正则表达式验证结果格式
-        pattern = re.compile(r'^[A-K][1-7]$')  # 匹配A-K followed by 1-7
-        if pattern.match(text.strip()):
-            return text.strip().upper()
-        elif text.strip() == "识别失败":
-            return text.strip()
-        else:
-            return f"未识别到有效内容: {text}" if text else "未识别到有效内容"
-
-
-class BaiduClient:
-    def __init__(self, api_key=None, secret_key=None):
-        self.REQUEST_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
-        self.api_key = api_key
-        self.secret_key = secret_key
-        self.access_token = ''
-        self.context = ssl._create_unverified_context()
-        self.config = utils.load_config()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
-        self.client_type = 'baidu'  # 添加客户端类型标识
-
-    def get_access_token(self):
-        if not self.access_token:
-            token_url = "https://aip.baidubce.com/oauth/2.0/token"
-            params = {
-                "grant_type": "client_credentials",
-                "client_id": self.api_key,
-                "client_secret": self.secret_key
-            }
-            try:
-                req = Request(f"{token_url}?{urllib.parse.urlencode(params)}")
-                r = urlopen(req, context=self.context)
-                data = json.loads(r.read().decode("utf8"))
-                self.access_token = data.get("access_token", "")
-            except Exception as e:
-                # 获取access_token失败需要通知用户
-                log("ERROR", f"获取百度access_token失败: {str(e)}")
-                log_print(f"[ERROR] 获取百度access_token失败: {str(e)}")
-        return self.access_token
-
-    def get_img(self, img_file):
-        with open(os.path.expanduser(img_file), 'rb') as f:
-            data = f.read()
-        return str(base64.b64encode(data), 'utf-8')
-
-    def posturl(self, headers, body):
-        try:
-            req = Request(self.REQUEST_URL + "?access_token=" + self.access_token, body.encode("utf-8"), headers)
-            r = urlopen(req, context=self.context)
-            return r.read().decode("utf8")
-        except HTTPError as e:
-            return json.dumps({"error": f"HTTP错误: {e.code}", "details": e.read().decode("utf8")})
-
-    def extract_matches(self, response_text):
-        try:
-            data = json.loads(response_text)
-        except json.JSONDecodeError:
-            return None
-
-        words_result = data.get("words_result", [])
-        for item in words_result:
-            word = item.get("words", "").strip()
-            if self.pattern.fullmatch(word):
-                return word.upper()
-        return None
-
-    def recognize(self, img_file, params=None):
-        if not self.api_key or not self.secret_key:
-            return {"success": False, "error": "未提供百度API Key或Secret Key"}
-
-        self.get_access_token()
-        if not self.access_token:
-            return {"success": False, "error": "获取百度access_token失败"}
-
-        img = self.get_img(img_file)
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-
-        body = f"image={urllib.parse.quote(img)}"
-        if params:
-            body += "&" + urllib.parse.urlencode(params)
-
-        response = self.posturl(headers, body)
-        result = self.extract_matches(response)
-
-        if result:
-            return {"success": True, "result": result, "raw": response}
-        else:
-            return {"success": False, "error": "未识别到匹配模式", "raw": response}
+from utils import save_summary, get_resource_path
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -542,7 +19,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
 
-        # 初始化变量
         self.source_dir = ""
         self.dest_dir = ""
         self.is_move_mode = False
@@ -553,15 +29,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dragging = False
         self.drag_position = QtCore.QPoint()
 
-        # 设置全局引用和配置
         utils.main_window = self
         self.config = utils.load_config()
 
-        # 初始化UI和连接
         self._init_ui_components()
         self.setup_connections()
 
-        # 设置窗口属性
         self.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowTitle("LeafView-RailwayOCR")
@@ -570,7 +43,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log("INFO", "LeafView-RailwayOCR 启动成功")
 
     def _init_ui_components(self):
-        """初始化UI组件"""
         self.total_files_label.setText("0")
         self.processed_label.setText("0")
         self.success_label.setText("0")
@@ -583,7 +55,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.textEdit_log.setReadOnly(True)
 
     def setup_connections(self):
-        """设置信号与槽的连接"""
         self.pushButton_src_folder.clicked.connect(self.browse_source_directory)
         self.pushButton_dst_folder.clicked.connect(self.browse_dest_directory)
 
@@ -596,13 +67,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.toolButton_mini.clicked.connect(self.minimize_window)
 
     def open_setting(self):
-        """打开设置窗口"""
         self.setting_window = SettingWindow()
         self.setting_window.show()
         log("INFO", "打开设置窗口")
 
     def mousePressEvent(self, event):
-        """鼠标按下事件，用于窗口拖动"""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.dragging = True
             self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
@@ -717,9 +186,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             mode_index = self.config.get("MODE_INDEX", 0)
 
-            # 根据模式索引创建对应的客户端
             if mode_index == 0:
-                # 阿里云模式
                 appcode = self.config.get("ALI_CODE")
                 if not appcode:
                     QMessageBox.critical(self, "错误", "未配置阿里云AppCode")
@@ -728,7 +195,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 client = AliClient(appcode=appcode)
                 log("INFO", "使用阿里云OCR模式")
             elif mode_index == 1:
-                # 本地模式
                 try:
                     client = LocalClient(max_retries=5)
                     log("INFO", "使用本地OCR模式")
@@ -738,13 +204,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}\n请检查网络连接并重试。")
                     return
             elif mode_index == 2:
-                # 抖音云模式
                 api_key = self.config.get("DOUYIN_API_KEY")
                 if not api_key:
                     QMessageBox.critical(self, "错误", "未配置抖音API Key")
                     log("ERROR", "未配置抖音API Key")
                     return
-                # 从配置获取超时参数
                 timeout = self.config.get("REQUEST_TIMEOUT", 60)
                 client = DouyinClient(
                     api_key=api_key,
@@ -754,7 +218,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 )
                 log("INFO", "使用抖音云OCR模式")
             elif mode_index == 3:
-                # 百度云模式
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:
@@ -768,7 +231,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 log("ERROR", f"无效的模式索引: {mode_index}")
                 return
 
-            # 创建处理线程
             self.processing_thread = ProcessingThread(
                 client, self.image_files, self.dest_dir, self.is_move_mode
             )
@@ -810,7 +272,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置阿里云AppCode")
             return False
         elif mode_index == 1:
-            # 本地模式不需要API密钥
             pass
         elif mode_index == 2 and not self.config.get("DOUYIN_API_KEY"):
             log("WARNING", "未配置抖音API Key")
@@ -937,7 +398,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.processing_thread and self.processing_thread.isRunning():
                     log("WARNING", "应用程序关闭前停止处理线程")
                     self.processing_thread.stop()
-                    # 等待线程结束，最多等待5秒
                     import time
                     start_time = time.time()
                     while self.processing_thread.isRunning() and (time.time() - start_time) < 5:

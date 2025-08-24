@@ -119,7 +119,7 @@ class LocalClient:
         max_threads_limit = max(1, cpu_count // 4)
         json_threads = self.config.get("CONCURRENCY", 1)
         self.max_threads = min(json_threads, max_threads_limit)
-        log_info(f"CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
+        log_print(f"CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
         
         self._initialize_reader()
 
@@ -127,19 +127,19 @@ class LocalClient:
         retry_count = 0
         while retry_count < self.max_retries:
             try:
-                log_info(f"正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
+                log_print(f"正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
                 if retry_count == 0:
                     import time
                 self.reader = easyocr.Reader(['en'], gpu=self.gpu, thread_count=self.max_threads)
-                log_info("OCR模型加载成功")
+                log_print("OCR模型加载成功")
                 return
             except Exception as e:
                 error_msg = f"模型加载失败: {str(e)}"
-                log_error(error_msg)
+                log_print(error_msg)
                 retry_count += 1
                 if retry_count < self.max_retries:
                     wait_time = min(2 ** retry_count, 10)  # 指数退避，最大10秒
-                    log_info(f"{wait_time}秒后重试...")
+                    log_print(f"{wait_time}秒后重试...")
                     time.sleep(wait_time)
                 else:
                     log_critical(f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
@@ -157,14 +157,14 @@ class LocalClient:
                 scale = max_size / max(image.size)
                 new_size = (int(image.size[0] * scale), int(image.size[1] * scale))
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
-                log_debug(f"图像已缩放至: {new_size}")
+                log_print(f"图像已缩放至: {new_size}")
             elif self.gpu:
-                log_debug("使用GPU加速，不缩放图像")
+                log_print("使用GPU加速，不缩放图像")
 
             gray_image = image.convert('L')
             return np.array(gray_image)
         except Exception as e:
-            log_error(f"图像预处理错误: {str(e)}")
+            log_print(f"图像预处理错误: {str(e)}")
             return None
 
     def extract_matches(self, texts):
@@ -184,20 +184,20 @@ class LocalClient:
                 raw_result = json.dumps({"texts": result})
                 processing_time = time.time() - start_time
 
-                log_debug(f"本地OCR识别完成，耗时: {processing_time:.2f}秒")
+                log_print(f"本地OCR识别完成，耗时: {processing_time:.2f}秒")
 
                 if matched_result:
-                    log_info(f"识别成功: {matched_result}")
+                    log_print(f"识别成功: {matched_result}")
                     return {"success": True, "result": matched_result, "raw": raw_result, "processing_time": processing_time}
                 else:
-                    log_warning("未识别到匹配模式")
+                    log_print("未识别到匹配模式")
                     return {"success": False, "error": "未识别到匹配模式", "raw": raw_result, "processing_time": processing_time}
             except Exception as e:
                 error_msg = f"OCR识别异常: {str(e)}"
-                log_error(error_msg)
+                log_print(error_msg)
                 return {"success": False, "error": error_msg, "raw": str(e)}
         else:
-            log_error("图像预处理失败")
+            log_print("图像预处理失败")
             return {"success": False, "error": "图像预处理失败", "raw": "{}"}
 
 
@@ -265,7 +265,7 @@ class DouyinClient:
             else:
                 error_code = result.get("code")
                 error_msg = result.get("msg", "工作流运行失败")
-                log_error(f"工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
+                log_print(f"工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
                 return {
                     "success": False,
                     "error_code": error_code,
@@ -274,16 +274,16 @@ class DouyinClient:
                 }
 
         except requests.exceptions.Timeout:
-            log_error(f"请求超时: {self.timeout}秒")
+            log_print(f"请求超时: {self.timeout}秒")
             return {"success": False, "error_msg": f"请求超时: {self.timeout}秒"}
         except requests.exceptions.ConnectionError:
-            log_error("网络连接错误")
+            log_print("网络连接错误")
             return {"success": False, "error_msg": "网络连接错误"}
         except requests.exceptions.HTTPError as e:
-            log_error(f"HTTP错误: {e.response.status_code}, {e.response.text}")
+            log_print(f"HTTP错误: {e.response.status_code}, {e.response.text}")
             return {"success": False, "error_msg": f"HTTP错误: {e.response.status_code}"}
         except Exception as e:
-            log_error(f"请求异常: {str(e)}")
+            log_print(f"请求异常: {str(e)}")
             return {"success": False, "error_msg": f"请求异常: {str(e)}"}
         finally:
             session.close()
@@ -303,12 +303,12 @@ class DouyinClient:
         # 检查必要参数
         if not self.api_key:
             error_msg = "未提供抖音API Key"
-            log_error(error_msg)
+            log_print(error_msg)
             return {"success": False, "error": error_msg, "raw": ""}
 
         if not self.workflow_id:
             error_msg = "缺少必要配置参数: DOUYIN_WORKFLOW_ID"
-            log_error(error_msg)
+            log_print(error_msg)
             return {"success": False, "error": error_msg, "raw": ""}
 
         # 准备默认参数
@@ -324,7 +324,7 @@ class DouyinClient:
             # 计算退避时间并等待
             if retry_count > 0:
                 sleep_time = backoff_factor * (2 ** (retry_count - 1))
-                log_info(f"请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
+                log_print(f"请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
                 time.sleep(sleep_time)
 
             try:
@@ -336,11 +336,11 @@ class DouyinClient:
                     is_async=False,  # 同步执行以便获取结果
                 )
 
-                log_debug(f"请求结果: {result}")
+                log_print(f"请求结果: {result}")
 
                 # 解析结果
                 parsed_result = self.parse_ocr_result(result)
-                log_info(f"工作流处理结果: {parsed_result}")
+                log_print(f"工作流处理结果: {parsed_result}")
 
                 # 即使没有execute_id也继续
                 execute_id = result.get('execute_id')
@@ -352,7 +352,7 @@ class DouyinClient:
                     # 对错误码4024(请求频率过高)进行重试
                     if error_code == 4024 and retry_count < max_retries:
                         retry_count += 1
-                        log_warning(f"请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
+                        log_print(f"请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
                         continue
                       
                     return {
@@ -373,15 +373,15 @@ class DouyinClient:
                 # 网络异常也可以重试
                 if retry_count < max_retries:
                     retry_count += 1
-                    log_warning(f"请求异常: {str(e)}，正在进行第{retry_count}次重试...")
+                    log_print(f"请求异常: {str(e)}，正在进行第{retry_count}次重试...")
                     continue
                 error_msg = f'识别过程异常: {str(e)}'
-                log_error(error_msg)
+                log_print(error_msg)
                 return {'success': False, 'error': error_msg, 'raw': str(e)}
 
         # 达到最大重试次数
         error_msg = f'达到最大重试次数({max_retries})，请求失败'
-        log_error(error_msg)
+        log_print(error_msg)
         return {'success': False, 'error': error_msg, 'raw': ''}
 
     def parse_ocr_result(self, ocr_data):
@@ -521,7 +521,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
 
-        log_info("LeafView-RailwayOCR 启动成功")
+        log_print("LeafView-RailwayOCR 启动成功")
 
     def _init_ui_components(self):
         """初始化UI组件"""
@@ -553,7 +553,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """打开设置窗口"""
         self.setting_window = SettingWindow()
         self.setting_window.show()
-        log_debug("打开设置窗口")
+        log_print("打开设置窗口")
 
     def mousePressEvent(self, event):
         """鼠标按下事件，用于窗口拖动"""

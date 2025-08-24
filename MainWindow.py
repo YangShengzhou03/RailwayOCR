@@ -21,7 +21,7 @@ import utils
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import log, save_summary, get_resource_path, log_print
+from utils import log_info, log_error, log_warning, save_summary, get_resource_path
 
 
 class AliClient:
@@ -600,12 +600,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for root, _, files in os.walk(self.source_dir):
             for file in files:
                 if any(file.lower().endswith(ext) for ext in self.config["ALLOWED_EXTENSIONS"]):
-                    file_path = os.path.join(root, file)
+                    file_path = os.path.abspath(os.path.join(root, file))
                     self.image_files.append(file_path)
 
         total_count = len(self.image_files)
         self.total_files_label.setText(str(total_count))
-        log("INFO", f"扫描完成，发现 {total_count} 个图像文件")
+        log_info(f"扫描完成，发现 {total_count} 个图像文件")
 
     def toggle_move_mode(self):
         self.is_move_mode = self.move_radio.isChecked()
@@ -619,7 +619,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dest_abs = os.path.abspath(self.dest_dir)
 
             if dest_abs == source_abs or os.path.commonpath([source_abs, dest_abs]) == source_abs:
-                log("ERROR", "文件夹冲突: 目标文件夹不能是源文件夹或其子文件夹")
+                log_error("文件夹冲突: 目标文件夹不能是源文件夹或其子文件夹")
                 QMessageBox.warning(
                     self, "文件夹冲突",
                     "目标文件夹不能是源文件夹或其子文件夹！这可能导致文件覆盖或其他意外行为。"
@@ -634,7 +634,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return True
 
         except Exception as e:
-            log("ERROR", f"文件夹检查出错: {str(e)}")
+            log_error(f"文件夹检查出错: {str(e)}")
 
         return False
 
@@ -657,14 +657,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         if reply != QMessageBox.StandardButton.Yes:
-            log("INFO", "用户取消处理操作")
-            log_print("[INFO] 用户取消处理操作")
+            log_info("用户取消处理操作")
             return
 
         self.processing_start_time = time.time()
 
-        log("WARNING", "开始文件处理流程")
-        log_print(f"[INFO] 开始处理 {len(self.image_files)} 个图像文件")
+        log_warning("开始文件处理流程")
+        log_info(f"开始处理 {len(self.image_files)} 个图像文件")
         self.processing = True
         self.pushButton_start.setText("停止分类")
         self.progressBar.setValue(0)
@@ -678,26 +677,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 appcode = self.config.get("ALI_CODE")
                 if not appcode:
                     QMessageBox.critical(self, "错误", "未配置阿里云AppCode")
-                    log("ERROR", "未配置阿里云AppCode")
+                    log_error("未配置阿里云AppCode")
                     return
                 client = AliClient(appcode=appcode)
-                log("INFO", "使用阿里云OCR模式")
+                log_info("使用阿里云OCR模式")
             elif mode_index == 1:
                 # 本地模式
                 try:
                     client = LocalClient(max_retries=5)
-                    log("INFO", "使用本地OCR模式")
+                    log_info("使用本地OCR模式")
                 except Exception as e:
                     error_msg = f"本地OCR模型加载失败: {str(e)}"
-                    log("ERROR", error_msg)
-                    QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}\n请检查网络连接并重试。")
+                        log_error(error_msg)
+                        QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}
+请检查网络连接并重试。")
                     return
             elif mode_index == 2:
                 # 抖音云模式
                 api_key = self.config.get("DOUYIN_API_KEY")
                 if not api_key:
                     QMessageBox.critical(self, "错误", "未配置抖音API Key")
-                    log("ERROR", "未配置抖音API Key")
+                    log_error("未配置抖音API Key")
                     return
                 # 从配置获取超时参数
                 timeout = self.config.get("REQUEST_TIMEOUT", 60)
@@ -707,20 +707,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     max_retries=self.config.get("RETRY_TIMES", 3),
                     backoff_factor=self.config.get("BACKOFF_FACTOR", 1.0)
                 )
-                log("INFO", "使用抖音云OCR模式")
+                log_info("使用抖音云OCR模式")
             elif mode_index == 3:
                 # 百度云模式
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:
                     QMessageBox.critical(self, "错误", "未配置百度云API Key或Secret Key")
-                    log("ERROR", "未配置百度云API Key或Secret Key")
+                    log_error("未配置百度云API Key或Secret Key")
                     return
                 client = BaiduClient(api_key=api_key, secret_key=secret_key)
-                log("INFO", "使用百度云OCR模式")
+                log_info("使用百度云OCR模式")
             else:
                 QMessageBox.critical(self, "错误", f"无效的模式索引: {mode_index}")
-                log("ERROR", f"无效的模式索引: {mode_index}")
+                    log_error(f"无效的模式索引: {mode_index}")
                 return
 
             # 创建处理线程
@@ -734,46 +734,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.error_occurred.connect(self.on_error_occurred)
 
             self.processing_thread.start()
-            log("INFO", "正在连接到OSS和图像识别服务器，请耐心等待")
+            log_info("正在连接到OSS和图像识别服务器，请耐心等待")
 
         except Exception as e:
             error_msg = f"启动处理线程失败: {str(e)}"
-            log("ERROR", error_msg)
-            log_print(error_msg)
+            log_error(error_msg)
             self.processing = False
             self.pushButton_start.setText("开始分类")
 
     def _validate_processing_conditions(self):
         if not self.lineEdit_src_folder.text().strip():
-            log("WARNING", "未选择源文件夹")
+            log_warning("未选择源文件夹")
             QMessageBox.warning(self, "参数缺失", "请先选择源文件夹")
             return False
 
         if not self.lineEdit_dst_folder.text().strip():
-            log("WARNING", "未选择目标文件夹")
+            log_warning("未选择目标文件夹")
             QMessageBox.warning(self, "参数缺失", "请先选择目标文件夹")
             return False
 
         if not self.image_files:
-            log("WARNING", "源文件夹中没有图像文件")
+            log_warning("源文件夹中没有图像文件")
             QMessageBox.warning(self, "文件缺失", "源文件夹中未发现任何图像文件")
             return False
 
         mode_index = self.config.get("MODE_INDEX", 0)
 
         if mode_index == 0 and not self.config.get("ALI_CODE"):
-            log("WARNING", "未配置阿里云AppCode")
+            log_warning("未配置阿里云AppCode")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置阿里云AppCode")
             return False
         elif mode_index == 1:
             # 本地模式不需要API密钥
             pass
         elif mode_index == 2 and not self.config.get("DOUYIN_API_KEY"):
-            log("WARNING", "未配置抖音API Key")
+            log_warning("未配置抖音API Key")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置抖音API Key")
             return False
         elif mode_index == 3 and not (self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
-            log("WARNING", "未配置百度API Key或Secret Key")
+            log_warning("未配置百度API Key或Secret Key")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置百度API Key和Secret Key")
             return False
 
@@ -787,7 +786,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            log("WARNING", "用户请求停止处理")
+            log_warning("用户请求停止处理")
             self.pushButton_start.setText("正在刹停")
             self.pushButton_start.setEnabled(False)
             self.processing = False
@@ -797,13 +796,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot(int, str)
     def on_progress_updated(self, value, message):
-        self.progressBar.setValue(value)
+        try:
+            self.progressBar.setValue(value)
+        except Exception as e:
+            log_error(f"更新进度条失败: {str(e)}")
 
     @QtCore.pyqtSlot(int, int, int)
     def on_stats_updated(self, processed, success, failed):
-        self.processed_label.setText(str(processed))
-        self.success_label.setText(str(success))
-        self.failed_label.setText(str(failed))
+        try:
+            self.processed_label.setText(str(processed))
+            self.success_label.setText(str(success))
+            self.failed_label.setText(str(failed))
+        except Exception as e:
+            log_error(f"更新统计信息失败: {str(e)}")
 
     @QtCore.pyqtSlot(list)
     def on_processing_finished(self, results):
@@ -817,18 +822,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         failed_count = total_count - success_count
         success_rate = f"{(success_count / total_count * 100) if total_count > 0 else 0:.2f}%"
 
-        log("INFO", "=" * 50)
-        log("INFO", f"处理完成 | 总耗时: {total_time}")
-        log("INFO", f"总文件数: {total_count} | 成功: {success_count} | 失败: {failed_count}")
-        log("INFO", f"识别率: {success_rate}")
-        log("INFO", "=" * 50)
+        log_info("=" * 50)
+        log_info(f"处理完成 | 总耗时: {total_time}")
+        log_info(f"总文件数: {total_count} | 成功: {success_count} | 失败: {failed_count}")
+        log_info(f"识别率: {success_rate}")
+        log_info("=" * 50)
 
-        log_print(f"[INFO] 处理完成，总耗时: {total_time}")
-        log_print(f"[INFO] 总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
+        log_info(f"处理完成，总耗时: {total_time}")
+        log_info(f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
 
         stats = save_summary(results)
         if stats:
-            log_print(f"[INFO] 统计信息已保存到summary文件夹")
+            log_info("统计信息已保存到summary文件夹")
 
         if total_count > 0:
             result_message = (
@@ -846,39 +851,70 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
-        log("INFO", "处理已停止")
-        self.processing = False
+        try:
+            log_info("处理已停止")
+            self.processing = False
+            self.pushButton_start.setEnabled(True)
+            self.pushButton_start.setText("开始分类")
+        except Exception as e:
+            log_error(f"处理停止信号失败: {str(e)}")
 
     @QtCore.pyqtSlot(str)
     def on_error_occurred(self, error_msg):
-        log("ERROR", f"处理线程错误: {error_msg}")
-        QMessageBox.critical(self, "处理错误", error_msg)
-        self.processing = False
+        try:
+            log_error(f"处理线程错误: {error_msg}")
+            QMessageBox.critical(self, "处理错误", error_msg)
+            self.processing = False
+            self.pushButton_start.setEnabled(True)
+            self.pushButton_start.setText("开始分类")
+        except Exception as e:
+            log_error(f"处理错误信号失败: {str(e)}")
 
     def minimize_window(self):
-        log("INFO", "窗口最小化")
-        self.showMinimized()
+        try:
+            log_info("窗口最小化")
+            self.showMinimized()
+        except Exception as e:
+            log_error(f"最小化窗口失败: {str(e)}")
 
     def close_application(self):
-        if self.processing:
-            reply = QMessageBox.question(
-                self, "确认关闭",
-                "当前正在处理文件，关闭将终止处理过程。\n确定要关闭吗?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
+        try:
+            if self.processing:
+                reply = QMessageBox.question(
+                    self, "确认关闭",
+                    "当前正在处理文件，关闭将终止处理过程。
+确定要关闭吗?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                )
 
-            if reply != QMessageBox.StandardButton.Yes:
-                return
+                if reply != QMessageBox.StandardButton.Yes:
+                    return
 
-            if self.processing_thread:
-                self.processing_thread.stop()
+                if self.processing_thread and self.processing_thread.isRunning():
+                    log_warning("应用程序关闭前停止处理线程")
+                    self.processing_thread.stop()
+                    # 等待线程结束，最多等待5秒
+                    import time
+                    start_time = time.time()
+                    while self.processing_thread.isRunning() and (time.time() - start_time) < 5:
+                        QApplication.processEvents()
+                        time.sleep(0.1)
+                    if self.processing_thread.isRunning():
+                        log_error("无法正常停止处理线程，强制退出")
 
-        log("INFO", "应用程序即将关闭")
-        QApplication.quit()
+            log_info("应用程序即将关闭")
+            QApplication.quit()
+        except Exception as e:
+            log_error(f"关闭应用程序失败: {str(e)}")
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+    try:
+        app = QApplication(sys.argv)
+        window = MainWindow()
+        window.show()
+        sys.exit(app.exec())
+    except Exception as e:
+        from utils import log_error
+        log_error(f"应用程序启动失败: {str(e)}")
+        sys.exit(1)

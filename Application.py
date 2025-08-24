@@ -2,13 +2,14 @@ import hashlib
 import sys
 import traceback
 import winreg
+import logging
 
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 
 from MainWindow import MainWindow
-from utils import get_resource_path
+from utils import get_resource_path, log_info, log_error, log_debug
 
 
 class PasswordDialog(QtWidgets.QDialog):
@@ -103,6 +104,11 @@ class PasswordDialog(QtWidgets.QDialog):
 
 
 def verify_password(password):
+    """
+    验证密码是否正确
+    :param password: 输入的密码
+    :return: 验证是否通过
+    """
     try:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
         stored_hash, _ = winreg.QueryValueEx(key, "PasswordHash")
@@ -110,21 +116,32 @@ def verify_password(password):
 
         input_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
         return input_hash == stored_hash
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, OSError) as e:
+        log_error(f"验证密码时出错: {str(e)}")
         return False
 
 
 def has_password():
+    """
+    检查是否已设置密码
+    :return: 是否已设置密码
+    """
     try:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
         winreg.QueryValueEx(key, "PasswordHash")
         winreg.CloseKey(key)
         return True
-    except (FileNotFoundError, OSError):
+    except (FileNotFoundError, OSError) as e:
+        log_debug(f"检查密码时出错: {str(e)}")
         return False
 
 
 def main():
+    """
+    应用程序主函数
+    :return: 退出代码
+    """
+    # 单实例运行检查
     server = QLocalServer()
     socket_name = "LeafView_Railway_Server_Socket"
 
@@ -135,19 +152,24 @@ def main():
         client_socket.write(b"bring_to_front")
         client_socket.waitForBytesWritten()
         client_socket.disconnectFromServer()
+        log_info("应用程序已在运行，切换到前台")
         return 1
 
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
+        log_error(f"无法启动本地服务器: {server.errorString()}")
         return 1
 
     server.newConnection.connect(lambda: handle_incoming_connection(server))
 
+    # 共享内存检查，防止多实例运行
     shared_memory = QtCore.QSharedMemory("LeafView_Railway_Server")
     if shared_memory.attach():
+        log_info("检测到应用程序已在运行")
         return 1
 
     if not shared_memory.create(1):
+        log_error(f"无法创建共享内存: {shared_memory.errorString()}")
         return 1
 
     app = QtWidgets.QApplication(sys.argv)
@@ -182,18 +204,25 @@ def main():
 
     if has_password():
         dialog = PasswordDialog()
-        while True:
+        max_attempts = 3
+        attempts = 0
+
+        while attempts < max_attempts:
             if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
+                log("INFO", "用户取消密码输入")
                 return 1
 
             password = dialog.get_password()
             if verify_password(password):
+                log("INFO", "密码验证成功")
                 break
             else:
+                attempts += 1
+                remaining = max_attempts - attempts
                 msg_box = QtWidgets.QMessageBox(
                     QtWidgets.QMessageBox.Icon.Warning,
                     "密码错误",
-                    "输入的密码不正确，请重试",
+                    f"输入的密码不正确，还剩{remaining}次机会",
                     parent=None
                 )
                 msg_box.setStyleSheet("""
@@ -202,6 +231,17 @@ def main():
                     }
                 """)
                 msg_box.exec()
+
+        if attempts >= max_attempts:
+            log("ERROR", "密码验证失败次数过多")
+            msg_box = QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Icon.Critical,
+                "验证失败",
+                "密码错误次数过多，程序将退出",
+                parent=None
+            )
+            msg_box.exec()
+            return 1
 
     window = MainWindow()
     window.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))

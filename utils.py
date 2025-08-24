@@ -7,7 +7,8 @@ from datetime import datetime
 import traceback
 
 main_window = None
-LOG_PATH = '_internal/log'
+# 使用绝对路径存储日志文件
+LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_internal', 'log')
 MAX_LINES = 3000
 
 LOG_LEVELS = {
@@ -22,10 +23,13 @@ CURRENT_LOG_LEVEL = LOG_LEVELS["INFO"]
 
 
 def get_resource_path(relative_path):
+    """获取资源文件的绝对路径，兼容开发环境和打包环境"""
     try:
+        # 打包环境下的路径
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        # 开发环境下的路径
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path).replace(os.sep, '/')
 
 
@@ -41,6 +45,7 @@ def set_log_level(level):
 
 
 def log_print(formatted_log):
+    """打印日志到控制台、文件和UI界面"""
     # 提取日志级别
     level_match = re.match(r'\[(\w+)\]', formatted_log)
     if level_match:
@@ -65,7 +70,7 @@ def log_print(formatted_log):
                 with open(LOG_PATH, 'w', encoding='utf-8') as f:
                     f.write(f"# Log file created at {datetime.now()}\n")
         except Exception as e:
-            print(f"创建日志文件失败: {str(e)}")
+            log_error(f"创建日志文件失败: {str(e)}")
 
     def rotate_log_if_needed():
         try:
@@ -76,7 +81,7 @@ def log_print(formatted_log):
                     with open(LOG_PATH, 'w', encoding='utf-8') as f:
                         f.writelines(lines[-MAX_LINES:])
         except Exception as e:
-            print(f"日志旋转失败: {str(e)}")
+            log_error(f"日志旋转失败: {str(e)}")
 
     try:
         ensure_log_file_exists()
@@ -97,33 +102,43 @@ def log_print(formatted_log):
             main_window.textEdit_log.append(ui_log)
             main_window.textEdit_log.ensureCursorVisible()
     except Exception as e:
-        print(f"写入日志文件失败: {str(e)}")
-        print(traceback.format_exc())
+        log_error(f"写入日志文件失败: {str(e)}")
+        log_error(f"详细错误信息: {traceback.format_exc()}")
 
 
 
 def load_config():
+    """加载配置文件，如果不存在则创建默认配置"""
+    default_config = {
+        "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
+        "SUMMARY_DIR": "summary",
+        "DOUYIN_WORKFLOW_ID": "",
+        "DOUYIN_PROMPT": "请识别图像中的内容",
+        "LOG_LEVEL": "INFO"
+    }
+
     try:
+        if not os.path.exists(file_path):
+            log_warning(f"配置文件不存在: {file_path}")
+            log_info("正在创建默认配置文件...")
+            # 确保配置文件目录存在
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            # 创建默认配置文件
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(default_config, f, ensure_ascii=False, indent=2)
+            log_info(f"默认配置文件已创建: {file_path}")
+            return default_config
+
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except FileNotFoundError:
-        log_print(f"[ERROR] 配置文件不存在: {file_path}")
-        return {
-            "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
-            "SUMMARY_DIR": "summary",
-            "DOUYIN_WORKFLOW_ID": "",
-            "DOUYIN_PROMPT": "请识别图像中的内容",
-            "LOG_LEVEL": "INFO"
-        }
     except json.JSONDecodeError:
-        log_print(f"[ERROR] 配置文件格式错误: {file_path}")
-        return {
-            "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
-            "SUMMARY_DIR": "summary",
-            "DOUYIN_WORKFLOW_ID": "",
-            "DOUYIN_PROMPT": "请识别图像中的内容",
-            "LOG_LEVEL": "INFO"
-        }
+        log_error(f"配置文件格式错误: {file_path}")
+        log_info("使用默认配置...")
+        return default_config
+    except Exception as e:
+        log_error(f"加载配置文件时发生错误: {str(e)}")
+        log_info("使用默认配置...")
+        return default_config
 
 
 Config = load_config()
@@ -157,10 +172,13 @@ def log_critical(message):
 
 
 def save_summary(results):
+    """保存处理结果统计信息"""
     try:
-        os.makedirs(Config["SUMMARY_DIR"], exist_ok=True)
+        # 确保摘要目录存在
+        summary_dir = Config["SUMMARY_DIR"]
+        os.makedirs(summary_dir, exist_ok=True)
 
-        stats_path = os.path.join(Config["SUMMARY_DIR"], "statistics.json")
+        stats_path = os.path.join(summary_dir, "statistics.json")
 
         total = len(results)
         success_count = sum(1 for r in results if r.get('success', False))
@@ -176,14 +194,15 @@ def save_summary(results):
         with open(stats_path, 'w', encoding='utf-8') as f:
             json.dump(stats, f, ensure_ascii=False, indent=2)
 
+        log_info(f"统计信息已保存到: {stats_path}")
         return stats
 
     except PermissionError:
-        print(f"错误：没有权限创建或写入文件，请检查目录权限")
+        log_error(f"没有权限创建或写入文件，请检查目录权限: {summary_dir}")
         return None
     except FileNotFoundError as e:
-        print(f"错误：找不到文件或目录 - {e}")
+        log_error(f"找不到文件或目录: {e}")
         return None
     except Exception as e:
-        print(f"未知错误：{e}")
+        log_error(f"保存统计信息时发生错误: {str(e)}")
         return None

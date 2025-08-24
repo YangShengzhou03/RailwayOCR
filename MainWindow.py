@@ -5,15 +5,15 @@ import re
 import ssl
 import sys
 import time
-import requests
 import urllib.parse
 from datetime import timedelta
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
+
 import easyocr
 import numpy as np
+import requests
 from PIL import Image
-
 from PyQt6 import QtCore, QtGui
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog)
 
@@ -21,7 +21,7 @@ import utils
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import log_info, log_error, log_warning, save_summary, get_resource_path
+from utils import save_summary, get_resource_path, log_print, log
 
 
 class AliClient:
@@ -106,6 +106,7 @@ class AliClient:
 
 import multiprocessing
 
+
 class LocalClient:
     def __init__(self, max_retries=3, gpu=False):
         self.config = utils.load_config()
@@ -114,35 +115,42 @@ class LocalClient:
         self.reader = None
         self.max_retries = max_retries
         self.gpu = gpu
-        
+
         cpu_count = multiprocessing.cpu_count()
         max_threads_limit = max(1, cpu_count // 4)
         json_threads = self.config.get("CONCURRENCY", 1)
         self.max_threads = min(json_threads, max_threads_limit)
-        log_print(f"[INFO] CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
-        
+        # 开发者调试信息使用log_print
+        log_print(f"[DEBUG] CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
+
         self._initialize_reader()
 
     def _initialize_reader(self):
         retry_count = 0
         while retry_count < self.max_retries:
             try:
-                log_print(f"[INFO] 正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
+                # 开发者调试信息使用log_print
+                log_print(f"[DEBUG] 正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
                 if retry_count == 0:
                     import time
-                self.reader = easyocr.Reader(['en'], gpu=self.gpu, thread_count=self.max_threads)
-                log_print("[INFO] OCR模型加载成功")
+                # 使用正确的参数名 'workers' 代替 'thread_count'
+                self.reader = easyocr.Reader(['en'], gpu=self.gpu)
+                # 模型加载成功是用户需要知道的信息，使用log
+                log("INFO", "OCR模型加载成功")
                 return
             except Exception as e:
                 error_msg = f"模型加载失败: {str(e)}"
+                # 错误信息对用户和开发者都重要，同时使用两种日志
+                log("ERROR", error_msg)
                 log_print(f"[ERROR] {error_msg}")
                 retry_count += 1
                 if retry_count < self.max_retries:
                     wait_time = min(2 ** retry_count, 10)  # 指数退避，最大10秒
-                    log_print(f"[INFO] {wait_time}秒后重试...")
+                    # 重试信息是开发者调试用
+                    log_print(f"[DEBUG] {wait_time}秒后重试...")
                     time.sleep(wait_time)
                 else:
-                    log_critical(f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
+                    log("ERROR", f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
                     # 仍然抛出异常，让调用者知道初始化失败
                     raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}")
 
@@ -157,14 +165,19 @@ class LocalClient:
                 scale = max_size / max(image.size)
                 new_size = (int(image.size[0] * scale), int(image.size[1] * scale))
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
+                # 图像缩放是内部处理，使用log_print
                 log_print(f"[DEBUG] 图像已缩放至: {new_size}")
             elif self.gpu:
-                log_print("[DEBUG] 使用GPU加速，不缩放图像")
+                # GPU使用信息是内部处理，使用log_print
+                log_print(f"[DEBUG] 使用GPU加速，不缩放图像")
 
             gray_image = image.convert('L')
             return np.array(gray_image)
         except Exception as e:
-            log_print(f"[ERROR] 图像预处理错误: {str(e)}")
+            # 图像预处理错误需要通知用户
+            error_msg = f"图像预处理错误: {str(e)}"
+            log("ERROR", error_msg)
+            log_print(f"[ERROR] {error_msg}")
             return None
 
     def extract_matches(self, texts):
@@ -184,20 +197,31 @@ class LocalClient:
                 raw_result = json.dumps({"texts": result})
                 processing_time = time.time() - start_time
 
+                # 识别耗时是开发者调试信息
                 log_print(f"[DEBUG] 本地OCR识别完成，耗时: {processing_time:.2f}秒")
 
                 if matched_result:
+                    # 识别成功信息需要通知用户
+                    log("INFO", f"识别成功: {matched_result}")
                     log_print(f"[INFO] 识别成功: {matched_result}")
-                    return {"success": True, "result": matched_result, "raw": raw_result, "processing_time": processing_time}
+                    return {"success": True, "result": matched_result, "raw": raw_result,
+                            "processing_time": processing_time}
                 else:
+                    # 未识别到模式需要通知用户
+                    log("WARNING", "未识别到匹配模式")
                     log_print("[WARNING] 未识别到匹配模式")
-                    return {"success": False, "error": "未识别到匹配模式", "raw": raw_result, "processing_time": processing_time}
+                    return {"success": False, "error": "未识别到匹配模式", "raw": raw_result,
+                            "processing_time": processing_time}
             except Exception as e:
                 error_msg = f"OCR识别异常: {str(e)}"
-                log_print(error_msg)
+                # OCR识别异常需要通知用户
+                log("ERROR", error_msg)
+                log_print(f"[ERROR] {error_msg}")
                 return {"success": False, "error": error_msg, "raw": str(e)}
         else:
-            log_print("图像预处理失败")
+            # 图像预处理失败需要通知用户
+            log("ERROR", "图像预处理失败")
+            log_print("[ERROR] 图像预处理失败")
             return {"success": False, "error": "图像预处理失败", "raw": "{}"}
 
 
@@ -265,6 +289,8 @@ class DouyinClient:
             else:
                 error_code = result.get("code")
                 error_msg = result.get("msg", "工作流运行失败")
+                # 工作流运行失败需要通知用户
+                log("ERROR", f"工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
                 log_print(f"[ERROR] 工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
                 return {
                     "success": False,
@@ -274,15 +300,23 @@ class DouyinClient:
                 }
 
         except requests.exceptions.Timeout:
+            # 请求超时需要通知用户
+            log("ERROR", f"请求超时: {self.timeout}秒")
             log_print(f"[ERROR] 请求超时: {self.timeout}秒")
             return {"success": False, "error_msg": f"请求超时: {self.timeout}秒"}
         except requests.exceptions.ConnectionError:
+            # 网络连接错误需要通知用户
+            log("ERROR", "网络连接错误")
             log_print("[ERROR] 网络连接错误")
             return {"success": False, "error_msg": "网络连接错误"}
         except requests.exceptions.HTTPError as e:
+            # HTTP错误需要通知用户
+            log("ERROR", f"HTTP错误: {e.response.status_code}, {e.response.text}")
             log_print(f"[ERROR] HTTP错误: {e.response.status_code}, {e.response.text}")
             return {"success": False, "error_msg": f"HTTP错误: {e.response.status_code}"}
         except Exception as e:
+            # 请求异常需要通知用户
+            log("ERROR", f"请求异常: {str(e)}")
             log_print(f"[ERROR] 请求异常: {str(e)}")
             return {"success": False, "error_msg": f"请求异常: {str(e)}"}
         finally:
@@ -303,12 +337,16 @@ class DouyinClient:
         # 检查必要参数
         if not self.api_key:
             error_msg = "未提供抖音API Key"
-            log_print(error_msg)
+            # 识别过程异常需要通知用户
+            log("ERROR", error_msg)
+            log_print(f"[ERROR] {error_msg}")
             return {"success": False, "error": error_msg, "raw": ""}
 
         if not self.workflow_id:
             error_msg = "缺少必要配置参数: DOUYIN_WORKFLOW_ID"
-            log_print(error_msg)
+            # 达到最大重试次数需要通知用户
+            log("ERROR", error_msg)
+            log_print(f"[ERROR] {error_msg}")
             return {"success": False, "error": error_msg, "raw": ""}
 
         # 准备默认参数
@@ -324,7 +362,8 @@ class DouyinClient:
             # 计算退避时间并等待
             if retry_count > 0:
                 sleep_time = backoff_factor * (2 ** (retry_count - 1))
-                log_print(f"[WARNING] 请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
+                # 请求重试信息是开发者调试用
+                log_print(f"[DEBUG] 请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
                 time.sleep(sleep_time)
 
             try:
@@ -336,25 +375,29 @@ class DouyinClient:
                     is_async=False,  # 同步执行以便获取结果
                 )
 
+                # 请求结果是开发者调试信息
                 log_print(f"[DEBUG] 请求结果: {result}")
 
                 # 解析结果
                 parsed_result = self.parse_ocr_result(result)
+                # 工作流处理结果需要通知用户
+                log("INFO", f"工作流处理结果: {parsed_result}")
                 log_print(f"[INFO] 工作流处理结果: {parsed_result}")
 
                 # 即使没有execute_id也继续
                 execute_id = result.get('execute_id')
-                
+
                 if not result['success']:
                     error_code = result.get('error_code')
                     error_msg = result.get('error_msg', '工作流运行失败')
-                      
+
                     # 对错误码4024(请求频率过高)进行重试
                     if error_code == 4024 and retry_count < max_retries:
                         retry_count += 1
-                        log_print(f"[WARNING] 请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
+                        # 请求频率过高信息是开发者调试用
+                        log_print(f"[DEBUG] 请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
                         continue
-                      
+
                     return {
                         'success': False,
                         'error': error_msg,
@@ -373,7 +416,8 @@ class DouyinClient:
                 # 网络异常也可以重试
                 if retry_count < max_retries:
                     retry_count += 1
-                    log_print(f"[ERROR] 请求异常: {str(e)}，正在进行第{retry_count}次重试...")
+                    # 请求异常重试信息是开发者调试用
+                    log_print(f"[DEBUG] 请求异常: {str(e)}，正在进行第{retry_count}次重试...")
                     continue
                 error_msg = f'识别过程异常: {str(e)}'
                 log_print(error_msg)
@@ -436,6 +480,8 @@ class BaiduClient:
                 data = json.loads(r.read().decode("utf8"))
                 self.access_token = data.get("access_token", "")
             except Exception as e:
+                # 获取access_token失败需要通知用户
+                log("ERROR", f"获取百度access_token失败: {str(e)}")
                 log_print(f"[ERROR] 获取百度access_token失败: {str(e)}")
         return self.access_token
 
@@ -521,7 +567,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
 
-        log_print("[INFO] LeafView-RailwayOCR 启动成功")
+        log("INFO", "LeafView-RailwayOCR 启动成功")
 
     def _init_ui_components(self):
         """初始化UI组件"""
@@ -553,7 +599,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """打开设置窗口"""
         self.setting_window = SettingWindow()
         self.setting_window.show()
-        log_print("[INFO] 打开设置窗口")
+        log("INFO", "打开设置窗口")
 
     def mousePressEvent(self, event):
         """鼠标按下事件，用于窗口拖动"""
@@ -605,7 +651,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         total_count = len(self.image_files)
         self.total_files_label.setText(str(total_count))
-        log_info(f"扫描完成，发现 {total_count} 个图像文件")
+        log("INFO", f"扫描完成，发现 {total_count} 个图像文件")
 
     def toggle_move_mode(self):
         self.is_move_mode = self.move_radio.isChecked()
@@ -619,7 +665,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dest_abs = os.path.abspath(self.dest_dir)
 
             if dest_abs == source_abs or os.path.commonpath([source_abs, dest_abs]) == source_abs:
-                log_error("文件夹冲突: 目标文件夹不能是源文件夹或其子文件夹")
+                log("ERROR", "文件夹冲突: 目标文件夹不能是源文件夹或其子文件夹")
                 QMessageBox.warning(
                     self, "文件夹冲突",
                     "目标文件夹不能是源文件夹或其子文件夹！这可能导致文件覆盖或其他意外行为。"
@@ -634,7 +680,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 return True
 
         except Exception as e:
-            log_error(f"文件夹检查出错: {str(e)}")
+            log("ERROR", f"文件夹检查出错: {str(e)}")
 
         return False
 
@@ -657,13 +703,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         if reply != QMessageBox.StandardButton.Yes:
-            log_info("用户取消处理操作")
+            log("INFO", "用户取消处理操作")
             return
 
         self.processing_start_time = time.time()
 
-        log_warning("开始文件处理流程")
-        log_info(f"开始处理 {len(self.image_files)} 个图像文件")
+        log("WARNING", "开始文件处理流程")
+        log("INFO", f"开始处理 {len(self.image_files)} 个图像文件")
         self.processing = True
         self.pushButton_start.setText("停止分类")
         self.progressBar.setValue(0)
@@ -677,27 +723,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 appcode = self.config.get("ALI_CODE")
                 if not appcode:
                     QMessageBox.critical(self, "错误", "未配置阿里云AppCode")
-                    log_error("未配置阿里云AppCode")
+                    log("ERROR", "未配置阿里云AppCode")
                     return
                 client = AliClient(appcode=appcode)
-                log_info("使用阿里云OCR模式")
+                log("INFO", "使用阿里云OCR模式")
             elif mode_index == 1:
                 # 本地模式
                 try:
                     client = LocalClient(max_retries=5)
-                    log_info("使用本地OCR模式")
+                    log("INFO", "使用本地OCR模式")
                 except Exception as e:
                     error_msg = f"本地OCR模型加载失败: {str(e)}"
-                        log_error(error_msg)
-                        QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}
-请检查网络连接并重试。")
+                    log("ERROR", error_msg)
+                    QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}\n请检查网络连接并重试。")
                     return
             elif mode_index == 2:
                 # 抖音云模式
                 api_key = self.config.get("DOUYIN_API_KEY")
                 if not api_key:
                     QMessageBox.critical(self, "错误", "未配置抖音API Key")
-                    log_error("未配置抖音API Key")
+                    log("ERROR", "未配置抖音API Key")
                     return
                 # 从配置获取超时参数
                 timeout = self.config.get("REQUEST_TIMEOUT", 60)
@@ -707,20 +752,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     max_retries=self.config.get("RETRY_TIMES", 3),
                     backoff_factor=self.config.get("BACKOFF_FACTOR", 1.0)
                 )
-                log_info("使用抖音云OCR模式")
+                log("INFO", "使用抖音云OCR模式")
             elif mode_index == 3:
                 # 百度云模式
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:
                     QMessageBox.critical(self, "错误", "未配置百度云API Key或Secret Key")
-                    log_error("未配置百度云API Key或Secret Key")
+                    log("ERROR", "未配置百度云API Key或Secret Key")
                     return
                 client = BaiduClient(api_key=api_key, secret_key=secret_key)
-                log_info("使用百度云OCR模式")
+                log("INFO", "使用百度云OCR模式")
             else:
                 QMessageBox.critical(self, "错误", f"无效的模式索引: {mode_index}")
-                    log_error(f"无效的模式索引: {mode_index}")
+                log("ERROR", f"无效的模式索引: {mode_index}")
                 return
 
             # 创建处理线程
@@ -734,45 +779,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.error_occurred.connect(self.on_error_occurred)
 
             self.processing_thread.start()
-            log_info("正在连接到OSS和图像识别服务器，请耐心等待")
+            log("INFO", "正在连接到OSS和图像识别服务器，请耐心等待")
 
         except Exception as e:
             error_msg = f"启动处理线程失败: {str(e)}"
-            log_error(error_msg)
+            log("ERROR", error_msg)
             self.processing = False
             self.pushButton_start.setText("开始分类")
 
     def _validate_processing_conditions(self):
         if not self.lineEdit_src_folder.text().strip():
-            log_warning("未选择源文件夹")
+            log("WARNING", "未选择源文件夹")
             QMessageBox.warning(self, "参数缺失", "请先选择源文件夹")
             return False
 
         if not self.lineEdit_dst_folder.text().strip():
-            log_warning("未选择目标文件夹")
+            log("WARNING", "未选择目标文件夹")
             QMessageBox.warning(self, "参数缺失", "请先选择目标文件夹")
             return False
 
         if not self.image_files:
-            log_warning("源文件夹中没有图像文件")
+            log("WARNING", "源文件夹中没有图像文件")
             QMessageBox.warning(self, "文件缺失", "源文件夹中未发现任何图像文件")
             return False
 
         mode_index = self.config.get("MODE_INDEX", 0)
 
         if mode_index == 0 and not self.config.get("ALI_CODE"):
-            log_warning("未配置阿里云AppCode")
+            log("WARNING", "未配置阿里云AppCode")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置阿里云AppCode")
             return False
         elif mode_index == 1:
             # 本地模式不需要API密钥
             pass
         elif mode_index == 2 and not self.config.get("DOUYIN_API_KEY"):
-            log_warning("未配置抖音API Key")
+            log("WARNING", "未配置抖音API Key")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置抖音API Key")
             return False
         elif mode_index == 3 and not (self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
-            log_warning("未配置百度API Key或Secret Key")
+            log("WARNING", "未配置百度API Key或Secret Key")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置百度API Key和Secret Key")
             return False
 
@@ -786,7 +831,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         )
 
         if reply == QMessageBox.StandardButton.Yes:
-            log_warning("用户请求停止处理")
+            log("WARNING", "用户请求停止处理")
             self.pushButton_start.setText("正在刹停")
             self.pushButton_start.setEnabled(False)
             self.processing = False
@@ -799,7 +844,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             self.progressBar.setValue(value)
         except Exception as e:
-            log_error(f"更新进度条失败: {str(e)}")
+            log("ERROR", f"更新进度条失败: {str(e)}")
 
     @QtCore.pyqtSlot(int, int, int)
     def on_stats_updated(self, processed, success, failed):
@@ -808,7 +853,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.success_label.setText(str(success))
             self.failed_label.setText(str(failed))
         except Exception as e:
-            log_error(f"更新统计信息失败: {str(e)}")
+            log("ERROR", f"更新统计信息失败: {str(e)}")
 
     @QtCore.pyqtSlot(list)
     def on_processing_finished(self, results):
@@ -822,18 +867,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         failed_count = total_count - success_count
         success_rate = f"{(success_count / total_count * 100) if total_count > 0 else 0:.2f}%"
 
-        log_info("=" * 50)
-        log_info(f"处理完成 | 总耗时: {total_time}")
-        log_info(f"总文件数: {total_count} | 成功: {success_count} | 失败: {failed_count}")
-        log_info(f"识别率: {success_rate}")
-        log_info("=" * 50)
+        log("INFO", "=" * 50)
+        log("INFO", f"处理完成 | 总耗时: {total_time}")
+        log("INFO", f"总文件数: {total_count} | 成功: {success_count} | 失败: {failed_count}")
+        log("INFO", f"识别率: {success_rate}")
+        log("INFO", "=" * 50)
 
-        log_info(f"处理完成，总耗时: {total_time}")
-        log_info(f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
+        log("INFO", f"处理完成，总耗时: {total_time}")
+        log("INFO", f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
 
         stats = save_summary(results)
         if stats:
-            log_info("统计信息已保存到summary文件夹")
+            log("INFO", "统计信息已保存到summary文件夹")
 
         if total_count > 0:
             result_message = (
@@ -852,38 +897,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
         try:
-            log_info("处理已停止")
+            log("INFO", "处理已停止")
             self.processing = False
             self.pushButton_start.setEnabled(True)
             self.pushButton_start.setText("开始分类")
         except Exception as e:
-            log_error(f"处理停止信号失败: {str(e)}")
+            log("ERROR", f"处理停止信号失败: {str(e)}")
 
     @QtCore.pyqtSlot(str)
     def on_error_occurred(self, error_msg):
         try:
-            log_error(f"处理线程错误: {error_msg}")
+            log("ERROR", f"处理线程错误: {error_msg}")
             QMessageBox.critical(self, "处理错误", error_msg)
             self.processing = False
             self.pushButton_start.setEnabled(True)
             self.pushButton_start.setText("开始分类")
         except Exception as e:
-            log_error(f"处理错误信号失败: {str(e)}")
+            log("ERROR", f"处理错误信号失败: {str(e)}")
 
     def minimize_window(self):
         try:
-            log_info("窗口最小化")
+            log("INFO", "窗口最小化")
             self.showMinimized()
         except Exception as e:
-            log_error(f"最小化窗口失败: {str(e)}")
+            log("ERROR", f"最小化窗口失败: {str(e)}")
 
     def close_application(self):
         try:
             if self.processing:
                 reply = QMessageBox.question(
                     self, "确认关闭",
-                    "当前正在处理文件，关闭将终止处理过程。
-确定要关闭吗?",
+                    "当前正在处理文件，关闭将终止处理过程。\n确定要关闭吗?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
                 )
 
@@ -891,7 +935,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     return
 
                 if self.processing_thread and self.processing_thread.isRunning():
-                    log_warning("应用程序关闭前停止处理线程")
+                    log("WARNING", "应用程序关闭前停止处理线程")
                     self.processing_thread.stop()
                     # 等待线程结束，最多等待5秒
                     import time
@@ -900,12 +944,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         QApplication.processEvents()
                         time.sleep(0.1)
                     if self.processing_thread.isRunning():
-                        log_error("无法正常停止处理线程，强制退出")
+                        log("ERROR", "无法正常停止处理线程，强制退出")
 
-            log_info("应用程序即将关闭")
+            log("INFO", "应用程序即将关闭")
             QApplication.quit()
         except Exception as e:
-            log_error(f"关闭应用程序失败: {str(e)}")
+            log("ERROR", f"关闭应用程序失败: {str(e)}")
 
 
 if __name__ == "__main__":
@@ -915,6 +959,7 @@ if __name__ == "__main__":
         window.show()
         sys.exit(app.exec())
     except Exception as e:
-        from utils import log_error
-        log_error(f"应用程序启动失败: {str(e)}")
+        from utils import log
+
+        log("ERROR", f"应用程序启动失败: {str(e)}")
         sys.exit(1)

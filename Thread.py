@@ -9,7 +9,7 @@ from queue import Queue, Empty
 import oss2
 from PyQt6 import QtCore
 
-from utils import load_config, log_error, log_debug, log_info, log_warning
+from utils import load_config, log_print
 
 
 class ProcessingThread(QtCore.QThread):
@@ -42,7 +42,7 @@ class ProcessingThread(QtCore.QThread):
         self.signal_queue = Queue()
         self.signal_processor_running = True
         client_type = getattr(client, 'client_type', '未知')
-        log_warning(f"初始化处理线程，使用 {client_type} 识别模式")
+        log_print(f"初始化处理线程，使用 {client_type} 识别模式")
         self.client_type = client_type
 
     def _load_config(self):
@@ -69,7 +69,7 @@ class ProcessingThread(QtCore.QThread):
         """
         try:
             if not self.image_files:
-                log_info("没有待处理的图像文件")
+                log_print("没有待处理的图像文件")
                 self.processing_finished.emit([])
                 return
 
@@ -97,11 +97,11 @@ class ProcessingThread(QtCore.QThread):
 
             self.processing_finished.emit(self.results)
             self.progress_updated.emit(100, "处理完成")
-            log_info(f"处理完成，共 {self.processed_count} 个文件，成功 {self.success_count} 个，失败 {self.failed_count} 个")
+            log_print(f"处理完成，共 {self.processed_count} 个文件，成功 {self.success_count} 个，失败 {self.failed_count} 个")
 
         except Exception as e:
             error_msg = f"处理过程中发生致命错误: {str(e)}"
-            log_error(error_msg)
+            log_print(error_msg)
             self.error_occurred.emit(error_msg)
             self.processing_finished.emit([])
 
@@ -110,7 +110,7 @@ class ProcessingThread(QtCore.QThread):
         工作线程函数，处理队列中的文件
         :param worker_id: 工作线程ID
         """
-        log_debug(f"工作线程 {worker_id + 1} 已启动")
+        log_print(f"工作线程 {worker_id + 1} 已启动")
         while self.is_running or not self.file_queue.empty():
             try:
                 file_path = self.file_queue.get(timeout=0.5)
@@ -129,7 +129,7 @@ class ProcessingThread(QtCore.QThread):
                     result = self.rate_limited_process(file_path)
             except Exception as e:
                 error_msg = f"工作线程 {worker_id + 1} 处理文件时出错: {str(e)}"
-                log_error(error_msg)
+                log_print(error_msg)
                 result = {
                     'filename': os.path.basename(file_path),
                     'success': False,
@@ -161,7 +161,7 @@ class ProcessingThread(QtCore.QThread):
                             ('progress_updated', progress, f"已处理 {self.processed_count}/{self.total_files}"))
 
                 self.file_queue.task_done()
-        log_debug(f"工作线程 {worker_id + 1} 已结束")
+        log_print(f"工作线程 {worker_id + 1} 已结束")
 
     def _signal_processor(self):
         while self.signal_processor_running or not self.signal_queue.empty():
@@ -183,7 +183,7 @@ class ProcessingThread(QtCore.QThread):
                 elif signal_name == 'error_occurred':
                     self.error_occurred.emit(args[0])
             except Exception as e:
-                log_error(f"处理信号时出错: {str(e)}")
+                log_print(f"处理信号时出错: {str(e)}")
             finally:
                 self.signal_queue.task_done()
 
@@ -219,7 +219,7 @@ class ProcessingThread(QtCore.QThread):
                 wait_time = (self.window_start + timedelta(minutes=1) - now).total_seconds() + 0.1
                 warning_msg = f"请求频率限制，等待 {wait_time:.1f} 秒"
                 self.rate_limit_warning.emit(warning_msg)
-                log_warning(warning_msg)
+                log_print(warning_msg)
                 time.sleep(wait_time)
                 self.requests_counter = 0
                 self.window_start = now
@@ -230,7 +230,7 @@ class ProcessingThread(QtCore.QThread):
         """
         停止处理线程
         """
-        log_info("正在停止处理线程")
+        log_print("正在停止处理线程")
         with self.lock:
             self.is_running = False
 
@@ -248,13 +248,13 @@ class ProcessingThread(QtCore.QThread):
             if worker.is_alive():
                 worker.join(timeout=2.0)
                 if worker.is_alive():
-                    log_warning(f"工作线程未正常结束，已超时")
+                    log_print(f"工作线程未正常结束，已超时")
 
         # 停止信号处理器
         self.signal_processor_running = False
 
         self.processing_stopped.emit()
-        log_info("处理线程已停止")
+        log_print("处理线程已停止")
 
     def upload_and_get_signed_url(self, local_file, oss_path):
         """
@@ -268,20 +268,20 @@ class ProcessingThread(QtCore.QThread):
         try:
             if not self.Config or not all(k in self.Config for k in ["ACCESS_KEY_ID", "ACCESS_KEY_SECRET", "ENDPOINT", "BUCKET_NAME", "EXPIRES_IN"]):
                 error_msg = "OSS配置不完整"
-                log_error(f"文件 {filename} 上传失败: {error_msg}")
+                log_print(f"文件 {filename} 上传失败: {error_msg}")
                 return {'success': False, 'error': error_msg}
 
             auth = oss2.Auth(self.Config["ACCESS_KEY_ID"], self.Config["ACCESS_KEY_SECRET"])
             bucket = oss2.Bucket(auth, self.Config["ENDPOINT"], self.Config["BUCKET_NAME"])
             if not os.path.exists(local_file):
                 error_msg = f"文件不存在: {local_file}"
-                log_error(error_msg)
+                log_print(error_msg)
                 return {'success': False, 'error': error_msg}
 
             result = bucket.put_object_from_file(oss_path, local_file)
             if result.status == 200:
                 signed_url = bucket.sign_url('GET', oss_path, self.Config["EXPIRES_IN"])
-                log_info(f"文件 {filename} 上传成功，获取到签名URL")
+                log_print(f"文件 {filename} 上传成功，获取到签名URL")
                 return {
                     'success': True,
                     'signed_url': signed_url,
@@ -289,15 +289,15 @@ class ProcessingThread(QtCore.QThread):
                         "%m-%d %H:%M:%S")
                 }
             error_msg = f"OSS处理失败，HTTP状态码: {result.status}"
-            log_error(f"文件 {filename} 上传失败: {error_msg}")
+            log_print(f"文件 {filename} 上传失败: {error_msg}")
             return {'success': False, 'error': error_msg}
         except oss2.exceptions.OssError as e:
             error_msg = f"OSS认证失败: {str(e)}"
-            log_error(f"文件 {filename} 上传失败: {error_msg}")
+            log_print(f"文件 {filename} 上传失败: {error_msg}")
             return {'success': False, 'error': error_msg}
         except Exception as e:
             error_msg = f"OSS连接异常: {str(e)}"
-            log_error(f"文件 {filename} 上传失败: {error_msg}")
+            log_print(f"文件 {filename} 上传失败: {error_msg}")
             return {'success': False, 'error': error_msg}
         finally:
             # 关闭OSS连接
@@ -305,7 +305,7 @@ class ProcessingThread(QtCore.QThread):
                 try:
                     bucket.close()
                 except Exception as e:
-                    log_debug(f"OSS连接关闭失败: {str(e)}")
+                    log_print(f"OSS连接关闭失败: {str(e)}")
 
     def process_image_file(self, local_file_path):
         """
@@ -314,10 +314,10 @@ class ProcessingThread(QtCore.QThread):
         :return: 处理结果字典
         """
         filename = os.path.basename(local_file_path)
-        log_info(f"开始处理图像文件: {filename}")
+        log_print(f"开始处理图像文件: {filename}")
 
         if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
-            log_info(f"使用本地识别模式处理文件: {filename}")
+            log_print(f"使用本地识别模式处理文件: {filename}")
             image_source = local_file_path
             oss_path = None
             signed_url = None
@@ -335,18 +335,18 @@ class ProcessingThread(QtCore.QThread):
         for attempt in range(max_attempts):
             if attempt > 0:
                 backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
-                log_debug(f"第 {attempt + 1} 次尝试，等待 {backoff_time:.2f} 秒后重试")
+                log_print(f"第 {attempt + 1} 次尝试，等待 {backoff_time:.2f} 秒后重试")
                 time.sleep(backoff_time)
 
             try:
                 ocr_result = self.client.recognize(image_source)
-                log_debug(f"OCR识别结果: {json.dumps(ocr_result, ensure_ascii=False)}")
+                log_print(f"OCR识别结果: {json.dumps(ocr_result, ensure_ascii=False)}")
 
                 time.sleep(self.request_interval)
 
                 if ocr_result['success']:
                     result_value = ocr_result.get('result') or ocr_result.get('recognition')
-                    log_info(f"OCR识别成功: {filename}, 结果: {result_value}")
+                    log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
 
                     result = {
                         'filename': filename,
@@ -362,15 +362,15 @@ class ProcessingThread(QtCore.QThread):
                 else:
                     error_msg = ocr_result.get('error', '未知错误')
                     raw_result = ocr_result.get('raw', '无原始数据')
-                    log_debug(
+                    log_print(
                         f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result}")
                     if attempt == max_attempts - 1:
-                        log_error(f"文件 {filename} 识别失败: {error_msg}")
+                        log_print(f"文件 {filename} 识别失败: {error_msg}")
                         return {'filename': filename, 'success': False, 'error': error_msg, 'raw': raw_result}
 
             except Exception as e:
                 error_msg = f'识别异常: {str(e)}'
-                log_error(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                 if attempt == max_attempts - 1:
                     return {'filename': filename, 'success': False, 'error': error_msg}
             finally:
@@ -379,7 +379,7 @@ class ProcessingThread(QtCore.QThread):
                     try:
                         self.client.cleanup()
                     except Exception as e:
-                        log_debug(f"客户端资源清理失败: {str(e)}")
+                        log_print(f"客户端资源清理失败: {str(e)}")
 
         return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
 
@@ -389,7 +389,25 @@ class ProcessingThread(QtCore.QThread):
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
         filename = os.path.basename(local_file_path)
-        category = recognition if recognition else "识别失败"
+        
+        # 处理识别结果，创建有效目录名
+        if recognition:
+            # 移除非法字符和换行符
+            category = recognition.replace('\n', ' ').replace('【', '[').replace('】', ']')
+            # 过滤Windows不允许的目录名字符
+            invalid_chars = '\\/:*?"<>|'
+            for char in invalid_chars:
+                category = category.replace(char, '-')
+            # 限制目录名长度
+            max_length = 100
+            if len(category) > max_length:
+                category = category[:max_length] + '...'
+            # 对于未识别到有效内容的情况，使用简短描述
+            if '未识别到有效内容' in category:
+                category = '未识别到有效内容'
+        else:
+            category = "识别失败"
+
         category_dir = os.path.join(output_dir, category)
         os.makedirs(category_dir, exist_ok=True)
         dest_path = os.path.join(category_dir, filename)
@@ -407,5 +425,5 @@ class ProcessingThread(QtCore.QThread):
                 shutil.copy2(local_file_path, dest_path)
             return category_dir
         except Exception as e:
-            log_error(f"文件操作失败: {str(e)}")
+            log_print(f"文件操作失败: {str(e)}")
             return None

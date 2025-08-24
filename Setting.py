@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDialog, QVB
     QPushButton, QHBoxLayout, QWidget
 
 from Ui_SettingWindow import Ui_SettingWindow
-from utils import get_resource_path, log_error, log_info
+from utils import get_resource_path, log_print
 
 
 class SettingWindow(QMainWindow, Ui_SettingWindow):
@@ -34,7 +34,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                     config = json.load(f)
             else:
                 config = {}
-            log_info("首次启动，使用默认配置模板")
+            log_print("首次启动，使用默认配置模板")
             QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
             self.lineEdit_ACCESS_KEY_ID.setText(config.get("ACCESS_KEY_ID", ""))
             self.lineEdit_ACCESS_KEY_SECRET.setText(config.get("ACCESS_KEY_SECRET", ""))
@@ -49,7 +49,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             if 0 <= mode_index < self.comboBox_mode.count():
                 self.comboBox_mode.setCurrentIndex(mode_index)
         except Exception as e:
-            log_error(f"配置加载失败: {str(e)}")
+            log_print(f"配置加载失败: {str(e)}")
             QMessageBox.critical(self, "配置加载失败", f"读取配置时出错：{str(e)}")
             self._load_default_values()
 
@@ -141,7 +141,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             QMessageBox.information(self, "保存成功", "配置已成功保存")
             self.close()
         except Exception as e:
-            log_error(f"保存配置失败: {str(e)}")
+            log_print(f"保存配置失败: {str(e)}")
             QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}")
 
     def handle_password(self):
@@ -269,7 +269,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             winreg.CloseKey(key)
             return True
         except Exception as e:
-            log_error(f"保存密码失败: {str(e)}")
+            log_print(f"保存密码失败: {str(e)}")
             return False
 
 

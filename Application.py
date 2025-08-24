@@ -2,14 +2,13 @@ import hashlib
 import sys
 import traceback
 import winreg
-import logging
 
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 
 from MainWindow import MainWindow
-from utils import get_resource_path, log_info, log_error, log_debug
+from utils import get_resource_path, log
 
 
 class PasswordDialog(QtWidgets.QDialog):
@@ -117,7 +116,7 @@ def verify_password(password):
         input_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
         return input_hash == stored_hash
     except (FileNotFoundError, OSError) as e:
-        log_error(f"验证密码时出错: {str(e)}")
+        log("ERROR", f"验证密码时出错: {str(e)}")
         return False
 
 
@@ -132,7 +131,7 @@ def has_password():
         winreg.CloseKey(key)
         return True
     except (FileNotFoundError, OSError) as e:
-        log_debug(f"检查密码时出错: {str(e)}")
+        log("DEBUG", f"检查密码时出错: {str(e)}")
         return False
 
 
@@ -152,12 +151,12 @@ def main():
         client_socket.write(b"bring_to_front")
         client_socket.waitForBytesWritten()
         client_socket.disconnectFromServer()
-        log_info("应用程序已在运行，切换到前台")
+        log("INFO", "应用程序已在运行，切换到前台")
         return 1
 
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
-        log_error(f"无法启动本地服务器: {server.errorString()}")
+        log("ERROR", f"无法启动本地服务器: {server.errorString()}")
         return 1
 
     server.newConnection.connect(lambda: handle_incoming_connection(server))
@@ -165,11 +164,11 @@ def main():
     # 共享内存检查，防止多实例运行
     shared_memory = QtCore.QSharedMemory("LeafView_Railway_Server")
     if shared_memory.attach():
-        log_info("检测到应用程序已在运行")
+        log("INFO", "检测到应用程序已在运行")
         return 1
 
     if not shared_memory.create(1):
-        log_error(f"无法创建共享内存: {shared_memory.errorString()}")
+        log("ERROR", f"无法创建共享内存: {shared_memory.errorString()}")
         return 1
 
     app = QtWidgets.QApplication(sys.argv)

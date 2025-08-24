@@ -119,7 +119,7 @@ class LocalClient:
         max_threads_limit = max(1, cpu_count // 4)
         json_threads = self.config.get("CONCURRENCY", 1)
         self.max_threads = min(json_threads, max_threads_limit)
-        log_print(f"CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
+        log_print(f"[INFO] CPU核心数: {cpu_count}, 最大限制线程数: {max_threads_limit}, JSON配置线程数: {json_threads}, 最终设置线程数: {self.max_threads}")
         
         self._initialize_reader()
 
@@ -127,19 +127,19 @@ class LocalClient:
         retry_count = 0
         while retry_count < self.max_retries:
             try:
-                log_print(f"正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
+                log_print(f"[INFO] 正在尝试加载OCR模型 (尝试 {retry_count + 1}/{self.max_retries})...")
                 if retry_count == 0:
                     import time
                 self.reader = easyocr.Reader(['en'], gpu=self.gpu, thread_count=self.max_threads)
-                log_print("OCR模型加载成功")
+                log_print("[INFO] OCR模型加载成功")
                 return
             except Exception as e:
                 error_msg = f"模型加载失败: {str(e)}"
-                log_print(error_msg)
+                log_print(f"[ERROR] {error_msg}")
                 retry_count += 1
                 if retry_count < self.max_retries:
                     wait_time = min(2 ** retry_count, 10)  # 指数退避，最大10秒
-                    log_print(f"{wait_time}秒后重试...")
+                    log_print(f"[INFO] {wait_time}秒后重试...")
                     time.sleep(wait_time)
                 else:
                     log_critical(f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
@@ -157,14 +157,14 @@ class LocalClient:
                 scale = max_size / max(image.size)
                 new_size = (int(image.size[0] * scale), int(image.size[1] * scale))
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
-                log_print(f"图像已缩放至: {new_size}")
+                log_print(f"[DEBUG] 图像已缩放至: {new_size}")
             elif self.gpu:
-                log_print("使用GPU加速，不缩放图像")
+                log_print("[DEBUG] 使用GPU加速，不缩放图像")
 
             gray_image = image.convert('L')
             return np.array(gray_image)
         except Exception as e:
-            log_print(f"图像预处理错误: {str(e)}")
+            log_print(f"[ERROR] 图像预处理错误: {str(e)}")
             return None
 
     def extract_matches(self, texts):
@@ -184,13 +184,13 @@ class LocalClient:
                 raw_result = json.dumps({"texts": result})
                 processing_time = time.time() - start_time
 
-                log_print(f"本地OCR识别完成，耗时: {processing_time:.2f}秒")
+                log_print(f"[DEBUG] 本地OCR识别完成，耗时: {processing_time:.2f}秒")
 
                 if matched_result:
-                    log_print(f"识别成功: {matched_result}")
+                    log_print(f"[INFO] 识别成功: {matched_result}")
                     return {"success": True, "result": matched_result, "raw": raw_result, "processing_time": processing_time}
                 else:
-                    log_print("未识别到匹配模式")
+                    log_print("[WARNING] 未识别到匹配模式")
                     return {"success": False, "error": "未识别到匹配模式", "raw": raw_result, "processing_time": processing_time}
             except Exception as e:
                 error_msg = f"OCR识别异常: {str(e)}"
@@ -265,7 +265,7 @@ class DouyinClient:
             else:
                 error_code = result.get("code")
                 error_msg = result.get("msg", "工作流运行失败")
-                log_print(f"工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
+                log_print(f"[ERROR] 工作流运行失败: 错误码 {error_code}, 错误信息: {error_msg}")
                 return {
                     "success": False,
                     "error_code": error_code,
@@ -274,16 +274,16 @@ class DouyinClient:
                 }
 
         except requests.exceptions.Timeout:
-            log_print(f"请求超时: {self.timeout}秒")
+            log_print(f"[ERROR] 请求超时: {self.timeout}秒")
             return {"success": False, "error_msg": f"请求超时: {self.timeout}秒"}
         except requests.exceptions.ConnectionError:
-            log_print("网络连接错误")
+            log_print("[ERROR] 网络连接错误")
             return {"success": False, "error_msg": "网络连接错误"}
         except requests.exceptions.HTTPError as e:
-            log_print(f"HTTP错误: {e.response.status_code}, {e.response.text}")
+            log_print(f"[ERROR] HTTP错误: {e.response.status_code}, {e.response.text}")
             return {"success": False, "error_msg": f"HTTP错误: {e.response.status_code}"}
         except Exception as e:
-            log_print(f"请求异常: {str(e)}")
+            log_print(f"[ERROR] 请求异常: {str(e)}")
             return {"success": False, "error_msg": f"请求异常: {str(e)}"}
         finally:
             session.close()
@@ -324,7 +324,7 @@ class DouyinClient:
             # 计算退避时间并等待
             if retry_count > 0:
                 sleep_time = backoff_factor * (2 ** (retry_count - 1))
-                log_print(f"请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
+                log_print(f"[WARNING] 请求失败，{sleep_time:.2f}秒后重试... (重试 {retry_count}/{max_retries})")
                 time.sleep(sleep_time)
 
             try:
@@ -336,11 +336,11 @@ class DouyinClient:
                     is_async=False,  # 同步执行以便获取结果
                 )
 
-                log_print(f"请求结果: {result}")
+                log_print(f"[DEBUG] 请求结果: {result}")
 
                 # 解析结果
                 parsed_result = self.parse_ocr_result(result)
-                log_print(f"工作流处理结果: {parsed_result}")
+                log_print(f"[INFO] 工作流处理结果: {parsed_result}")
 
                 # 即使没有execute_id也继续
                 execute_id = result.get('execute_id')
@@ -352,7 +352,7 @@ class DouyinClient:
                     # 对错误码4024(请求频率过高)进行重试
                     if error_code == 4024 and retry_count < max_retries:
                         retry_count += 1
-                        log_print(f"请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
+                        log_print(f"[WARNING] 请求频率过高(错误码4024)，正在进行第{retry_count}次重试...")
                         continue
                       
                     return {
@@ -373,7 +373,7 @@ class DouyinClient:
                 # 网络异常也可以重试
                 if retry_count < max_retries:
                     retry_count += 1
-                    log_print(f"请求异常: {str(e)}，正在进行第{retry_count}次重试...")
+                    log_print(f"[ERROR] 请求异常: {str(e)}，正在进行第{retry_count}次重试...")
                     continue
                 error_msg = f'识别过程异常: {str(e)}'
                 log_print(error_msg)
@@ -436,7 +436,7 @@ class BaiduClient:
                 data = json.loads(r.read().decode("utf8"))
                 self.access_token = data.get("access_token", "")
             except Exception as e:
-                log_print(f"获取百度access_token失败: {str(e)}")
+                log_print(f"[ERROR] 获取百度access_token失败: {str(e)}")
         return self.access_token
 
     def get_img(self, img_file):
@@ -521,7 +521,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
 
-        log_print("LeafView-RailwayOCR 启动成功")
+        log_print("[INFO] LeafView-RailwayOCR 启动成功")
 
     def _init_ui_components(self):
         """初始化UI组件"""
@@ -553,7 +553,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """打开设置窗口"""
         self.setting_window = SettingWindow()
         self.setting_window.show()
-        log_print("打开设置窗口")
+        log_print("[INFO] 打开设置窗口")
 
     def mousePressEvent(self, event):
         """鼠标按下事件，用于窗口拖动"""
@@ -658,13 +658,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if reply != QMessageBox.StandardButton.Yes:
             log("INFO", "用户取消处理操作")
-            log_print("用户取消处理操作")
+            log_print("[INFO] 用户取消处理操作")
             return
 
         self.processing_start_time = time.time()
 
         log("WARNING", "开始文件处理流程")
-        log_print(f"开始处理 {len(self.image_files)} 个图像文件")
+        log_print(f"[INFO] 开始处理 {len(self.image_files)} 个图像文件")
         self.processing = True
         self.pushButton_start.setText("停止分类")
         self.progressBar.setValue(0)
@@ -823,12 +823,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log("INFO", f"识别率: {success_rate}")
         log("INFO", "=" * 50)
 
-        log_print(f"处理完成，总耗时: {total_time}")
-        log_print(f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
+        log_print(f"[INFO] 处理完成，总耗时: {total_time}")
+        log_print(f"[INFO] 总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
 
         stats = save_summary(results)
         if stats:
-            log_print(f"统计信息已保存到summary文件夹")
+            log_print(f"[INFO] 统计信息已保存到summary文件夹")
 
         if total_count > 0:
             result_message = (

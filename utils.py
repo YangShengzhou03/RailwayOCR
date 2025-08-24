@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+import re
 from datetime import datetime
 import traceback
 
@@ -34,17 +35,25 @@ def set_log_level(level):
     global CURRENT_LOG_LEVEL
     if level in LOG_LEVELS:
         CURRENT_LOG_LEVEL = LOG_LEVELS[level]
-        log_print(f"日志级别已设置为: {level}", level="INFO")
+        log_print(f"[INFO] 日志级别已设置为: {level}")
     else:
-        log_print(f"无效的日志级别: {level}", level="ERROR")
+        log_print(f"[ERROR] 无效的日志级别: {level}")
 
 
-def log_print(log_info, level="INFO"):
-    if LOG_LEVELS.get(level, 20) < CURRENT_LOG_LEVEL:
-        return
+def log_print(formatted_log):
+    # 提取日志级别
+    level_match = re.match(r'\[(\w+)\]', formatted_log)
+    if level_match:
+        level = level_match.group(1)
+        if LOG_LEVELS.get(level, 20) < CURRENT_LOG_LEVEL:
+            return
+    else:
+        # 如果没有指定级别，默认为INFO
+        level = "INFO"
+        formatted_log = f"[INFO] {formatted_log}"
 
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    formatted_log = f"[{timestamp}] [{level}] {log_info}"
+    formatted_log = f"[{timestamp}] {formatted_log}"
     print(formatted_log)
 
     def ensure_log_file_exists():
@@ -98,7 +107,7 @@ def load_config():
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except FileNotFoundError:
-        log_print(f"配置文件不存在: {file_path}", level="ERROR")
+        log_print(f"[ERROR] 配置文件不存在: {file_path}")
         return {
             "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
             "SUMMARY_DIR": "summary",
@@ -107,7 +116,7 @@ def load_config():
             "LOG_LEVEL": "INFO"
         }
     except json.JSONDecodeError:
-        log_print(f"配置文件格式错误: {file_path}", level="ERROR")
+        log_print(f"[ERROR] 配置文件格式错误: {file_path}")
         return {
             "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
             "SUMMARY_DIR": "summary",
@@ -124,27 +133,27 @@ set_log_level(Config.get("LOG_LEVEL", "INFO"))
 
 
 def log(level, message):
-    log_print(message, level=level)
+    log_print(f"[{level}] {message}")
 
 
 def log_debug(message):
-    log_print(message, level="DEBUG")
+    log_print(f"[DEBUG] {message}")
 
 
 def log_info(message):
-    log_print(message, level="INFO")
+    log_print(f"[INFO] {message}")
 
 
 def log_warning(message):
-    log_print(message, level="WARNING")
+    log_print(f"[WARNING] {message}")
 
 
 def log_error(message):
-    log_print(message, level="ERROR")
+    log_print(f"[ERROR] {message}")
 
 
 def log_critical(message):
-    log_print(message, level="CRITICAL")
+    log_print(f"[CRITICAL] {message}")
 
 
 def save_summary(results):

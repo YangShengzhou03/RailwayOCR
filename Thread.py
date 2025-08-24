@@ -246,10 +246,10 @@ class ProcessingThread(QtCore.QThread):
 
     def process_image_file(self, local_file_path):
         filename = os.path.basename(local_file_path)
-        log_print(f"开始处理图像文件: {filename}")
+        log_print(f"[INFO] 开始处理图像文件: {filename}")
 
         if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
-            log_print(f"使用本地识别模式处理文件: {filename}")
+            log_print(f"[INFO] 使用本地识别模式处理文件: {filename}")
             image_source = local_file_path
             oss_path = None
             signed_url = None
@@ -258,10 +258,10 @@ class ProcessingThread(QtCore.QThread):
             upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
 
             if not upload_result['success']:
-                log_print(f"文件上传失败: {filename}, 错误: {upload_result['error']}")
+                log_print(f"[ERROR] 文件上传失败: {filename}, 错误: {upload_result['error']}")
                 return {'filename': filename, 'success': False, 'error': upload_result['error']}
             else:
-                log_print(f"文件上传成功: {filename}, 获取到签名URL")
+                log_print(f"[INFO] 文件上传成功: {filename}, 获取到签名URL")
                 image_source = upload_result['signed_url']
                 signed_url = upload_result['signed_url']
 
@@ -279,7 +279,7 @@ class ProcessingThread(QtCore.QThread):
 
                 if ocr_result['success']:
                     result_value = ocr_result.get('result') or ocr_result.get('recognition')
-                    log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
+                    log_print(f"[INFO] OCR识别成功: {filename}, 结果: {result_value}")
 
                     result = {
                         'filename': filename,
@@ -303,7 +303,7 @@ class ProcessingThread(QtCore.QThread):
 
             except Exception as e:
                 error_msg = f'识别异常: {str(e)}'
-                log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                log_print(f"[ERROR] OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                 if attempt == max_attempts - 1:
                     return {'filename': filename, 'success': False, 'error': error_msg}
 

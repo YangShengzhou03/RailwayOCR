@@ -83,6 +83,12 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         self.comboBox_mode.setCurrentIndex(0)
 
     def validate_required_fields(self):
+        """
+        验证必填字段是否完整且有效
+
+        返回:
+            bool: 字段是否有效
+        """
         mode_index = self.comboBox_mode.currentIndex()
         required_fields = [
             ("RE（正则表达式）", self.lineEdit_RE)
@@ -101,6 +107,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 ("DOUYIN_API_KEY", self.lineEdit_DOUYIN_API_KEY)
             ])
 
+        # 检查必填字段是否为空
         empty_fields = [label for label, widget in required_fields if not widget.text().strip()]
         if empty_fields:
             QMessageBox.warning(
@@ -117,7 +124,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         # 验证正则表达式
         try:
             re.compile(self.lineEdit_RE.text().strip())
-        except re.error:
+        except re.error as e:
             QMessageBox.warning(
                 self, "正则表达式错误",
                 f"无效的正则表达式: {self.lineEdit_RE.text().strip()}\n{str(e)}"
@@ -125,41 +132,159 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             self.lineEdit_RE.setFocus()
             return False
 
+        # 验证API密钥格式
+        if mode_index == 0:
+            if not re.match(r'^[A-Za-z0-9]{20,32}$', self.lineEdit_ALI_CODE.text().strip()):
+                QMessageBox.warning(
+                    self, "ALI_CODE格式错误",
+                    "ALI_CODE格式无效，应为20-32位字母和数字组合"
+                )
+                self.lineEdit_ALI_CODE.setFocus()
+                return False
+
+            if not re.match(r'^[A-Za-z0-9]{16,24}$', self.lineEdit_ACCESS_KEY_ID.text().strip()):
+                QMessageBox.warning(
+                    self, "ACCESS_KEY_ID格式错误",
+                    "ACCESS_KEY_ID格式无效，应为16-24位字母和数字组合"
+                )
+                self.lineEdit_ACCESS_KEY_ID.setFocus()
+                return False
+
+            if not re.match(r'^[A-Za-z0-9]{30,40}$', self.lineEdit_ACCESS_KEY_SECRET.text().strip()):
+                QMessageBox.warning(
+                    self, "ACCESS_KEY_SECRET格式错误",
+                    "ACCESS_KEY_SECRET格式无效，应为30-40位字母和数字组合"
+                )
+                self.lineEdit_ACCESS_KEY_SECRET.setFocus()
+                return False
+
+            if not re.match(r'^[a-zA-Z0-9\-\.]+$', self.lineEdit_ENDPOINT.text().strip()):
+                QMessageBox.warning(
+                    self, "ENDPOINT格式错误",
+                    "ENDPOINT格式无效，只能包含字母、数字、连字符和点"
+                )
+                self.lineEdit_ENDPOINT.setFocus()
+                return False
+
+            if not re.match(r'^[a-z0-9\-]+$', self.lineEdit_BUCKET_NAME.text().strip()):
+                QMessageBox.warning(
+                    self, "BUCKET_NAME格式错误",
+                    "BUCKET_NAME格式无效，只能包含小写字母、数字和连字符"
+                )
+                self.lineEdit_BUCKET_NAME.setFocus()
+                return False
+
+        elif mode_index == 2:
+            if not re.match(r'^[A-Za-z0-9]{20,40}$', self.lineEdit_DOUYIN_API_KEY.text().strip()):
+                QMessageBox.warning(
+                    self, "DOUYIN_API_KEY格式错误",
+                    "DOUYIN_API_KEY格式无效，应为20-40位字母和数字组合"
+                )
+                self.lineEdit_DOUYIN_API_KEY.setFocus()
+                return False
+
+        # 验证并发数范围
+        if self.spinBox_CONCURRENCY.value() <= 0 or self.spinBox_CONCURRENCY.value() > 32:
+            QMessageBox.warning(
+                self, "并发数范围错误",
+                "并发数必须在1-32之间"
+            )
+            self.spinBox_CONCURRENCY.setFocus()
+            return False
+
+        # 验证重试次数范围
+        if self.spinBox_RETRY_TIMES.value() < 0 or self.spinBox_RETRY_TIMES.value() > 10:
+            QMessageBox.warning(
+                self, "重试次数范围错误",
+                "重试次数必须在0-10之间"
+            )
+            self.spinBox_RETRY_TIMES.setFocus()
+            return False
+
         return True
 
     def _validate_config(self, config):
         """
         验证配置的有效性
+
+        参数:
+            config: 配置字典
+
+        抛出:
+            ValueError: 当配置无效时抛出
         """
         # 验证API密钥格式
-        if "ACCESS_KEY_ID" in config and not isinstance(config["ACCESS_KEY_ID"], str):
-            raise ValueError("ACCESS_KEY_ID必须是字符串")
+        if "ACCESS_KEY_ID" in config:
+            if not isinstance(config["ACCESS_KEY_ID"], str):
+                raise ValueError("ACCESS_KEY_ID必须是字符串")
+            if config["ACCESS_KEY_ID"] and not re.match(r'^[A-Za-z0-9]{16,24}$', config["ACCESS_KEY_ID"]):
+                raise ValueError("ACCESS_KEY_ID格式无效，应为16-24位字母和数字组合")
 
-        if "ACCESS_KEY_SECRET" in config and not isinstance(config["ACCESS_KEY_SECRET"], str):
-            raise ValueError("ACCESS_KEY_SECRET必须是字符串")
+        if "ACCESS_KEY_SECRET" in config:
+            if not isinstance(config["ACCESS_KEY_SECRET"], str):
+                raise ValueError("ACCESS_KEY_SECRET必须是字符串")
+            if config["ACCESS_KEY_SECRET"] and not re.match(r'^[A-Za-z0-9]{30,40}$', config["ACCESS_KEY_SECRET"]):
+                raise ValueError("ACCESS_KEY_SECRET格式无效，应为30-40位字母和数字组合")
 
-        if "DOUYIN_API_KEY" in config and not isinstance(config["DOUYIN_API_KEY"], str):
-            raise ValueError("DOUYIN_API_KEY必须是字符串")
+        if "DOUYIN_API_KEY" in config:
+            if not isinstance(config["DOUYIN_API_KEY"], str):
+                raise ValueError("DOUYIN_API_KEY必须是字符串")
+            if config["DOUYIN_API_KEY"] and not re.match(r'^[A-Za-z0-9]{20,40}$', config["DOUYIN_API_KEY"]):
+                raise ValueError("DOUYIN_API_KEY格式无效，应为20-40位字母和数字组合")
+
+        if "ALI_CODE" in config:
+            if not isinstance(config["ALI_CODE"], str):
+                raise ValueError("ALI_CODE必须是字符串")
+            if config["ALI_CODE"] and not re.match(r'^[A-Za-z0-9]{20,32}$', config["ALI_CODE"]):
+                raise ValueError("ALI_CODE格式无效，应为20-32位字母和数字组合")
 
         # 验证正则表达式
         if "RE" in config:
+            if not isinstance(config["RE"], str):
+                raise ValueError("RE必须是字符串")
             try:
                 re.compile(config["RE"])
             except re.error as e:
                 raise ValueError(f"正则表达式无效: {config['RE']}\n{str(e)}")
 
-        # 验证数值类型
-        if "CONCURRENCY" in config and not isinstance(config["CONCURRENCY"], int):
-            raise ValueError("CONCURRENCY必须是整数")
+        # 验证数值类型和范围
+        if "CONCURRENCY" in config:
+            if not isinstance(config["CONCURRENCY"], int):
+                raise ValueError("CONCURRENCY必须是整数")
+            if config["CONCURRENCY"] <= 0 or config["CONCURRENCY"] > 32:
+                raise ValueError("CONCURRENCY必须在1-32之间")
 
-        if "RETRY_TIMES" in config and not isinstance(config["RETRY_TIMES"], int):
-            raise ValueError("RETRY_TIMES必须是整数")
+        if "RETRY_TIMES" in config:
+            if not isinstance(config["RETRY_TIMES"], int):
+                raise ValueError("RETRY_TIMES必须是整数")
+            if config["RETRY_TIMES"] < 0 or config["RETRY_TIMES"] > 10:
+                raise ValueError("RETRY_TIMES必须在0-10之间")
+
+        if "MAX_REQUESTS_PER_MINUTE" in config:
+            if not isinstance(config["MAX_REQUESTS_PER_MINUTE"], int):
+                raise ValueError("MAX_REQUESTS_PER_MINUTE必须是整数")
+            if config["MAX_REQUESTS_PER_MINUTE"] <= 0 or config["MAX_REQUESTS_PER_MINUTE"] > 1000:
+                raise ValueError("MAX_REQUESTS_PER_MINUTE必须在1-1000之间")
 
         # 验证目录路径
-        if "SUMMARY_DIR" in config and not isinstance(config["SUMMARY_DIR"], str):
-            raise ValueError("SUMMARY_DIR必须是字符串")
+        if "SUMMARY_DIR" in config:
+            if not isinstance(config["SUMMARY_DIR"], str):
+                raise ValueError("SUMMARY_DIR必须是字符串")
+            # 验证目录名有效性
+            if config["SUMMARY_DIR"] and not re.match(r'^[a-zA-Z0-9_\-]+$', config["SUMMARY_DIR"]):
+                raise ValueError("SUMMARY_DIR只能包含字母、数字、下划线和连字符")
+
+        # 验证模式索引
+        if "MODE_INDEX" in config:
+            if not isinstance(config["MODE_INDEX"], int):
+                raise ValueError("MODE_INDEX必须是整数")
+            if config["MODE_INDEX"] < 0 or config["MODE_INDEX"] > 3:
+                raise ValueError("MODE_INDEX必须在0-3之间")
 
     def save_config(self):
+        """
+        保存配置到文件
+        """
         if not self.validate_required_fields():
             return
         try:
@@ -215,11 +340,21 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         except json.JSONDecodeError:
             log("ERROR", f"配置数据格式错误")
             QMessageBox.critical(self, "保存失败", "配置数据格式错误")
+        except ValueError as e:
+            log("ERROR", f"配置验证失败: {str(e)}")
+            QMessageBox.critical(self, "保存失败", f"配置验证失败: {str(e)}")
+        except IOError as e:
+            log("ERROR", f"IO错误: {str(e)}")
+            QMessageBox.critical(self, "保存失败", f"写入配置文件时发生IO错误：{str(e)}")
         except Exception as e:
             log("ERROR", f"保存配置失败: {str(e)}")
             QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}")
 
     def handle_password(self):
+        """
+        处理密码设置或修改
+        """
+        # 注意：此方法使用Windows特有的winreg模块，存在跨平台兼容性问题
         has_pwd = self._has_password()
         if has_pwd:
             dialog = QDialog(self)
@@ -265,6 +400,13 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 if new_pwd1.text() and len(new_pwd1.text()) < 4:
                     QMessageBox.warning(self, "密码过短", "密码长度至少4个字符")
                     return
+                # 密码强度检查
+                if new_pwd1.text() and not re.match(r'^(?=.*[A-Za-z])(?=.*\d).{4,}$', new_pwd1.text()):
+                    QMessageBox.warning(
+                        self, "密码强度不足",
+                        "密码应至少包含字母和数字，长度至少4个字符"
+                    )
+                    return
                 if self._save_password(new_pwd1.text()):
                     msg = "密码已取消" if not new_pwd1.text() else "密码已更新"
                     QMessageBox.information(self, "成功", msg)
@@ -304,6 +446,13 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                     return
                 if new_pwd1.text() and len(new_pwd1.text()) < 4:
                     QMessageBox.warning(self, "密码过短", "密码长度至少4个字符")
+                    return
+                # 密码强度检查
+                if new_pwd1.text() and not re.match(r'^(?=.*[A-Za-z])(?=.*\d).{4,}$', new_pwd1.text()):
+                    QMessageBox.warning(
+                        self, "密码强度不足",
+                        "密码应至少包含字母和数字，长度至少4个字符"
+                    )
                     return
                 if self._save_password(new_pwd1.text()):
                     msg = "密码已设置" if new_pwd1.text() else "未设置密码"

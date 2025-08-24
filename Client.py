@@ -5,7 +5,7 @@ import re
 import ssl
 import time
 import urllib.parse
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 import easyocr
@@ -13,6 +13,7 @@ import numpy as np
 import requests
 from PIL import Image
 import multiprocessing
+from socket import timeout
 
 from utils import load_config, log_print, log
 
@@ -41,15 +42,30 @@ class AliClient:
         try:
             params = json.dumps(body).encode(encoding='UTF8')
             req = Request(self.REQUEST_URL, params, headers)
-            r = urlopen(req, context=self.context)
+            r = urlopen(req, context=self.context, timeout=30)
             return r.read().decode("utf8")
         except HTTPError as e:
-            return json.dumps({"error": f"HTTP错误: {e.code}", "details": e.read().decode("utf8")})
+            error_msg = f"HTTP错误: {e.code}, 详情: {e.read().decode('utf8')}"
+            log("ERROR", f"API请求失败: {error_msg}")
+            return json.dumps({"error": error_msg})
+        except URLError as e:
+            error_msg = f"URL错误: {str(e)}"
+            log("ERROR", f"API请求失败: {error_msg}")
+            return json.dumps({"error": error_msg})
+        except timeout as e:
+            error_msg = f"请求超时: {str(e)}"
+            log("ERROR", f"API请求失败: {error_msg}")
+            return json.dumps({"error": error_msg})
+        except Exception as e:
+            error_msg = f"未知错误: {str(e)}"
+            log("ERROR", f"API请求失败: {error_msg}")
+            return json.dumps({"error": error_msg})
 
     def extract_matches(self, response_text):
         try:
             data = json.loads(response_text)
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as e:
+            log("ERROR", f"响应解析失败: {str(e)}, 响应文本: {response_text[:100] if len(response_text) > 100 else response_text}")
             return None
 
         words_info = data.get("prism_wordsInfo", [])
@@ -60,8 +76,11 @@ class AliClient:
         return None
 
     def recognize(self, img_file, params=None):
+        # 检查AppCode是否提供
         if not self.appcode:
-            return {"success": False, "error": "未提供AppCode"}
+            error_msg = "未提供AppCode，无法调用API"
+            log("ERROR", error_msg)
+            return {"success": False, "error": error_msg}
 
         if params is None:
             params = {
@@ -77,24 +96,36 @@ class AliClient:
                 "oricoord": False
             }
 
-        img = self.get_img(img_file)
-        if img.startswith('http'):
-            params.update({'url': img})
-        else:
-            params.update({'img': img})
+        try:
+            # 获取图像数据
+            img = self.get_img(img_file)
+            if img.startswith('http'):
+                params.update({'url': img})
+            else:
+                params.update({'img': img})
 
-        headers = {
-            'Authorization': f'APPCODE {self.appcode}',
-            'Content-Type': 'application/json; charset=UTF-8'
-        }
+            # 准备请求头
+            headers = {
+                'Authorization': f'APPCODE {self.appcode}',
+                'Content-Type': 'application/json; charset=UTF-8'
+            }
 
-        response = self.posturl(headers, params)
-        result = self.extract_matches(response)
+            # 发送请求
+            response = self.posturl(headers, params)
 
-        if result:
-            return {"success": True, "result": result, "raw": response}
-        else:
-            return {"success": False, "error": "未识别到匹配模式", "raw": response}
+            # 解析响应，提取匹配结果
+            result = self.extract_matches(response)
+
+            if result:
+                log("INFO", f"图像识别成功: {result}")
+                return {"success": True, "result": result, "raw": response}
+            else:
+                log("WARNING", f"未识别到匹配模式，图像文件: {os.path.basename(img_file)}")
+                return {"success": False, "error": "未识别到匹配模式", "raw": response}
+        except Exception as e:
+            error_msg = f"识别过程中发生错误: {str(e)}"
+            log("ERROR", error_msg)
+            return {"success": False, "error": error_msg}
 
 
 class LocalClient:
@@ -169,6 +200,16 @@ class LocalClient:
         return None
 
     def recognize(self, img_file, params=None):
+        """
+        对图像文件进行本地OCR识别
+
+        参数:
+            img_file: 图像文件路径
+            params: 可选参数（未使用）
+
+        返回:
+            dict: 包含识别结果、状态和处理时间的字典
+        """
         start_time = time.time()
         processed_image = self.optimized_preprocess(img_file)
 
@@ -188,10 +229,17 @@ class LocalClient:
                     return {"success": True, "result": matched_result, "raw": raw_result,
                             "processing_time": processing_time}
                 else:
-                    log("WARNING", "未识别到匹配模式")
-                    log_print("[WARNING] 未识别到匹配模式")
+                    log("WARNING", f"未识别到匹配模式，图像文件: {os.path.basename(img_file)}")
+                    log_print(f"[WARNING] 未识别到匹配模式")
                     return {"success": False, "error": "未识别到匹配模式", "raw": raw_result,
                             "processing_time": processing_time}
+            except easyocr.exceptions.EasyOCRException as e:
+                error_msg = f"OCR模型异常: {str(e)}"
+                log("ERROR", error_msg)
+                log_print(f"[ERROR] {error_msg}")
+                # 尝试重新初始化模型
+                self._initialize_reader()
+                return {"success": False, "error": error_msg, "raw": str(e)}
             except Exception as e:
                 error_msg = f"OCR识别异常: {str(e)}"
                 log("ERROR", error_msg)

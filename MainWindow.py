@@ -167,22 +167,54 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return False
 
     def toggle_processing(self):
+        """
+        切换处理状态（开始/停止处理）
+        """
         if self.processing:
             self.stop_processing()
         else:
             # 确保之前的线程已经终止
             if self.processing_thread and self.processing_thread.isRunning():
                 log("WARNING", "存在正在运行的处理线程，尝试停止")
-                self.processing_thread.stop()
-                # 等待线程终止，最多等待5秒
-                import time
-                start_time = time.time()
-                while self.processing_thread.isRunning() and (time.time() - start_time) < 5:
-                    QApplication.processEvents()
-                    time.sleep(0.1)
-                if self.processing_thread.isRunning():
-                    log("ERROR", "无法正常停止处理线程，强制启动新线程")
+                self._safe_stop_thread()
             self.start_processing()
+
+    def _safe_stop_thread(self):
+        """
+        安全地停止处理线程
+
+        返回:
+            bool: 线程是否成功终止
+        """
+        if not self.processing_thread or not self.processing_thread.isRunning():
+            return True
+
+        self.processing_thread.stop()
+        # 等待线程终止，最多等待10秒
+        start_time = time.time()
+        while self.processing_thread.isRunning() and (time.time() - start_time) < 10:
+            QApplication.processEvents()
+            time.sleep(0.1)
+
+        if self.processing_thread.isRunning():
+            log("ERROR", "无法正常停止处理线程")
+            # 尝试强制终止（不推荐，但在极端情况下可能必要）
+            try:
+                # 在线程对象上设置一个标志，通知线程必须立即终止
+                self.processing_thread.is_running = False
+                # 再次等待短暂时间
+                time.sleep(0.5)
+                if self.processing_thread.isRunning():
+                    log("ERROR", "线程仍在运行，可能导致资源泄漏")
+                    return False
+            except Exception as e:
+                log("ERROR", f"强制终止线程时出错: {str(e)}")
+                return False
+        else:
+            log("INFO", "处理线程已成功终止")
+            # 清理线程资源
+            self.processing_thread = None
+        return True
 
     def start_processing(self):
         if not self._validate_processing_conditions():
@@ -310,6 +342,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return True
 
     def stop_processing(self):
+        """
+        停止处理
+        """
         reply = QMessageBox.question(
             self, "确认停止",
             "确定要停止处理吗? 当前进度将会丢失。",
@@ -318,12 +353,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if reply == QMessageBox.StandardButton.Yes:
             log("WARNING", "用户请求停止处理")
-            self.pushButton_start.setText("正在刹停")
+            self.pushButton_start.setText("正在停止...")
             self.pushButton_start.setEnabled(False)
             self.processing = False
 
             if self.processing_thread and self.processing_thread.isRunning():
-                self.processing_thread.stop()
+                # 安全停止线程
+                success = self._safe_stop_thread()
+                if not success:
+                    log("ERROR", "停止处理线程失败")
+                    QMessageBox.critical(self, "错误", "无法正常停止处理线程，可能导致资源泄漏")
+
+            # 更新UI状态
+            self.pushButton_start.setEnabled(True)
+            self.pushButton_start.setText("开始分类")
 
     @QtCore.pyqtSlot(int, str)
     def on_progress_updated(self, value, message):
@@ -382,11 +425,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
+        """
+        处理线程停止信号
+        """
         try:
             log("INFO", "处理已停止")
             self.processing = False
             self.pushButton_start.setEnabled(True)
             self.pushButton_start.setText("开始分类")
+            # 清理线程资源
+            if self.processing_thread:
+                self.processing_thread = None
         except Exception as e:
             log("ERROR", f"处理停止信号失败: {str(e)}")
 

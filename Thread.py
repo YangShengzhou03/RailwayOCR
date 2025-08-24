@@ -6,10 +6,9 @@ import time
 from datetime import datetime, timedelta
 from queue import Queue, Empty
 
-import oss2
 from PyQt6 import QtCore
 
-from utils import load_config, log_print
+from utils import load_config, log_print, log
 
 
 class ProcessingThread(QtCore.QThread):
@@ -46,22 +45,35 @@ class ProcessingThread(QtCore.QThread):
         self.client_type = client_type
 
     def _load_config(self):
+        """
+        加载配置参数，设置线程池和请求限制等参数
+        """
         try:
             self.Config = load_config()
+            # 从配置中获取线程池大小，默认为CPU核心数的一半，但不超过8
+            cpu_count = os.cpu_count() or 4
+            default_worker_count = min(max(1, cpu_count // 2), 8)
+            self.worker_count = self.Config.get("CONCURRENCY", default_worker_count)
+            
+            # 请求限制和退避参数
             self.max_requests_per_minute = self.Config.get("MAX_REQUESTS_PER_MINUTE", 60)
-            self.worker_count = self.Config.get("CONCURRENCY", 4)
             self.backoff_factor = self.Config.get("BACKOFF_FACTOR", 2.0)
             self.request_interval = self.Config.get("REQUEST_INTERVAL", 0.5)
             self.max_backoff_time = self.Config.get("MAX_BACKOFF_TIME", 30)
             self.request_timeout = self.Config.get("REQUEST_TIMEOUT", 60)
+            
+            log("INFO", f"线程池配置: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
         except Exception as e:
             self.max_requests_per_minute = 60
-            self.worker_count = 4
+            cpu_count = os.cpu_count() or 4
+            self.worker_count = min(max(1, cpu_count // 2), 8)
             self.backoff_factor = 2.0
             self.request_interval = 0.5
             self.max_backoff_time = 30
             self.request_timeout = 60
-            self.error_occurred.emit(f"配置加载失败: {str(e)}")
+            error_msg = f"配置加载失败: {str(e)}"
+            log("ERROR", error_msg)
+            self.error_occurred.emit(error_msg)
 
     def run(self):
         try:
@@ -181,39 +193,82 @@ class ProcessingThread(QtCore.QThread):
                 self.signal_queue.task_done()
 
     def rate_limited_process(self, file_path):
+        """
+        带速率限制的图像处理方法
+
+        参数:
+            file_path: 图像文件路径
+
+        返回:
+            dict: 处理结果
+        """
         if not self.is_running:
             return {'filename': os.path.basename(file_path), 'success': False, 'error': '处理已取消'}
 
-        self._check_rate_limit()
+        try:
+            self._check_rate_limit()
 
-        if not self.is_running:
-            raise RuntimeError("处理已取消")
+            if not self.is_running:
+                raise RuntimeError("处理已取消")
 
-        return self.process_image_file(file_path)
+            return self.process_image_file(file_path)
+        except Exception as e:
+            error_msg = f"速率限制处理失败: {str(e)}"
+            log("ERROR", error_msg)
+            return {'filename': os.path.basename(file_path), 'success': False, 'error': error_msg}
 
     def _check_rate_limit(self):
+        """
+        检查请求速率限制，确保不超过每分钟最大请求数
+        """
         with self.lock:
             now = datetime.now()
+            # 每分钟重置计数器
             if now - self.window_start > timedelta(minutes=1):
                 self.requests_counter = 0
                 self.window_start = now
 
+            # 如果超过限制，等待直到可以继续
             if self.requests_counter >= self.max_requests_per_minute:
                 wait_time = (self.window_start + timedelta(minutes=1) - now).total_seconds() + 0.1
-                warning_msg = f"请求频率限制，等待 {wait_time:.1f} 秒"
+                warning_msg = f"请求频率过高，已达到每分钟{self.max_requests_per_minute}次的限制，需等待{wait_time:.2f}秒"
+                log("WARNING", warning_msg)
                 self.rate_limit_warning.emit(warning_msg)
                 log_print(warning_msg)
-                time.sleep(wait_time)
+
+                # 等待期间定期检查是否需要停止
+                start_wait = time.time()
+                while time.time() - start_wait < wait_time and self.is_running:
+                    time.sleep(0.5)
+
+                if not self.is_running:
+                    raise RuntimeError("处理已取消")
+
+                # 重置计数器
                 self.requests_counter = 0
                 self.window_start = now
 
+            # 增加计数器
             self.requests_counter += 1
 
+            # 确保请求间隔
+            if self.request_interval > 0:
+                time.sleep(self.request_interval)
+
     def stop(self):
+        """
+        停止处理线程
+        """
+        log("INFO", "正在停止处理线程")
         log_print("正在停止处理线程")
+
         with self.lock:
+            if not self.is_running:
+                log("INFO", "处理线程已处于停止状态")
+                return
             self.is_running = False
 
+        # 清空任务队列
         while not self.file_queue.empty():
             try:
                 self.file_queue.get_nowait()
@@ -221,16 +276,21 @@ class ProcessingThread(QtCore.QThread):
                 break
             self.file_queue.task_done()
 
+        # 等待工作线程结束，最多等待10秒
         start_time = time.time()
         for worker in self.workers:
             if worker.is_alive():
                 worker.join(timeout=2.0)
                 if worker.is_alive():
-                    log_print(f"工作线程未正常结束，已超时")
+                    log("WARNING", "工作线程未正常结束，已超时")
+                    log_print("工作线程未正常结束，已超时")
 
+        # 停止信号处理器
         self.signal_processor_running = False
 
+        # 发出停止信号
         self.processing_stopped.emit()
+        log("INFO", "处理线程已停止")
         log_print("处理线程已停止")
 
     def upload_and_get_signed_url(self, local_file, oss_path):
@@ -280,78 +340,128 @@ class ProcessingThread(QtCore.QThread):
                     log_print(f"OSS连接关闭失败: {str(e)}")
 
     def process_image_file(self, local_file_path):
+        """
+        处理单个图像文件
+
+        参数:
+            local_file_path: 本地图像文件路径
+
+        返回:
+            dict: 包含处理结果的字典
+        """
         filename = os.path.basename(local_file_path)
+        log("INFO", f"开始处理图像文件: {filename}")
         log_print(f"开始处理图像文件: {filename}")
 
-        # 本地识别模式不进行OSS上传
-        if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
-            log_print(f"使用本地识别模式处理文件: {filename}")
-            image_source = local_file_path
-            oss_path = None
-            signed_url = None
-        else:
-            oss_path = f"RailwayOCR/images/{datetime.now().strftime('%Y%m%d')}/{filename}"
-            upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
+        try:
+            # 检查文件是否存在
+            if not os.path.exists(local_file_path):
+                error_msg = f"文件不存在: {local_file_path}"
+                log("ERROR", error_msg)
+                return {'filename': filename, 'success': False, 'error': error_msg}
 
-            if not upload_result['success']:
-                return {'filename': filename, 'success': False, 'error': upload_result['error']}
+            # 本地识别模式不进行OSS上传
+            if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
+                log_print(f"使用本地识别模式处理文件: {filename}")
+                image_source = local_file_path
+                oss_path = None
+                signed_url = None
             else:
-                image_source = upload_result['signed_url']
-                signed_url = upload_result['signed_url']
+                oss_path = f"RailwayOCR/images/{datetime.now().strftime('%Y%m%d')}/{filename}"
+                upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
 
-        max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == 1 else (
-            self.Config.get("RETRY_TIMES") if self.Config else 3)
-        for attempt in range(max_attempts):
-            if attempt > 0:
-                backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
-                log_print(f"第 {attempt + 1} 次尝试，等待 {backoff_time:.2f} 秒后重试")
-                time.sleep(backoff_time)
-
-            try:
-                ocr_result = self.client.recognize(image_source)
-                log_print(f"OCR识别结果: {json.dumps(ocr_result, ensure_ascii=False)}")
-
-                time.sleep(self.request_interval)
-
-                if ocr_result['success']:
-                    result_value = ocr_result.get('result') or ocr_result.get('recognition')
-                    log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
-
-                    result = {
-                        'filename': filename,
-                        'success': True,
-                        'result': result_value,
-                        'recognition': result_value
-                    }
-                    if oss_path:
-                        result['oss_path'] = oss_path
-                    if signed_url:
-                        result['signed_url'] = signed_url
-                    return result
+                if not upload_result['success']:
+                    return {'filename': filename, 'success': False, 'error': upload_result['error']}
                 else:
-                    error_msg = ocr_result.get('error', '未知错误')
-                    raw_result = ocr_result.get('raw', '无原始数据')
-                    log_print(
-                        f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result}")
+                    image_source = upload_result['signed_url']
+                    signed_url = upload_result['signed_url']
+
+            max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == 1 else (
+                self.Config.get("RETRY_TIMES") if self.Config else 3)
+            for attempt in range(max_attempts):
+                if attempt > 0:
+                    backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
+                    log_print(f"第 {attempt + 1} 次尝试，等待 {backoff_time:.2f} 秒后重试")
+                    time.sleep(backoff_time)
+
+                try:
+                    ocr_result = self.client.recognize(image_source)
+                    log_print(f"OCR识别结果: {json.dumps(ocr_result, ensure_ascii=False)}")
+
+                    time.sleep(self.request_interval)
+
+                    if ocr_result['success']:
+                        result_value = ocr_result.get('result') or ocr_result.get('recognition')
+                        log("INFO", f"OCR识别成功: {filename}, 结果: {result_value}")
+                        log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
+
+                        result = {
+                            'filename': filename,
+                            'success': True,
+                            'result': result_value,
+                            'recognition': result_value
+                        }
+                        if oss_path:
+                            result['oss_path'] = oss_path
+                        if signed_url:
+                            result['signed_url'] = signed_url
+                        return result
+                    else:
+                        error_msg = ocr_result.get('error', '未知错误')
+                        raw_result = ocr_result.get('raw', '无原始数据')
+                        log("WARNING", f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                        log_print(
+                            f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result[:50] if len(raw_result) > 50 else raw_result}")
+                        if attempt == max_attempts - 1:
+                            log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
+                            log_print(f"文件 {filename} 识别失败: {error_msg}")
+                            return {'filename': filename, 'success': False, 'error': error_msg, 'raw': raw_result}
+
+                except requests.exceptions.RequestException as e:
+                    error_msg = f'网络请求异常: {str(e)}'
+                    log("ERROR", f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, {error_msg}")
+                    log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                     if attempt == max_attempts - 1:
-                        log_print(f"文件 {filename} 识别失败: {error_msg}")
-                        return {'filename': filename, 'success': False, 'error': error_msg, 'raw': raw_result}
+                        return {'filename': filename, 'success': False, 'error': error_msg}
+                except json.JSONDecodeError as e:
+                    error_msg = f'JSON解析异常: {str(e)}'
+                    log("ERROR", f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, {error_msg}")
+                    log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                    if attempt == max_attempts - 1:
+                        return {'filename': filename, 'success': False, 'error': error_msg}
+                except Exception as e:
+                    error_msg = f'识别异常: {str(e)}'
+                    log("ERROR", f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, {error_msg}")
+                    log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                    if attempt == max_attempts - 1:
+                        return {'filename': filename, 'success': False, 'error': error_msg}
+                finally:
+                    if hasattr(self.client, 'cleanup') and callable(self.client.cleanup):
+                        try:
+                            self.client.cleanup()
+                        except Exception as e:
+                            log_print(f"客户端资源清理失败: {str(e)}")
 
-            except Exception as e:
-                error_msg = f'识别异常: {str(e)}'
-                log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
-                if attempt == max_attempts - 1:
-                    return {'filename': filename, 'success': False, 'error': error_msg}
-            finally:
-                if hasattr(self.client, 'cleanup') and callable(self.client.cleanup):
-                    try:
-                        self.client.cleanup()
-                    except Exception as e:
-                        log_print(f"客户端资源清理失败: {str(e)}")
-
-        return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
+            return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
+        except Exception as e:
+            error_msg = f'处理图像文件时发生致命错误: {str(e)}'
+            log("ERROR", error_msg)
+            log_print(error_msg)
+            return {'filename': filename, 'success': False, 'error': error_msg}
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
+        """
+        将处理后的文件复制或移动到分类文件夹
+
+        参数:
+            local_file_path: 源文件路径
+            recognition: 识别结果（用于创建分类文件夹）
+            output_dir: 目标文件夹
+            is_move: 是否为移动模式
+
+        返回:
+            str: 分类文件夹名称或None（出错时）
+        """
         filename = os.path.basename(local_file_path)
 
         if recognition:
@@ -374,7 +484,10 @@ class ProcessingThread(QtCore.QThread):
             try:
                 os.makedirs(category_dir, exist_ok=True)
             except Exception as e:
-                log_print(f"创建目录失败: {str(e)}")
+                error_msg = f"创建目录失败: {str(e)}"
+                log("ERROR", error_msg)
+                log_print(error_msg)
+                self.signal_queue.put(('error_occurred', error_msg))
                 return None
 
         dest_path = os.path.join(category_dir, filename)
@@ -387,10 +500,44 @@ class ProcessingThread(QtCore.QThread):
 
         try:
             if is_move:
-                shutil.move(local_file_path, dest_path)
+                try:
+                    shutil.move(local_file_path, dest_path)
+                    log("INFO", f"已移动文件: {filename} -> {category}")
+                    log_print(f"已移动文件: {filename} -> {category}")
+                except PermissionError:
+                    error_msg = f"移动文件时权限不足: {filename}"
+                    log("ERROR", error_msg)
+                    log_print(error_msg)
+                    self.signal_queue.put(('error_occurred', error_msg))
+                    return None
+                except Exception as e:
+                    error_msg = f"移动文件时出错: {str(e)}"
+                    log("ERROR", error_msg)
+                    log_print(error_msg)
+                    self.signal_queue.put(('error_occurred', error_msg))
+                    return None
             else:
-                shutil.copy2(local_file_path, dest_path)
-            return category_dir
+                try:
+                    shutil.copy2(local_file_path, dest_path)
+                    log("INFO", f"已复制文件: {filename} -> {category}")
+                    log_print(f"已复制文件: {filename} -> {category}")
+                except PermissionError:
+                    error_msg = f"复制文件时权限不足: {filename}"
+                    log("ERROR", error_msg)
+                    log_print(error_msg)
+                    self.signal_queue.put(('error_occurred', error_msg))
+                    return None
+                except Exception as e:
+                    error_msg = f"复制文件时出错: {str(e)}"
+                    log("ERROR", error_msg)
+                    log_print(error_msg)
+                    self.signal_queue.put(('error_occurred', error_msg))
+                    return None
+
+            return category
         except Exception as e:
-            log_print(f"文件操作失败: {str(e)}")
+            error_msg = f"处理文件时发生未知错误: {str(e)}"
+            log("ERROR", error_msg)
+            log_print(error_msg)
+            self.signal_queue.put(('error_occurred', error_msg))
             return None

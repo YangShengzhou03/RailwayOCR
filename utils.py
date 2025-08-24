@@ -7,6 +7,7 @@ import traceback
 from functools import lru_cache
 
 from PyQt6 import QtCore
+from PyQt6.QtWidgets import QMessageBox
 
 main_window = None
 LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_internal', 'log')

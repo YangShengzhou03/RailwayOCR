@@ -9,6 +9,11 @@ from functools import lru_cache
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QMessageBox
 
+# OCR模式常量定义
+MODE_LOCAL = 0
+MODE_BAIDU = 1
+MODE_ALI = 2
+
 main_window = None
 LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_internal', 'log')
 MAX_LINES = 3000
@@ -24,7 +29,7 @@ def get_resource_path(relative_path):
     return os.path.join(base_path, relative_path).replace(os.sep, '/')
 
 
-file_path = get_resource_path('resources/Config.json')
+file_path = get_resource_path('_internal/Config.json')
 
 
 def _init_log_system():
@@ -35,7 +40,7 @@ def _init_log_system():
         if not os.path.exists(LOG_PATH):
             with open(LOG_PATH, 'w', encoding='utf-8') as f:
                 f.write(f"# Log file created at {datetime.now()}\n")
-    except Exception as e:
+    except (OSError, FileNotFoundError) as e:
         print(f"[ERROR] 初始化日志系统失败: {str(e)}")
 
 
@@ -47,7 +52,7 @@ def _get_log_file_handle():
     if _log_file_handle is None or _log_file_handle.closed:
         try:
             _log_file_handle = open(LOG_PATH, 'a', encoding='utf-8')
-        except Exception as e:
+        except (IOError, OSError) as e:
             log("DEBUG", f"获取日志文件句柄失败: {str(e)}")
             return None
     return _log_file_handle
@@ -63,7 +68,7 @@ def close_log_file():
             _log_file_handle.close()
             _log_file_handle = None
             log("DEBUG", "日志文件已关闭")
-        except Exception as e:
+        except (OSError, IOError) as e:
             print(f"[ERROR] 关闭日志文件失败: {str(e)}")
 
 
@@ -121,7 +126,7 @@ def log_print(formatted_log):
                 # 如果已经是主线程，直接更新
                 main_window.textEdit_log.append(formatted_log)
                 main_window.textEdit_log.ensureCursorVisible()
-    except Exception as e:
+    except (OSError, IOError) as e:
         log("DEBUG", f"写入日志文件失败: {str(e)}")
         log("DEBUG", f"详细错误信息: {traceback.format_exc()}")
 
@@ -147,7 +152,7 @@ def load_config():
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(default_config, f, ensure_ascii=False, indent=2)
                 log("DEBUG", f"默认配置文件已创建: {file_path}")
-            except Exception as e:
+            except IOError as e:
                 log("ERROR", f"创建默认配置文件失败: {str(e)}")
                 QMessageBox.critical(None, "配置错误", f"创建默认配置文件失败: {str(e)}")
             return default_config
@@ -160,8 +165,7 @@ def load_config():
         log("DEBUG", f"配置文件格式错误: {file_path}")
         log("DEBUG", "使用默认配置...")
         return default_config
-    except Exception as e:
-        log("DEBUG", f"加载配置文件时发生错误: {str(e)}")
+    except (IOError, ValueError) as e:
         return default_config
 
 
@@ -202,6 +206,6 @@ def save_summary(results):
             json.dump(stats, f, ensure_ascii=False, indent=2)
         log("DEBUG", f"统计信息已保存到: {stats_path}")
         return stats
-    except Exception as e:
+    except (IOError, json.JSONEncodeError) as e:
         log("DEBUG", f"保存统计信息时发生错误: {str(e)}")
         return None

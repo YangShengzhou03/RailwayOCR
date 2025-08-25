@@ -1,9 +1,10 @@
-import hashlib
 import sys
+import time
 import traceback
 import winreg
-from multiprocessing import shared_memory
 
+import bcrypt
+import keyring
 from PyQt6 import QtWidgets, QtCore
 from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
@@ -105,19 +106,33 @@ class PasswordDialog(QtWidgets.QDialog):
 
 def verify_password(password):
     """
-    验证密码是否正确
+    使用系统凭据管理器验证密码
     :param password: 输入的密码
     :return: 验证是否通过
     """
     try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
-        stored_hash, _ = winreg.QueryValueEx(key, "PasswordHash")
-        winreg.CloseKey(key)
+        stored_value = keyring.get_password("RailwayOCR", "admin")
+        if not stored_value:
+            log("ERROR", "未找到存储的密码")
+            return False
 
-        input_hash = hashlib.sha256(password.encode('utf-8')).hexdigest()
-        return input_hash == stored_hash
-    except (FileNotFoundError, OSError) as e:
-        log("ERROR", f"验证密码时出错: {str(e)}")
+        # 解析盐值和哈希值
+        if ':' not in stored_value:
+            log("ERROR", "密码存储格式无效")
+            return False
+        salt_hex, hash_hex = stored_value.split(':', 1)
+
+        # 转换为字节
+        salt = bytes.fromhex(salt_hex)
+        stored_hash = bytes.fromhex(hash_hex)
+
+        # 使用bcrypt验证密码
+        result = bcrypt.checkpw(password.encode('utf-8'), stored_hash)
+        if not result:
+            log("WARNING", "密码验证失败")
+        return result
+    except (keyring.errors.KeyringError, ValueError, TypeError) as e:
+        log("ERROR", f"密码验证时出错: {str(e)}")
         return False
 
 
@@ -207,16 +222,23 @@ def main():
                 return 1
 
             password = dialog.get_password()
-            if verify_password(password):
+            # 安全验证密码
+            result = verify_password(password)
+            # 清除内存中的密码
+            dialog.password_edit.clear()
+            password = ' ' * len(password)
+            if result:
                 log("INFO", "密码验证成功")
                 break
             else:
                 attempts += 1
                 remaining = max_attempts - attempts
+                delay = 2 **attempts  # 指数递增延迟：1s, 2s, 4s
+                time.sleep(delay)
                 msg_box = QtWidgets.QMessageBox(
                     QtWidgets.QMessageBox.Icon.Warning,
                     "密码错误",
-                    f"输入的密码不正确，还剩{remaining}次机会",
+                    f"输入的密码不正确，还剩{remaining}次机会，将延迟{delay}秒",
                     parent=None
                 )
                 msg_box.setStyleSheet("""
@@ -253,7 +275,6 @@ def main():
 
     server.close()
     QLocalServer.removeServer(socket_name)
-    shared_memory.detach()
 
     return exit_code
 
@@ -284,7 +305,7 @@ def handle_incoming_connection(server):
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except Exception as e:
+    except (OSError, RuntimeError, ImportError) as e:
         sys.__stderr__.write(f"Fatal error: {str(e)}\n")
         sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)

@@ -6,11 +6,12 @@ import time
 from datetime import datetime, timedelta
 from queue import Queue, Empty
 
-import oss2
 import requests
 from PyQt6 import QtCore
 
-from utils import load_config, log_print, log
+from utils import load_config, log_print, log, MODE_LOCAL
+from clients import AliClient, BaiduClient, LocalClient
+from typing import Optional
 
 
 class ProcessingThread(QtCore.QThread):
@@ -24,7 +25,7 @@ class ProcessingThread(QtCore.QThread):
 
     def __init__(self, client, image_files, dest_dir, is_move_mode, parent=None):
         super().__init__(parent)
-        self.client = client
+        self.client_config = client.config if hasattr(client, 'config') else {}
         self.image_files = image_files
         self.dest_dir = dest_dir
         self.is_move_mode = is_move_mode
@@ -32,6 +33,8 @@ class ProcessingThread(QtCore.QThread):
         self.processed_count = 0
         self.success_count = 0
         self.failed_count = 0
+        self.counter_lock = threading.Lock()  # 计数器线程锁
+        self.file_lock = threading.Lock()  # 文件操作线程锁
         self.lock = threading.Lock()
         # 初始化配置相关属性
         cpu_count = os.cpu_count() or 4
@@ -102,7 +105,7 @@ class ProcessingThread(QtCore.QThread):
                 log("INFO", f"线程池配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
             else:
                 log("INFO", f"线程池配置: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
-        except Exception as e:
+        except (FileNotFoundError, PermissionError, OSError) as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4
             self.worker_count = min(max(1, cpu_count // 2), 8)
@@ -147,7 +150,7 @@ class ProcessingThread(QtCore.QThread):
             log_print(
                 f"处理完成，共 {self.processed_count} 个文件，成功 {self.success_count} 个，失败 {self.failed_count} 个")
 
-        except Exception as e:
+        except (ValueError, RuntimeError) as e:
             error_msg = f"处理过程中发生致命错误: {str(e)}"
             log_print(error_msg)
             self.error_occurred.emit(error_msg)
@@ -155,6 +158,25 @@ class ProcessingThread(QtCore.QThread):
 
     def _worker(self, worker_id):
         log_print(f"工作线程 {worker_id + 1} 已启动")
+        # 初始化客户端
+        config = load_config()
+        client_type = config.get('ocr_client', 'local')
+        try:
+            if client_type == 'ali':
+                client = AliClient()
+            elif client_type == 'baidu':
+                client = BaiduClient()
+            else:
+                # 只传递LocalClient能接受的参数
+                max_retries = self.client_config.get('max_retries', 3)
+                client = LocalClient(max_retries=max_retries, gpu=False)
+            log_print(f"工作线程 {worker_id + 1} 客户端初始化成功")
+        except (IOError, OSError) as e:
+            error_msg = f"工作线程 {worker_id + 1} 客户端初始化失败: {str(e)}"
+            log_print(error_msg)
+            self.error_occurred.emit(error_msg)
+            return
+
         while self.is_running or not self.file_queue.empty():
             try:
                 file_path = self.file_queue.get(timeout=0.5)
@@ -170,8 +192,8 @@ class ProcessingThread(QtCore.QThread):
                         'error': '处理已取消'
                     }
                 else:
-                    result = self.rate_limited_process(file_path)
-            except Exception as e:
+                    result = self.rate_limited_process(file_path, client)
+            except (requests.exceptions.RequestException, json.JSONDecodeError, RuntimeError) as e:
                 error_msg = f"工作线程 {worker_id + 1} 处理文件时出错: {str(e)}"
                 log_print(error_msg)
                 result = {
@@ -189,11 +211,13 @@ class ProcessingThread(QtCore.QThread):
                         recognition = result.get('recognition') or result.get('result')
 
                         if result['success']:
-                            self.success_count += 1
+                            with self.counter_lock:
+                                self.success_count += 1
                             result['category_dir'] = self.copy_to_classified_folder(
                                 file_path, recognition, self.dest_dir, self.is_move_mode)
                         else:
-                            self.failed_count += 1
+                            with self.counter_lock:
+                                self.failed_count += 1
                             self.copy_to_classified_folder(file_path, None, self.dest_dir, self.is_move_mode)
 
                         self.signal_queue.put(('file_processed', result))
@@ -226,12 +250,12 @@ class ProcessingThread(QtCore.QThread):
                     self.progress_updated.emit(args[0], args[1])
                 elif signal_name == 'error_occurred':
                     self.error_occurred.emit(args[0])
-            except Exception as e:
+            except (TypeError, AttributeError, ValueError) as e:
                 log_print(f"处理信号时出错: {str(e)}")
             finally:
                 self.signal_queue.task_done()
 
-    def rate_limited_process(self, file_path):
+    def rate_limited_process(self, file_path, client):
         """
         带速率限制的图像处理方法
 
@@ -250,8 +274,8 @@ class ProcessingThread(QtCore.QThread):
             if not self.is_running:
                 raise RuntimeError("处理已取消")
 
-            return self.process_image_file(file_path)
-        except Exception as e:
+            return self.process_image_file(file_path, client)
+        except (RuntimeError, ValueError, IOError) as e:
             error_msg = f"速率限制处理失败: {str(e)}"
             log("ERROR", error_msg)
             return {'filename': os.path.basename(file_path), 'success': False, 'error': error_msg}
@@ -332,53 +356,7 @@ class ProcessingThread(QtCore.QThread):
         log("INFO", "处理线程已停止")
         log_print("处理线程已停止")
 
-    def upload_and_get_signed_url(self, local_file, oss_path):
-        filename = os.path.basename(local_file)
-        bucket = None
-        try:
-            if not self.Config or not all(k in self.Config for k in
-                                          ["ACCESS_KEY_ID", "ACCESS_KEY_SECRET", "ENDPOINT", "BUCKET_NAME",
-                                           "EXPIRES_IN"]):
-                error_msg = "OSS配置不完整"
-                log_print(f"文件 {filename} 上传失败: {error_msg}")
-                return {'success': False, 'error': error_msg}
-
-            auth = oss2.Auth(self.Config["ACCESS_KEY_ID"], self.Config["ACCESS_KEY_SECRET"])
-            bucket = oss2.Bucket(auth, self.Config["ENDPOINT"], self.Config["BUCKET_NAME"])
-            if not os.path.exists(local_file):
-                error_msg = f"文件不存在: {local_file}"
-                log_print(error_msg)
-                return {'success': False, 'error': error_msg}
-
-            result = bucket.put_object_from_file(oss_path, local_file)
-            if result.status == 200:
-                signed_url = bucket.sign_url('GET', oss_path, self.Config["EXPIRES_IN"])
-                log_print(f"文件 {filename} 上传成功，获取到签名URL")
-                return {
-                    'success': True,
-                    'signed_url': signed_url,
-                    'expire_time': (datetime.now() + timedelta(seconds=self.Config["EXPIRES_IN"])).strftime(
-                        "%m-%d %H:%M:%S")
-                }
-            error_msg = f"OSS处理失败，HTTP状态码: {result.status}"
-            log_print(f"文件 {filename} 上传失败: {error_msg}")
-            return {'success': False, 'error': error_msg}
-        except oss2.exceptions.OssError as e:
-            error_msg = f"OSS认证失败: {str(e)}"
-            log_print(f"文件 {filename} 上传失败: {error_msg}")
-            return {'success': False, 'error': error_msg}
-        except Exception as e:
-            error_msg = f"OSS连接异常: {str(e)}"
-            log_print(f"文件 {filename} 上传失败: {error_msg}")
-            return {'success': False, 'error': error_msg}
-        finally:
-            if bucket is not None and hasattr(bucket, 'close') and callable(bucket.close):
-                try:
-                    bucket.close()
-                except Exception as e:
-                    log_print(f"OSS连接关闭失败: {str(e)}")
-
-    def process_image_file(self, local_file_path):
+    def process_image_file(self, local_file_path, client):
         """
         处理单个图像文件
 
@@ -399,23 +377,18 @@ class ProcessingThread(QtCore.QThread):
                 log("ERROR", error_msg)
                 return {'filename': filename, 'success': False, 'error': error_msg}
 
-            # 本地识别模式不进行OSS上传
-            if hasattr(self.client, 'client_type') and self.client.client_type == 'local':
-                log_print(f"使用本地识别模式处理文件: {filename}")
-                image_source = local_file_path
-                oss_path = None
-                signed_url = None
-            else:
-                oss_path = f"RailwayOCR/images/{datetime.now().strftime('%Y%m%d')}/{filename}"
-                upload_result = self.upload_and_get_signed_url(local_file_path, oss_path)
+            # 所有模式均使用本地文件直接识别，不进行OSS上传
+            log_print(f"使用本地文件处理: {filename}")
+            # 读取图像文件的二进制数据
+            try:
+                with open(local_file_path, 'rb') as f:
+                    image_source = f.read()
+            except (IOError, OSError) as e:
+                error_msg = f"读取文件失败: {str(e)}"
+                log("ERROR", error_msg)
+                return {'filename': filename, 'success': False, 'error': error_msg}
 
-                if not upload_result['success']:
-                    return {'filename': filename, 'success': False, 'error': upload_result['error']}
-                else:
-                    image_source = upload_result['signed_url']
-                    signed_url = upload_result['signed_url']
-
-            max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == 1 else (
+            max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == MODE_LOCAL else (
                 self.Config.get("RETRY_TIMES") if self.Config else 3)
             for attempt in range(max_attempts):
                 if attempt > 0:
@@ -424,7 +397,9 @@ class ProcessingThread(QtCore.QThread):
                     time.sleep(backoff_time)
 
                 try:
-                    ocr_result = self.client.recognize(image_source)
+                    # 对于本地文件，is_url始终为False
+                    is_url = False
+                    ocr_result = client.recognize(image_source, is_url=is_url)
                     log_print(f"OCR识别结果: {json.dumps(ocr_result, ensure_ascii=False)}")
 
                     time.sleep(self.request_interval)
@@ -440,10 +415,6 @@ class ProcessingThread(QtCore.QThread):
                             'result': result_value,
                             'recognition': result_value
                         }
-                        if oss_path:
-                            result['oss_path'] = oss_path
-                        if signed_url:
-                            result['signed_url'] = signed_url
                         return result
                     else:
                         error_msg = ocr_result.get('error', '未知错误')
@@ -468,21 +439,23 @@ class ProcessingThread(QtCore.QThread):
                     log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                     if attempt == max_attempts - 1:
                         return {'filename': filename, 'success': False, 'error': error_msg}
-                except Exception as e:
+                except (IOError, OSError) as e:
                     error_msg = f'识别异常: {str(e)}'
                     log("ERROR", f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, {error_msg}")
                     log_print(f"OCR识别异常 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                     if attempt == max_attempts - 1:
                         return {'filename': filename, 'success': False, 'error': error_msg}
                 finally:
-                    if hasattr(self.client, 'cleanup') and callable(self.client.cleanup):
+                    if hasattr(client, 'cleanup') and callable(client.cleanup):
                         try:
-                            self.client.cleanup()
-                        except Exception as e:
+                            client.cleanup()
+                            import gc
+                            gc.collect()
+                        except (IOError, OSError) as e:
                             log_print(f"客户端资源清理失败: {str(e)}")
 
             return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
-        except Exception as e:
+        except (RuntimeError, TypeError, OSError) as e:
             error_msg = f'处理图像文件时发生致命错误: {str(e)}'
             log("ERROR", error_msg)
             log_print(error_msg)
@@ -522,7 +495,7 @@ class ProcessingThread(QtCore.QThread):
         if not os.path.exists(category_dir):
             try:
                 os.makedirs(category_dir, exist_ok=True)
-            except Exception as e:
+            except OSError as e:
                 error_msg = f"创建目录失败: {str(e)}"
                 log("ERROR", error_msg)
                 log_print(error_msg)
@@ -540,9 +513,10 @@ class ProcessingThread(QtCore.QThread):
         try:
             if is_move:
                 try:
-                    shutil.move(local_file_path, dest_path)
-                    log("INFO", f"已移动文件: {filename} -> {category}")
-                    log_print(f"已移动文件: {filename} -> {category}")
+                    with self.file_lock:
+                        shutil.move(local_file_path, dest_path)
+                        log("INFO", f"已移动文件: {filename} -> {category}")
+                        log_print(f"已移动文件: {filename} -> {category}")
                 except PermissionError:
                     error_msg = f"移动文件时权限不足: {filename}"
                     log("ERROR", error_msg)
@@ -557,9 +531,9 @@ class ProcessingThread(QtCore.QThread):
                     return None
             else:
                 try:
-                    shutil.copy2(local_file_path, dest_path)
-                    log("INFO", f"已复制文件: {filename} -> {category}")
-                    log_print(f"已复制文件: {filename} -> {category}")
+                    shutil.move(local_file_path, dest_path)
+                    log("INFO", f"已移动文件: {filename} -> {category}")
+                    log_print(f"已移动文件: {filename} -> {category}")
                 except PermissionError:
                     error_msg = f"复制文件时权限不足: {filename}"
                     log("ERROR", error_msg)

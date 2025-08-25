@@ -1,17 +1,18 @@
 import os
 import sys
 import time
+from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU
 from datetime import timedelta
 
 from PyQt6 import QtCore, QtGui
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog)
 
 import utils
-from Client import LocalClient, AliClient, DouyinClient, BaiduClient
+from clients import AliClient, BaiduClient, LocalClient
 from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
-from utils import save_summary, get_resource_path, log_print, log
+from utils import save_summary, get_resource_path, log_print, log, load_config
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -30,7 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.drag_position = QtCore.QPoint()
 
         utils.main_window = self
-        self.config = utils.load_config()
+        self.config = load_config()
 
         self._init_ui_components()
         self.setup_connections()
@@ -68,14 +69,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def open_setting(self):
         self.setting_window = SettingWindow()
-        # 连接配置更新信号到处理函数
-        self.setting_window.config_updated.connect(self.on_config_updated)
         self.setting_window.show()
 
     def on_config_updated(self):
         # 重新加载配置
         log_print("配置已更新，正在重新加载...")
-        self.config = utils.load_config()
+        self.config = load_config()
         log_print("配置重新加载成功")
         # 如果正在运行中，可能需要更新线程池配置等
         if hasattr(self, 'processing_thread') and self.processing_thread:
@@ -131,14 +130,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         if any(file.lower().endswith(ext) for ext in self.config["ALLOWED_EXTENSIONS"]):
                             file_path = os.path.abspath(os.path.join(root, file))
                             self.image_files.append(file_path)
-                    except Exception as e:
+                    except (FileNotFoundError, PermissionError, OSError) as e:
                         log("ERROR", f"处理文件 {file} 时出错: {str(e)}")
                         continue
         except PermissionError:
             log("ERROR", f"访问文件夹 {self.source_dir} 时权限不足")
             QMessageBox.warning(self, "权限错误", f"无法访问文件夹 {self.source_dir}，权限不足")
             return
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             log("ERROR", f"扫描文件夹时出错: {str(e)}")
             QMessageBox.warning(self, "扫描错误", f"扫描文件夹时出错: {str(e)}")
             return
@@ -173,7 +172,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.total_files_label.setText("0")
                 return True
 
-        except Exception as e:
+        except (RuntimeError, ConnectionError) as e:
             log("ERROR", f"文件夹检查出错: {str(e)}")
 
         return False
@@ -231,7 +230,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.processing_thread.isRunning():
                     log("ERROR", "线程仍在运行，可能导致资源泄漏")
                     return False
-            except Exception as e:
+            except (FileNotFoundError, PermissionError) as e:
                 log("ERROR", f"强制终止线程时出错: {str(e)}")
                 return False
         else:
@@ -267,45 +266,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             mode_index = self.config.get("MODE_INDEX", 0)
 
-            if mode_index == 0:
-                appcode = self.config.get("ALI_CODE")
+            if mode_index == MODE_ALI:
+                appcode = self.config.get("ALI_APPCODE", "")
                 if not appcode:
                     QMessageBox.critical(self, "错误", "未配置阿里云AppCode")
                     log("ERROR", "未配置阿里云AppCode")
                     return
-                client = AliClient(appcode=appcode)
+                client = AliClient()
                 log("INFO", "使用阿里云OCR模式")
-            elif mode_index == 1:
+            elif mode_index == MODE_LOCAL:
                 try:
                     client = LocalClient(max_retries=5)
                     log("INFO", "使用本地OCR模式")
                 except Exception as e:
                     error_msg = f"本地OCR模型加载失败: {str(e)}"
                     log("ERROR", error_msg)
-                    QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}\n请检查网络连接并重试。")
+                    QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}请检查网络连接并重试。")
                     return
-            elif mode_index == 2:
-                api_key = self.config.get("DOUYIN_API_KEY")
-                if not api_key:
-                    QMessageBox.critical(self, "错误", "未配置抖音API Key")
-                    log("ERROR", "未配置抖音API Key")
-                    return
-                timeout = self.config.get("REQUEST_TIMEOUT", 60)
-                client = DouyinClient(
-                    api_key=api_key,
-                    timeout=timeout,
-                    max_retries=self.config.get("RETRY_TIMES", 3),
-                    backoff_factor=self.config.get("BACKOFF_FACTOR", 1.0)
-                )
-                log("INFO", "使用抖音云OCR模式")
-            elif mode_index == 3:
+            elif mode_index == MODE_BAIDU:
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:
                     QMessageBox.critical(self, "错误", "未配置百度云API Key或Secret Key")
                     log("ERROR", "未配置百度云API Key或Secret Key")
                     return
-                client = BaiduClient(api_key=api_key, secret_key=secret_key)
+                client = BaiduClient()
                 log("INFO", "使用百度云OCR模式")
             else:
                 QMessageBox.critical(self, "错误", f"无效的模式索引: {mode_index}")
@@ -348,19 +333,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         mode_index = self.config.get("MODE_INDEX", 0)
 
-        if mode_index == 0 and not self.config.get("ALI_CODE"):
+        if mode_index == MODE_ALI and not self.config.get("ALI_APPCODE"):
             log("WARNING", "未配置阿里云AppCode")
             QMessageBox.warning(self, "配置缺失", "请先在设置中配置阿里云AppCode")
             return False
-        elif mode_index == 1:
+        elif mode_index == MODE_LOCAL:
             pass
-        elif mode_index == 2 and not self.config.get("DOUYIN_API_KEY"):
-            log("WARNING", "未配置抖音API Key")
-            QMessageBox.warning(self, "配置缺失", "请先在设置中配置抖音API Key")
-            return False
-        elif mode_index == 3 and not (self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
+        elif mode_index == MODE_BAIDU and not (self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
             log("WARNING", "未配置百度API Key或Secret Key")
-            QMessageBox.warning(self, "配置缺失", "请先在设置中配置百度API Key和Secret Key")
+            QMessageBox.warning(self, "配置缺失", "请先在设置中配置百度API Key and Secret Key")
             return False
 
         return True

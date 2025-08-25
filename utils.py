@@ -52,7 +52,7 @@ def _get_log_file_handle():
         try:
             _log_file_handle = open(LOG_PATH, 'a', encoding='utf-8')
         except (IOError, OSError) as e:
-            log("DEBUG", f"获取日志文件句柄失败: {str(e)}")
+            log("ERROR", f"无法打开日志文件: {str(e)}")
             return None
     return _log_file_handle
 
@@ -63,7 +63,7 @@ def close_log_file():
         try:
             _log_file_handle.close()
             _log_file_handle = None
-            log("DEBUG", "日志文件已关闭")
+            
         except (OSError, IOError) as e:
             print(f"[ERROR] 关闭日志文件失败: {str(e)}")
 
@@ -123,8 +123,7 @@ def log_print(formatted_log):
                 main_window.textEdit_log.append(formatted_log)
                 main_window.textEdit_log.ensureCursorVisible()
     except (OSError, IOError) as e:
-        log("DEBUG", f"写入日志文件失败: {str(e)}")
-        log("DEBUG", f"详细错误信息: {traceback.format_exc()}")
+        log("ERROR", f"写入日志时出错: {str(e)}")
 
 
 @lru_cache(maxsize=1)
@@ -141,13 +140,12 @@ def load_config():
 
     try:
         if not os.path.exists(file_path):
-            log("DEBUG", f"配置文件不存在: {file_path}")
-            log("DEBUG", "正在创建默认配置文件...")
+            log("INFO", "配置文件不存在，正在创建默认设置...")
             try:
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(default_config, f, ensure_ascii=False, indent=2)
-                log("DEBUG", f"默认配置文件已创建: {file_path}")
+                log("INFO", "默认配置文件创建成功")
             except IOError as e:
                 log("ERROR", f"创建默认配置文件失败: {str(e)}")
                 QMessageBox.critical(None, "配置错误", f"创建默认配置文件失败: {str(e)}")
@@ -158,8 +156,7 @@ def load_config():
             default_config.update(config_data)
             return default_config
     except json.JSONDecodeError:
-        log("DEBUG", f"配置文件格式错误: {file_path}")
-        log("DEBUG", "使用默认配置...")
+        log("WARNING", "配置文件格式错误，将使用默认设置")
         return default_config
     except (IOError, ValueError) as e:
         return default_config
@@ -169,6 +166,10 @@ Config = load_config()
 
 
 def log(level, message):
+    allowed_levels = {"ERROR", "DEBUG", "INFO", "WARNING"}
+    if level not in allowed_levels:
+        print(f"错误：不支持的日志级别 '{level}'，必须是 ERROR、DEBUG、INFO 或 WARNING")
+        return
     print(f"{level} {message}")
     timestamp = time.strftime("%m-%d %H:%M:%S")
     colors = {
@@ -177,7 +178,7 @@ def log(level, message):
         "WARNING": "#FFA500",
         "DEBUG": "#3232CD"
     }
-    color = colors.get(level, "#3232CD")
+    color = colors[level]
     formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
     if main_window and hasattr(main_window, 'textEdit_log'):
         main_window.textEdit_log.append(formatted_message)
@@ -200,7 +201,7 @@ def save_summary(results):
         }
         with open(stats_path, 'w', encoding='utf-8') as f:
             json.dump(stats, f, ensure_ascii=False, indent=2)
-        log("DEBUG", f"统计信息已保存到: {stats_path}")
+        
         return stats
     except (IOError, json.JSONEncodeError) as e:
         log("DEBUG", f"保存统计信息时发生错误: {str(e)}")

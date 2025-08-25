@@ -1,5 +1,5 @@
-import os
 import json
+import os
 import shutil
 import threading
 import time
@@ -9,9 +9,8 @@ from queue import Queue, Empty
 import requests
 from PyQt6 import QtCore
 
-from utils import load_config, log_print, log, MODE_LOCAL
 from clients import AliClient, BaiduClient, LocalClient
-from typing import Optional
+from utils import load_config, log_print, log, MODE_LOCAL
 
 
 class ProcessingThread(QtCore.QThread):
@@ -56,7 +55,7 @@ class ProcessingThread(QtCore.QThread):
         self.signal_queue = Queue()
         self.signal_processor_running = True
         client_type = getattr(client, 'client_type', '未知')
-        log_print(f"初始化处理线程，使用 {client_type} 识别模式")
+
         self.client_type = client_type
 
         # 创建共享客户端实例
@@ -70,7 +69,7 @@ class ProcessingThread(QtCore.QThread):
             else:
                 max_retries = self.client_config.get('max_retries', 3)
                 self.shared_client = LocalClient(max_retries=max_retries, gpu=False)
-            log_print("共享客户端初始化成功")
+
         except (IOError, OSError) as e:
             error_msg = f"共享客户端初始化失败: {str(e)}"
             log_print(error_msg)
@@ -84,7 +83,7 @@ class ProcessingThread(QtCore.QThread):
         try:
             # 重新加载配置
             new_config = load_config()
-            
+
             # 从配置中获取新参数值
             cpu_count = os.cpu_count() or 4
             default_worker_count = min(max(1, cpu_count // 8), 1)
@@ -94,7 +93,7 @@ class ProcessingThread(QtCore.QThread):
             new_request_interval = new_config.get("REQUEST_INTERVAL", 0.5)
             new_max_backoff_time = new_config.get("MAX_BACKOFF_TIME", 30)
             new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
-            
+
             # 检查配置是否有变化
             config_changed = False
             if new_worker_count != self.worker_count:
@@ -115,14 +114,14 @@ class ProcessingThread(QtCore.QThread):
             if new_request_timeout != self.request_timeout:
                 self.request_timeout = new_request_timeout
                 config_changed = True
-            
+
             # 更新配置对象
             self.Config = new_config
-            
+
             if config_changed:
-                log("INFO", f"线程池配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
+
             else:
-                log("INFO", f"线程池配置: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
+
         except (FileNotFoundError, PermissionError, OSError) as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4
@@ -175,10 +174,10 @@ class ProcessingThread(QtCore.QThread):
             self.processing_finished.emit([])
 
     def _worker(self, worker_id):
-        log_print(f"工作线程 {worker_id + 1} 已启动")
+
         # 使用主线程创建的共享客户端实例
         client = self.shared_client
-        log_print(f"工作线程 {worker_id + 1} 客户端初始化成功")
+
 
         while self.is_running or not self.file_queue.empty():
             try:
@@ -383,6 +382,10 @@ class ProcessingThread(QtCore.QThread):
             # 所有模式均使用本地文件直接识别，不进行OSS上传
             log_print(f"使用本地文件处理: {filename}")
 
+            # 读取图像文件内容作为bytes
+            with open(local_file_path, 'rb') as f:
+                image_source = f.read()
+
             # 调用OCR识别
             try:
                 result = client.recognize(image_source, is_url=False)
@@ -435,7 +438,8 @@ class ProcessingThread(QtCore.QThread):
                         return result
                     else:
                         error_msg = '未识别到有效结果'
-                        log("WARNING", f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                        log("WARNING",
+                            f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                         log_print(f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                         if attempt == max_attempts - 1:
                             log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
@@ -546,9 +550,9 @@ class ProcessingThread(QtCore.QThread):
                     return None
             else:
                 try:
-                    shutil.move(local_file_path, dest_path)
-                    log("INFO", f"已移动文件: {filename} -> {category}")
-                    log_print(f"已移动文件: {filename} -> {category}")
+                    shutil.copy2(local_file_path, dest_path)
+                    log("INFO", f"已复制文件: {filename} -> {category}")
+                    log_print(f"已复制文件: {filename} -> {category}")
                 except PermissionError:
                     error_msg = f"复制文件时权限不足: {filename}"
                     log("ERROR", error_msg)

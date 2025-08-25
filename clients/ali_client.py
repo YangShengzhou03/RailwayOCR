@@ -3,15 +3,15 @@ import json
 import os
 import re
 import ssl
-import time
-import urllib.parse
+import threading
+from asyncio import timeout
+from typing import Optional, Union
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from typing import Optional, Union
 
-import threading
-from utils import load_config, log, log_print
+import requests
 
+from utils import load_config, log
 from .base_client import BaseClient
 
 

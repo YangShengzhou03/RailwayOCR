@@ -341,6 +341,10 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             return password is not None and password != ""
         except keyring.errors.KeyringError as e:
             log("ERROR", f"检查密码时出错: {str(e)}")
+            # 密码检查失败时默认视为无密码保护
+            return False
+        except FileNotFoundError:
+            log("WARNING", "密码存储文件不存在，视为无密码保护")
             return False
 
     def _verify_password(self, password):

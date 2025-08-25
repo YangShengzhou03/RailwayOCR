@@ -59,6 +59,24 @@ class ProcessingThread(QtCore.QThread):
         log_print(f"初始化处理线程，使用 {client_type} 识别模式")
         self.client_type = client_type
 
+        # 创建共享客户端实例
+        try:
+            config = load_config()
+            client_type = config.get('ocr_client', 'local')
+            if client_type == 'ali':
+                self.shared_client = AliClient()
+            elif client_type == 'baidu':
+                self.shared_client = BaiduClient()
+            else:
+                max_retries = self.client_config.get('max_retries', 3)
+                self.shared_client = LocalClient(max_retries=max_retries, gpu=False)
+            log_print("共享客户端初始化成功")
+        except (IOError, OSError) as e:
+            error_msg = f"共享客户端初始化失败: {str(e)}"
+            log_print(error_msg)
+            self.error_occurred.emit(error_msg)
+            raise
+
     def _load_config(self):
         """
         加载配置参数，设置线程池和请求限制等参数。可被外部调用以更新配置。
@@ -69,7 +87,7 @@ class ProcessingThread(QtCore.QThread):
             
             # 从配置中获取新参数值
             cpu_count = os.cpu_count() or 4
-            default_worker_count = min(max(1, cpu_count // 2), 8)
+            default_worker_count = min(max(1, cpu_count // 8), 1)
             new_worker_count = new_config.get("CONCURRENCY", default_worker_count)
             new_max_requests_per_minute = new_config.get("MAX_REQUESTS_PER_MINUTE", 60)
             new_backoff_factor = new_config.get("BACKOFF_FACTOR", 2.0)
@@ -158,24 +176,9 @@ class ProcessingThread(QtCore.QThread):
 
     def _worker(self, worker_id):
         log_print(f"工作线程 {worker_id + 1} 已启动")
-        # 初始化客户端
-        config = load_config()
-        client_type = config.get('ocr_client', 'local')
-        try:
-            if client_type == 'ali':
-                client = AliClient()
-            elif client_type == 'baidu':
-                client = BaiduClient()
-            else:
-                # 只传递LocalClient能接受的参数
-                max_retries = self.client_config.get('max_retries', 3)
-                client = LocalClient(max_retries=max_retries, gpu=False)
-            log_print(f"工作线程 {worker_id + 1} 客户端初始化成功")
-        except (IOError, OSError) as e:
-            error_msg = f"工作线程 {worker_id + 1} 客户端初始化失败: {str(e)}"
-            log_print(error_msg)
-            self.error_occurred.emit(error_msg)
-            return
+        # 使用主线程创建的共享客户端实例
+        client = self.shared_client
+        log_print(f"工作线程 {worker_id + 1} 客户端初始化成功")
 
         while self.is_running or not self.file_queue.empty():
             try:
@@ -379,14 +382,22 @@ class ProcessingThread(QtCore.QThread):
 
             # 所有模式均使用本地文件直接识别，不进行OSS上传
             log_print(f"使用本地文件处理: {filename}")
-            # 读取图像文件的二进制数据
+
+            # 调用OCR识别
             try:
-                with open(local_file_path, 'rb') as f:
-                    image_source = f.read()
-            except (IOError, OSError) as e:
-                error_msg = f"读取文件失败: {str(e)}"
+                result = client.recognize(image_source, is_url=False)
+            except Exception as e:
+                error_msg = f"OCR识别失败: {str(e)}"
                 log("ERROR", error_msg)
                 return {'filename': filename, 'success': False, 'error': error_msg}
+
+            # 验证识别结果
+            if result is None:
+                log("WARNING", f"未识别到有效结果: {filename}")
+                return {'filename': filename, 'success': False, 'error': '未识别到有效结果'}
+            if not isinstance(result, str):
+                log("ERROR", f"OCR返回非字符串结果: {type(result).__name__}")
+                return {'filename': filename, 'success': False, 'error': 'OCR识别结果格式错误'}
 
             max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == MODE_LOCAL else (
                 self.Config.get("RETRY_TIMES") if self.Config else 3)
@@ -399,13 +410,19 @@ class ProcessingThread(QtCore.QThread):
                 try:
                     # 对于本地文件，is_url始终为False
                     is_url = False
+                    # 再次检查image_source是否为bytes类型
+                    if not isinstance(image_source, bytes):
+                        error_msg = f"image_source必须是bytes类型，但得到的是{type(image_source)}类型"
+                        log("ERROR", error_msg)
+                        log_print(f"[ERROR] {error_msg}")
+                        return {'filename': filename, 'success': False, 'error': error_msg}
                     ocr_result = client.recognize(image_source, is_url=is_url)
-                    log_print(f"OCR识别结果: {json.dumps(ocr_result, ensure_ascii=False)}")
+                    log_print(f"OCR识别结果: {ocr_result}")
 
                     time.sleep(self.request_interval)
 
-                    if ocr_result['success']:
-                        result_value = ocr_result.get('result') or ocr_result.get('recognition')
+                    if ocr_result:
+                        result_value = ocr_result
                         log("INFO", f"OCR识别成功: {filename}, 结果: {result_value}")
                         log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
 
@@ -417,15 +434,13 @@ class ProcessingThread(QtCore.QThread):
                         }
                         return result
                     else:
-                        error_msg = ocr_result.get('error', '未知错误')
-                        raw_result = ocr_result.get('raw', '无原始数据')
+                        error_msg = '未识别到有效结果'
                         log("WARNING", f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
-                        log_print(
-                            f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}, 原始结果: {raw_result[:50] if len(raw_result) > 50 else raw_result}")
+                        log_print(f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
                         if attempt == max_attempts - 1:
                             log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
                             log_print(f"文件 {filename} 识别失败: {error_msg}")
-                            return {'filename': filename, 'success': False, 'error': error_msg, 'raw': raw_result}
+                            return {'filename': filename, 'success': False, 'error': error_msg}
 
                 except requests.exceptions.RequestException as e:
                     error_msg = f'网络请求异常: {str(e)}'

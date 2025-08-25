@@ -119,14 +119,14 @@ class LocalClient(BaseClient):
                 response.raise_for_status()
                 img_data = response.content
                 with Image.open(BytesIO(img_data)) as img:
-                    processed_image = self.optimized_preprocess_from_image(img, filename)
+                    processed_image = self.optimized_preprocess_from_image(img, filename, max_size=300)
             except requests.exceptions.RequestException as e:
                 log("错误", f"图像下载失败")
                 return None
         else:
             # 对于二进制数据
             with Image.open(BytesIO(image_source)) as img:
-                processed_image = self.optimized_preprocess_from_image(img, filename)
+                processed_image = self.optimized_preprocess_from_image(img, filename, max_size=300)
 
         if processed_image is not None:
             try:

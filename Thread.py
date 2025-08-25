@@ -3,8 +3,6 @@ import os
 import shutil
 import threading
 import time
-import json
-from json import JSONDecodeError
 from datetime import datetime, timedelta
 from queue import Queue, Empty
 
@@ -37,6 +35,7 @@ class ProcessingThread(QtCore.QThread):
         self.counter_lock = threading.Lock()  # 计数器线程锁
         self.file_lock = threading.Lock()  # 文件操作线程锁
         self.lock = threading.Lock()
+        self.results_lock = threading.Lock()  # results列表线程锁
         # 初始化配置相关属性
         cpu_count = os.cpu_count() or 4
         self.worker_count = min(max(1, cpu_count // 2), 8)
@@ -121,7 +120,8 @@ class ProcessingThread(QtCore.QThread):
             self.Config = new_config
 
             if config_changed:
-                log("INFO", f"配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
+                log("INFO",
+                    f"配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
             else:
                 pass
         except (FileNotFoundError, PermissionError, OSError) as e:
@@ -180,7 +180,6 @@ class ProcessingThread(QtCore.QThread):
         # 使用主线程创建的共享客户端实例
         client = self.shared_client
 
-
         while self.is_running or not self.file_queue.empty():
             try:
                 file_path = self.file_queue.get(timeout=0.5)
@@ -197,7 +196,7 @@ class ProcessingThread(QtCore.QThread):
                     }
                 else:
                     result = self.rate_limited_process(file_path, client)
-            except (requests.exceptions.RequestException, json.JSONDecodeError, RuntimeError) as e:
+            except (requests.exceptions.RequestException, json.JSONDecodeError, RuntimeError, OSError) as e:
                 error_msg = f"工作线程 {worker_id + 1} 处理文件时出错: {str(e)}"
                 log_print(error_msg)
                 result = {
@@ -210,7 +209,8 @@ class ProcessingThread(QtCore.QThread):
                 if result is not None:
                     with self.lock:
                         self.processed_count += 1
-                        self.results.append(result)
+                        with self.results_lock:
+                            self.results.append(result)
 
                         recognition = result.get('recognition') or result.get('result')
 
@@ -243,17 +243,35 @@ class ProcessingThread(QtCore.QThread):
                 continue
 
             try:
+                if not isinstance(signal, tuple) or len(signal) < 1:
+                    log_print("收到无效信号格式")
+                    continue
+
                 signal_name = signal[0]
                 args = signal[1:]
 
                 if signal_name == 'file_processed':
-                    self.file_processed.emit(args[0])
+                    if len(args) >= 1 and isinstance(args[0], dict):
+                        self.file_processed.emit(args[0])
+                    else:
+                        log_print("file_processed信号参数错误")
                 elif signal_name == 'stats_updated':
-                    self.stats_updated.emit(args[0], args[1], args[2])
+                    if len(args) >= 3 and all(isinstance(arg, int) for arg in args[:3]):
+                        self.stats_updated.emit(args[0], args[1], args[2])
+                    else:
+                        log_print("stats_updated信号参数错误")
                 elif signal_name == 'progress_updated':
-                    self.progress_updated.emit(args[0], args[1])
+                    if len(args) >= 2 and isinstance(args[0], int) and isinstance(args[1], str):
+                        self.progress_updated.emit(args[0], args[1])
+                    else:
+                        log_print("progress_updated信号参数错误")
                 elif signal_name == 'error_occurred':
-                    self.error_occurred.emit(args[0])
+                    if len(args) >= 1 and isinstance(args[0], str):
+                        self.error_occurred.emit(args[0])
+                    else:
+                        log_print("error_occurred信号参数错误")
+                else:
+                    log_print(f"未知信号类型: {signal_name}")
             except (TypeError, AttributeError, ValueError) as e:
                 log_print(f"处理信号时出错: {str(e)}")
             finally:

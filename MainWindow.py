@@ -32,6 +32,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         utils.main_window = self
         self.config = load_config()
+        self._initialize_ocr_client()
 
         self._init_ui_components()
         self.setup_connections()
@@ -55,6 +56,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.textEdit_log.setReadOnly(True)
 
+    def _initialize_ocr_client(self):
+        mode_index = self.config.get("MODE_INDEX", 0)
+        try:
+            if mode_index == MODE_ALI:
+                self.client = AliClient()
+                log("INFO", "使用阿里云OCR模式")
+            elif mode_index == MODE_BAIDU:
+                self.client = BaiduClient()
+                log("INFO", "使用百度OCR模式")
+            else:
+                self.client = LocalClient(max_retries=5)
+                log("INFO", "使用本地OCR模式")
+        except Exception as e:
+            error_msg = f"OCR客户端初始化失败: {str(e)}"
+            log("ERROR", error_msg)
+            QMessageBox.critical(self, "初始化失败", error_msg)
+            self.client = None
+
     def setup_connections(self):
         self.pushButton_src_folder.clicked.connect(self.browse_source_directory)
         self.pushButton_dst_folder.clicked.connect(self.browse_dest_directory)
@@ -72,11 +91,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setting_window.show()
 
     def on_config_updated(self):
-        # 重新加载配置
         log_print("配置已更新，正在重新加载...")
         self.config = load_config()
         log_print("配置重新加载成功")
-        # 如果正在运行中，可能需要更新线程池配置等
         if hasattr(self, 'processing_thread') and self.processing_thread:
             self.processing_thread._load_config()
             log_print("处理线程配置已更新")
@@ -178,32 +195,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return False
 
     def toggle_processing(self):
-        """
-        切换处理状态（开始/停止处理）
-        """
         if self.processing:
             self.stop_processing()
         else:
-            # 确保之前的线程已经终止
             if self.processing_thread and self.processing_thread.isRunning():
                 log("WARNING", "存在正在运行的处理线程，尝试停止")
                 self._safe_stop_thread()
             self.start_processing()
 
     def _safe_stop_thread(self):
-        """
-        安全地停止处理线程
-
-        返回:
-            bool: 线程是否成功终止
-        """
         if not self.processing_thread or not self.processing_thread.isRunning():
             return True
 
         try:
-            # 请求线程停止
             self.processing_thread.stop()
-            # 等待线程终止，最多等待2秒
             if self.processing_thread.wait(2000):
                 log("INFO", "处理线程已成功停止")
                 return True
@@ -251,14 +256,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 client = AliClient()
                 log("INFO", "使用阿里云OCR模式")
             elif mode_index == MODE_LOCAL:
-                try:
-                    client = LocalClient(max_retries=5)
-                    log("INFO", "使用本地OCR模式")
-                except Exception as e:
-                    error_msg = f"本地OCR模型加载失败: {str(e)}"
-                    log("ERROR", error_msg)
-                    QMessageBox.critical(self, "模型加载失败", f"无法加载OCR模型: {str(e)}请检查网络连接并重试。")
+                client = self.client
+                if not isinstance(client, LocalClient):
+                    QMessageBox.critical(self, "错误", "客户端类型不匹配，请重启应用")
                     return
+                log("INFO", "使用本地OCR模式")
             elif mode_index == MODE_BAIDU:
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
@@ -281,6 +283,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.progress_updated.connect(self.on_progress_updated)
             self.processing_thread.processing_stopped.connect(self.on_processing_stopped)
             self.processing_thread.error_occurred.connect(self.on_error_occurred)
+            self.processing_thread.finished.connect(self._cleanup_thread)  # 自动清理线程
 
             self.processing_thread.start()
             log("INFO", "正在处理图像，请耐心等待")
@@ -323,9 +326,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return True
 
     def stop_processing(self):
-        """
-        停止处理
-        """
         reply = QMessageBox.question(
             self, "确认停止",
             "确定要停止处理吗? 当前进度将会丢失。",
@@ -339,18 +339,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing = False
 
             if self.processing_thread and self.processing_thread.isRunning():
-                # 安全停止线程
                 self._safe_stop_thread()
-                # 无论成功与否，都通过定时器更新UI
                 QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
             else:
-                # 线程未运行，直接更新UI
                 QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
 
     def _update_ui_after_stop(self):
-        """
-        停止处理后更新UI状态
-        """
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
 
@@ -407,21 +401,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.information(self, "处理完成", result_message)
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
-        save_summary(results)
+        save_summary(results)  # 移除重复调用
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
-        """
-        处理线程停止信号
-        """
         try:
             log("INFO", "处理已停止")
             self.processing = False
-            # 通过定时器更新UI，确保在主线程执行
             QtCore.QTimer.singleShot(0, self._update_ui_after_stop)
-            # 清理线程资源
-            if self.processing_thread:
-                self.processing_thread = None
         except Exception as e:
             log("ERROR", f"处理停止信号失败: {str(e)}")
 
@@ -435,6 +422,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_start.setText("开始分类")
         except Exception as e:
             log("ERROR", f"处理错误信号失败: {str(e)}")
+
+    def _cleanup_thread(self):
+        """自动清理线程资源"""
+        if self.processing_thread:
+            self.processing_thread.deleteLater()
+            self.processing_thread = None
 
     def minimize_window(self):
         try:

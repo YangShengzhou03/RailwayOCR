@@ -151,6 +151,17 @@ def has_password():
         return False
 
 
+def center_window(window):
+    """居中窗口"""
+    if hasattr(window, 'centerOnScreen'):
+        window.centerOnScreen()
+    else:
+        qr = window.frameGeometry()
+        cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
+        qr.moveCenter(cp)
+        window.move(qr.topLeft())
+
+
 def main():
     """
     应用程序主函数
@@ -228,14 +239,17 @@ def main():
             result = verify_password(password)
             # 清除内存中的密码
             dialog.password_edit.clear()
-            password = ' ' * len(password)
+            password_bytes = bytearray(password.encode('utf-8'))
+            for i in range(len(password_bytes)):
+                password_bytes[i] = 0
+            del password_bytes
             if result:
                 log("INFO", "密码验证成功")
                 break
             else:
                 attempts += 1
                 remaining = max_attempts - attempts
-                delay = 2 **attempts  # 指数递增延迟：1s, 2s, 4s
+                delay = 2 ** attempts  # 指数递增延迟：1s, 2s, 4s
                 time.sleep(delay)
                 msg_box = QtWidgets.QMessageBox(
                     QtWidgets.QMessageBox.Icon.Warning,
@@ -264,13 +278,7 @@ def main():
     window = MainWindow()
     window.setWindowIcon(QIcon(get_resource_path("resources/img/icon.ico")))
 
-    if hasattr(window, 'centerOnScreen'):
-        window.centerOnScreen()
-    else:
-        qr = window.frameGeometry()
-        cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
-        qr.moveCenter(cp)
-        window.move(qr.topLeft())
+    center_window(window)
 
     window.show()
     exit_code = app.exec()

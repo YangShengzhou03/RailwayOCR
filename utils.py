@@ -9,7 +9,6 @@ from functools import lru_cache
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QMessageBox
 
-# OCR模式常量定义
 MODE_LOCAL = 0
 MODE_BAIDU = 1
 MODE_ALI = 2
@@ -59,9 +58,6 @@ def _get_log_file_handle():
 
 
 def close_log_file():
-    """
-    关闭日志文件句柄
-    """
     global _log_file_handle
     if _log_file_handle and not _log_file_handle.closed:
         try:
@@ -78,25 +74,21 @@ def log_print(formatted_log):
     print(formatted_log)
 
     try:
-        # 日志轮转
         log_rotation_size = Config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
         log_backup_count = Config.get("LOG_BACKUP_COUNT", 3)
 
         if os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > log_rotation_size:
-            # 执行日志轮转
             for i in range(log_backup_count - 1, 0, -1):
                 backup_path = f"{LOG_PATH}.{i}"
-                prev_backup_path = f"{LOG_PATH}.{i-1}"
+                prev_backup_path = f"{LOG_PATH}.{i - 1}"
                 if os.path.exists(prev_backup_path):
                     if os.path.exists(backup_path):
                         os.remove(backup_path)
                     os.rename(prev_backup_path, backup_path)
-            # 重命名当前日志文件为 .1
             backup_path = f"{LOG_PATH}.1"
             if os.path.exists(backup_path):
                 os.remove(backup_path)
             os.rename(LOG_PATH, backup_path)
-            # 创建新的日志文件
             with open(LOG_PATH, 'w', encoding='utf-8') as f:
                 f.write(f"# Log file created at {datetime.now()}\n")
 
@@ -105,12 +97,9 @@ def log_print(formatted_log):
             log_handle.write(f"{formatted_log}\n")
             log_handle.flush()
 
-        # 确保在主线程中更新UI
         if main_window and hasattr(main_window, 'textEdit_log') and main_window.textEdit_log:
             from PyQt6.QtCore import QMetaObject, Qt, QCoreApplication
-            # 检查当前线程是否为主线程
             if QCoreApplication.instance().thread() != main_window.thread():
-                # 使用QueuedConnection确保在主线程执行
                 QMetaObject.invokeMethod(
                     main_window.textEdit_log,
                     "append",
@@ -123,7 +112,6 @@ def log_print(formatted_log):
                     Qt.ConnectionType.QueuedConnection
                 )
             else:
-                # 如果已经是主线程，直接更新
                 main_window.textEdit_log.append(formatted_log)
                 main_window.textEdit_log.ensureCursorVisible()
     except (OSError, IOError) as e:
@@ -138,9 +126,9 @@ def load_config():
         "SUMMARY_DIR": "summary",
         "DOUYIN_WORKFLOW_ID": "",
         "DOUYIN_PROMPT": "请识别图像中的内容",
-        "LOG_LEVEL": "INFO",  # 日志级别: DEBUG, INFO, WARNING, ERROR
-        "LOG_ROTATION_SIZE": 5 * 1024 * 1024,  # 5MB
-        "LOG_BACKUP_COUNT": 3  # 保留的备份文件数
+        "LOG_LEVEL": "INFO",
+        "LOG_ROTATION_SIZE": 5 * 1024 * 1024,
+        "LOG_BACKUP_COUNT": 3
     }
 
     try:
@@ -179,9 +167,9 @@ def log(level, message):
         "INFO": "#691bfd",
         "ERROR": "#FF0000",
         "WARNING": "#FFA500",
-        "DEBUG": "#008000"
+        "DEBUG": "#3232CD"
     }
-    color = colors.get(level, "#000000")
+    color = colors.get(level, "#3232CD")
     formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
     if main_window and hasattr(main_window, 'textEdit_log'):
         main_window.textEdit_log.append(formatted_message)

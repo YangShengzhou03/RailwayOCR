@@ -394,7 +394,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.information(self, "处理完成", result_message)
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
-        save_summary(results)  # 移除重复调用
+        save_summary(results)
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
@@ -417,7 +417,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log("ERROR", f"处理错误信号失败: {str(e)}")
 
     def _cleanup_thread(self):
-        """自动清理线程资源"""
         if self.processing_thread:
             self.processing_thread.deleteLater()
             self.processing_thread = None

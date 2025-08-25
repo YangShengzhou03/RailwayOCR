@@ -27,7 +27,6 @@ class LocalClient(BaseClient):
         self._is_initializing = False
         self.recognition_attempts = self.config.get("RECOGNITION_ATTEMPTS", 2)
         self.max_threads = 1
-        log_print("[DEBUG] 线程数已强制设置为1")
         self._initialize_reader()
 
     def _initialize_reader(self):

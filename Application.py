@@ -1,7 +1,6 @@
 import sys
 import time
 import traceback
-import winreg
 
 import bcrypt
 import keyring
@@ -105,28 +104,20 @@ class PasswordDialog(QtWidgets.QDialog):
 
 
 def verify_password(password):
-    """
-    使用系统凭据管理器验证密码
-    :param password: 输入的密码
-    :return: 验证是否通过
-    """
     try:
         stored_value = keyring.get_password("RailwayOCR", "admin")
         if not stored_value:
             log("ERROR", "未找到存储的密码")
             return False
 
-        # 解析盐值和哈希值
         if ':' not in stored_value:
             log("ERROR", "密码存储格式无效")
             return False
         salt_hex, hash_hex = stored_value.split(':', 1)
 
-        # 转换为字节
         salt = bytes.fromhex(salt_hex)
         stored_hash = bytes.fromhex(hash_hex)
 
-        # 使用bcrypt验证密码
         result = bcrypt.checkpw(password.encode('utf-8'), stored_hash)
         if not result:
             log("WARNING", "密码验证失败")
@@ -137,47 +128,30 @@ def verify_password(password):
 
 
 def has_password():
-    """
-    检查是否已设置密码
-    :return: 是否已设置密码
-    """
     try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
-        value, _ = winreg.QueryValueEx(key, "PasswordHash")
-        winreg.CloseKey(key)
-        return bool(value)
-    except (FileNotFoundError, OSError) as e:
+        stored_value = keyring.get_password("RailwayOCR", "admin")
+        return bool(stored_value)
+    except (keyring.errors.KeyringError, OSError) as e:
         log("DEBUG", f"检查密码时出错: {str(e)}")
         return False
 
 
 def center_window(window):
-    """居中窗口"""
-    if hasattr(window, 'centerOnScreen'):
-        window.centerOnScreen()
-    else:
-        qr = window.frameGeometry()
-        cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
-        qr.moveCenter(cp)
-        window.move(qr.topLeft())
+    qr = window.frameGeometry()
+    cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
+    qr.moveCenter(cp)
+    window.move(qr.topLeft())
 
 
 def main():
-    """
-    应用程序主函数
-    :return: 退出代码
-    """
-    # 单实例运行检查
     server = QLocalServer()
     socket_name = "LeafView_Railway_Server_Socket"
 
-    # 尝试连接到已有的服务器
     client_socket = QLocalSocket()
     client_socket.connectToServer(socket_name)
 
     try:
         if client_socket.waitForConnected(500):
-            # 如果连接成功，通知已有实例将窗口带到前台
             client_socket.write(b"bring_to_front")
             client_socket.waitForBytesWritten()
             log("INFO", "应用程序已在运行，切换到前台")
@@ -185,13 +159,11 @@ def main():
     finally:
         client_socket.disconnectFromServer()
 
-    # 移除可能残留的服务器
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
         log("ERROR", f"无法启动本地服务器: {server.errorString()}")
         return 1
 
-    # 处理新连接
     server.newConnection.connect(lambda: handle_incoming_connection(server))
 
     app = QtWidgets.QApplication(sys.argv)
@@ -235,9 +207,7 @@ def main():
                 return 1
 
             password = dialog.get_password()
-            # 安全验证密码
             result = verify_password(password)
-            # 清除内存中的密码
             dialog.password_edit.clear()
             password_bytes = bytearray(password.encode('utf-8'))
             for i in range(len(password_bytes)):
@@ -249,7 +219,7 @@ def main():
             else:
                 attempts += 1
                 remaining = max_attempts - attempts
-                delay = 2 ** attempts  # 指数递增延迟：1s, 2s, 4s
+                delay = 2 **attempts
                 time.sleep(delay)
                 msg_box = QtWidgets.QMessageBox(
                     QtWidgets.QMessageBox.Icon.Warning,
@@ -292,24 +262,28 @@ def main():
 def handle_incoming_connection(server):
     socket = server.nextPendingConnection()
 
-    if socket.waitForReadyRead(1000):
-        message = socket.readAll().data().decode('utf-8')
-        if message == "bring_to_front":
-            for widget in QtWidgets.QApplication.topLevelWidgets():
-                if isinstance(widget, QtWidgets.QMainWindow) and widget.windowTitle() == "LeafView Railway":
-                    widget.setWindowState(
-                        widget.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive)
-                    widget.activateWindow()
-                    widget.raise_()
-                    widget.setStyleSheet("""
-                        QMainWindow {
-                            border: 1px solid #007aff;
-                        }
-                    """)
-                    QtCore.QTimer.singleShot(300, lambda: widget.setStyleSheet(""))
-                    break
-
-    socket.disconnectFromServer()
+    try:
+        if socket.waitForReadyRead(1000):
+            message = socket.readAll().data().decode('utf-8')
+            if message == "bring_to_front":
+                for widget in QtWidgets.QApplication.topLevelWidgets():
+                    if isinstance(widget, QtWidgets.QMainWindow) and widget.windowTitle() == "LeafView Railway":
+                        widget.setWindowState(
+                            widget.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive)
+                        widget.activateWindow()
+                        widget.raise_()
+                        widget.setStyleSheet("""
+                            QMainWindow {
+                                border: 1px solid #007aff;
+                            }
+                        """)
+                        QtCore.QTimer.singleShot(300, lambda: widget.setStyleSheet(""))
+                        break
+    except Exception as e:
+        log("ERROR", f"处理连接时出错: {str(e)}")
+    finally:
+        socket.disconnectFromServer()
+        socket.close()
 
 
 if __name__ == '__main__':

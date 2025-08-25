@@ -32,11 +32,10 @@ class ProcessingThread(QtCore.QThread):
         self.processed_count = 0
         self.success_count = 0
         self.failed_count = 0
-        self.counter_lock = threading.Lock()  # 计数器线程锁
-        self.file_lock = threading.Lock()  # 文件操作线程锁
+        self.counter_lock = threading.Lock()
+        self.file_lock = threading.Lock()
         self.lock = threading.Lock()
-        self.results_lock = threading.Lock()  # results列表线程锁
-        # 初始化配置相关属性
+        self.results_lock = threading.Lock()
         cpu_count = os.cpu_count() or 4
         self.worker_count = min(max(1, cpu_count // 2), 8)
         self.max_requests_per_minute = 60
@@ -45,7 +44,6 @@ class ProcessingThread(QtCore.QThread):
         self.max_backoff_time = 30
         self.request_timeout = 60
         self.Config = {}
-        # 加载配置
         self._load_config()
         self.requests_counter = 0
         self.window_start = datetime.now()
@@ -59,7 +57,6 @@ class ProcessingThread(QtCore.QThread):
 
         self.client_type = client_type
 
-        # 创建共享客户端实例
         try:
             config = load_config()
             client_type = config.get('ocr_client', 'local')
@@ -78,14 +75,9 @@ class ProcessingThread(QtCore.QThread):
             raise
 
     def _load_config(self):
-        """
-        加载配置参数，设置线程池和请求限制等参数。可被外部调用以更新配置。
-        """
         try:
-            # 重新加载配置
             new_config = load_config()
 
-            # 从配置中获取新参数值
             cpu_count = os.cpu_count() or 4
             default_worker_count = min(max(1, cpu_count // 8), 1)
             new_worker_count = new_config.get("CONCURRENCY", default_worker_count)
@@ -95,7 +87,6 @@ class ProcessingThread(QtCore.QThread):
             new_max_backoff_time = new_config.get("MAX_BACKOFF_TIME", 30)
             new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
 
-            # 检查配置是否有变化
             config_changed = False
             if new_worker_count != self.worker_count:
                 self.worker_count = new_worker_count
@@ -116,14 +107,11 @@ class ProcessingThread(QtCore.QThread):
                 self.request_timeout = new_request_timeout
                 config_changed = True
 
-            # 更新配置对象
             self.Config = new_config
 
             if config_changed:
                 log("INFO",
                     f"配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
-            else:
-                pass
         except (FileNotFoundError, PermissionError, OSError) as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4
@@ -176,8 +164,6 @@ class ProcessingThread(QtCore.QThread):
             self.processing_finished.emit([])
 
     def _worker(self, worker_id):
-
-        # 使用主线程创建的共享客户端实例
         client = self.shared_client
 
         while self.is_running or not self.file_queue.empty():
@@ -278,15 +264,6 @@ class ProcessingThread(QtCore.QThread):
                 self.signal_queue.task_done()
 
     def rate_limited_process(self, file_path, client):
-        """
-        带速率限制的图像处理方法
-
-        参数:
-            file_path: 图像文件路径
-
-        返回:
-            dict: 处理结果
-        """
         if not self.is_running:
             return {'filename': os.path.basename(file_path), 'success': False, 'error': '处理已取消'}
 
@@ -303,17 +280,12 @@ class ProcessingThread(QtCore.QThread):
             return {'filename': os.path.basename(file_path), 'success': False, 'error': error_msg}
 
     def _check_rate_limit(self):
-        """
-        检查请求速率限制，确保不超过每分钟最大请求数
-        """
         with self.lock:
             now = datetime.now()
-            # 每分钟重置计数器
             if now - self.window_start > timedelta(minutes=1):
                 self.requests_counter = 0
                 self.window_start = now
 
-            # 如果超过限制，等待直到可以继续
             if self.requests_counter >= self.max_requests_per_minute:
                 wait_time = (self.window_start + timedelta(minutes=1) - now).total_seconds() + 0.1
                 warning_msg = f"请求频率过高，已达到每分钟{self.max_requests_per_minute}次的限制，需等待{wait_time:.2f}秒"
@@ -321,7 +293,6 @@ class ProcessingThread(QtCore.QThread):
                 self.rate_limit_warning.emit(warning_msg)
                 log_print(warning_msg)
 
-                # 等待期间定期检查是否需要停止
                 start_wait = time.time()
                 while time.time() - start_wait < wait_time and self.is_running:
                     time.sleep(0.5)
@@ -329,21 +300,15 @@ class ProcessingThread(QtCore.QThread):
                 if not self.is_running:
                     raise RuntimeError("处理已取消")
 
-                # 重置计数器
                 self.requests_counter = 0
                 self.window_start = now
 
-            # 增加计数器
             self.requests_counter += 1
 
-            # 确保请求间隔
             if self.request_interval > 0:
                 time.sleep(self.request_interval)
 
     def stop(self):
-        """
-        停止处理线程
-        """
         log("INFO", "正在停止处理线程")
         log_print("正在停止处理线程")
 
@@ -353,7 +318,6 @@ class ProcessingThread(QtCore.QThread):
                 return
             self.is_running = False
 
-        # 清空任务队列
         while not self.file_queue.empty():
             try:
                 self.file_queue.get_nowait()
@@ -361,7 +325,6 @@ class ProcessingThread(QtCore.QThread):
                 break
             self.file_queue.task_done()
 
-        # 等待工作线程结束，最多等待10秒
         start_time = time.time()
         for worker in self.workers:
             if worker.is_alive():
@@ -370,43 +333,28 @@ class ProcessingThread(QtCore.QThread):
                     log("WARNING", "工作线程未正常结束，已超时")
                     log_print("工作线程未正常结束，已超时")
 
-        # 停止信号处理器
         self.signal_processor_running = False
 
-        # 发出停止信号
         self.processing_stopped.emit()
         log("INFO", "处理线程已停止")
         log_print("处理线程已停止")
 
     def process_image_file(self, local_file_path, client):
-        """
-        处理单个图像文件
-
-        参数:
-            local_file_path: 本地图像文件路径
-
-        返回:
-            dict: 包含处理结果的字典
-        """
         filename = os.path.basename(local_file_path)
         log("INFO", f"开始处理图像文件: {filename}")
         log_print(f"开始处理图像文件: {filename}")
 
         try:
-            # 检查文件是否存在
             if not os.path.exists(local_file_path):
                 error_msg = f"文件不存在: {local_file_path}"
                 log("ERROR", error_msg)
                 return {'filename': filename, 'success': False, 'error': error_msg}
 
-            # 所有模式均使用本地文件直接识别，不进行OSS上传
             log_print(f"使用本地文件处理: {filename}")
 
-            # 读取图像文件内容作为bytes
             with open(local_file_path, 'rb') as f:
                 image_source = f.read()
 
-            # 调用OCR识别
             try:
                 result = client.recognize(image_source, is_url=False)
             except Exception as e:
@@ -414,7 +362,6 @@ class ProcessingThread(QtCore.QThread):
                 log("ERROR", error_msg)
                 return {'filename': filename, 'success': False, 'error': error_msg}
 
-            # 验证识别结果
             if result is None:
                 log("WARNING", f"未识别到有效结果: {filename}")
                 return {'filename': filename, 'success': False, 'error': '未识别到有效结果'}
@@ -424,7 +371,7 @@ class ProcessingThread(QtCore.QThread):
 
             max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == MODE_LOCAL else (
                 self.Config.get("RETRY_TIMES") if self.Config else 3)
-            ocr_result = None  # 初始化ocr_result变量
+            ocr_result = None
             for attempt in range(max_attempts):
                 if attempt > 0:
                     backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
@@ -432,9 +379,7 @@ class ProcessingThread(QtCore.QThread):
                     time.sleep(backoff_time)
 
                 try:
-                    # 对于本地文件，is_url始终为False
                     is_url = False
-                    # 再次检查image_source是否为bytes类型
                     if not isinstance(image_source, bytes):
                         error_msg = f"image_source必须是bytes类型，但得到的是{type(image_source)}类型"
                         log("ERROR", error_msg)
@@ -502,18 +447,6 @@ class ProcessingThread(QtCore.QThread):
             return {'filename': filename, 'success': False, 'error': error_msg}
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
-        """
-        将处理后的文件复制或移动到分类文件夹
-
-        参数:
-            local_file_path: 源文件路径
-            recognition: 识别结果（用于创建分类文件夹）
-            output_dir: 目标文件夹
-            is_move: 是否为移动模式
-
-        返回:
-            str: 分类文件夹名称或None（出错时）
-        """
         filename = os.path.basename(local_file_path)
 
         if recognition:
@@ -527,11 +460,9 @@ class ProcessingThread(QtCore.QThread):
             if '未识别到有效内容' in category:
                 category = '未识别到有效内容'
         else:
-            # 只有识别失败时才使用"识别失败"分类
             category = "识别失败"
 
         category_dir = os.path.join(output_dir, category)
-        # 只有实际需要时才创建目录
         if not os.path.exists(category_dir):
             try:
                 os.makedirs(category_dir, exist_ok=True)

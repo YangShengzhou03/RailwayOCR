@@ -68,7 +68,12 @@ def close_log_file():
             print(f"[ERROR] 关闭日志文件失败: {str(e)}")
 
 
+# 添加日志计数器，用于控制flush频率
+_log_counter = 0
+_LOG_FLUSH_INTERVAL = 10  # 每10条日志flush一次
+
 def log_print(formatted_log):
+    global _log_counter
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_log = f"[{timestamp}] {formatted_log}"
     print(formatted_log)
@@ -95,7 +100,10 @@ def log_print(formatted_log):
         log_handle = _get_log_file_handle()
         if log_handle:
             log_handle.write(f"{formatted_log}\n")
-            log_handle.flush()
+            _log_counter += 1
+            # 优化：每10条日志flush一次，降低磁盘IO
+            if _log_counter % _LOG_FLUSH_INTERVAL == 0:
+                log_handle.flush()
 
         if main_window and hasattr(main_window, 'textEdit_log') and main_window.textEdit_log:
             from PyQt6.QtCore import QMetaObject, Qt, QCoreApplication

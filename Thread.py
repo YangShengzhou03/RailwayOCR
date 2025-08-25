@@ -37,7 +37,14 @@ class ProcessingThread(QtCore.QThread):
         self.lock = threading.Lock()
         self.results_lock = threading.Lock()
         cpu_count = os.cpu_count() or 4
-        self.worker_count = min(max(1, cpu_count // 2), 8)
+        # 优化：根据CPU核心数动态调整工作线程数
+        if cpu_count <= 4:
+            self.worker_count = 1
+        else:
+            self.worker_count = min(max(2, cpu_count // 4), 4)
+        # 添加进度更新时间阈值，避免频繁更新UI
+        self.last_progress_update_time = 0
+        self.progress_update_interval = 0.5  # 秒
         self.max_requests_per_minute = 60
         self.backoff_factor = 2.0
         self.request_interval = 0.5
@@ -214,9 +221,14 @@ class ProcessingThread(QtCore.QThread):
                         self.signal_queue.put(
                             ('stats_updated', self.processed_count, self.success_count, self.failed_count))
 
-                        progress = int((self.processed_count / self.total_files) * 100)
-                        self.signal_queue.put(
-                            ('progress_updated', progress, f"已处理 {self.processed_count}/{self.total_files}"))
+                        # 优化：限制进度更新频率，避免UI卡顿
+                        current_time = time.time()
+                        if current_time - self.last_progress_update_time >= self.progress_update_interval:
+                            progress = int((self.processed_count / self.total_files) * 100)
+                            self.signal_queue.put(
+                                ('progress_updated', progress, f"已处理 {self.processed_count}/{self.total_files}")
+                            )
+                            self.last_progress_update_time = current_time
 
                 self.file_queue.task_done()
         log_print(f"工作线程 {worker_id + 1} 已结束")
@@ -294,8 +306,13 @@ class ProcessingThread(QtCore.QThread):
                 log_print(warning_msg)
 
                 start_wait = time.time()
-                while time.time() - start_wait < wait_time and self.is_running:
-                    time.sleep(0.5)
+                remaining_wait = wait_time
+                # 优化：动态调整sleep时长，避免过长等待
+                while remaining_wait > 0 and self.is_running:
+                    # 每次最多等待0.5秒，以便及时响应停止信号
+                    sleep_duration = min(0.5, remaining_wait)
+                    time.sleep(sleep_duration)
+                    remaining_wait -= sleep_duration
 
                 if not self.is_running:
                     raise RuntimeError("处理已取消")
@@ -305,6 +322,7 @@ class ProcessingThread(QtCore.QThread):
 
             self.requests_counter += 1
 
+            # 优化：精准控制请求间隔
             if self.request_interval > 0:
                 time.sleep(self.request_interval)
 
@@ -318,26 +336,35 @@ class ProcessingThread(QtCore.QThread):
                 return
             self.is_running = False
 
+        # 优化：快速清空任务队列，避免线程等待
         while not self.file_queue.empty():
             try:
                 self.file_queue.get_nowait()
+                self.file_queue.task_done()
             except Empty:
                 break
-            self.file_queue.task_done()
 
-        start_time = time.time()
-        for worker in self.workers:
-            if worker.is_alive():
-                worker.join(timeout=2.0)
-                if worker.is_alive():
-                    log("WARNING", "工作线程未正常结束，已超时")
-                    log_print("工作线程未正常结束，已超时")
+        # 优化：不等待工作线程，让它们自然结束
+        # 因为我们已经设置了is_running = False，工作线程会在下次检查时退出
 
+        # 优化：立即停止信号处理器
         self.signal_processor_running = False
+        # 向信号队列中添加一个空信号，以唤醒阻塞的signal_processor
+        self.signal_queue.put(('stop_signal',))
 
+        # 立即发出停止信号，不等待线程完全结束
         self.processing_stopped.emit()
-        log("INFO", "处理线程已停止")
-        log_print("处理线程已停止")
+        log("INFO", "处理线程已请求停止")
+        log_print("处理线程已请求停止")
+
+        # 优化：清理资源
+        if hasattr(self.shared_client, 'cleanup') and callable(self.shared_client.cleanup):
+            try:
+                self.shared_client.cleanup()
+                import gc
+                gc.collect()
+            except Exception as e:
+                log_print(f"客户端资源清理失败: {str(e)}")
 
     def process_image_file(self, local_file_path, client):
         filename = os.path.basename(local_file_path)
@@ -476,12 +503,28 @@ class ProcessingThread(QtCore.QThread):
         dest_path = os.path.join(category_dir, filename)
         counter = 1
 
-        while os.path.exists(dest_path):
+        # 检查目标文件是否已存在且与源文件相同
+        skip_copy = False
+        if os.path.exists(dest_path):
+            src_stat = os.stat(local_file_path)
+            dest_stat = os.stat(dest_path)
+            # 如果文件大小和修改时间相同，则认为文件内容相同
+            if src_stat.st_size == dest_stat.st_size and abs(src_stat.st_mtime - dest_stat.st_mtime) < 1:
+                skip_copy = True
+                log("INFO", f"文件已存在且相同，跳过复制/移动: {filename}")
+                log_print(f"文件已存在且相同，跳过复制/移动: {filename}")
+        
+        # 如果文件已存在但不相同，则生成新文件名
+        while os.path.exists(dest_path) and not skip_copy:
             name, ext = os.path.splitext(filename)
             dest_path = os.path.join(category_dir, f"{name}_{counter}{ext}")
             counter += 1
 
         try:
+            if skip_copy:
+                    # 文件已存在且相同，直接返回分类目录
+                    return category
+                
             if is_move:
                 try:
                     with self.file_lock:
@@ -492,6 +535,12 @@ class ProcessingThread(QtCore.QThread):
                     error_msg = f"移动文件时权限不足: {filename}"
                     log("ERROR", error_msg)
                     log_print(error_msg)
+                    self.signal_queue.put(('error_occurred', error_msg))
+                    return None
+                except shutil.Error as e:
+                    error_msg = f"移动文件失败: {str(e)}"
+                    log("ERROR", error_msg)
+                    log_print(f"[ERROR] 文件已被占用或路径无效: {filename}")
                     self.signal_queue.put(('error_occurred', error_msg))
                     return None
                 except Exception as e:
@@ -509,6 +558,12 @@ class ProcessingThread(QtCore.QThread):
                     error_msg = f"复制文件时权限不足: {filename}"
                     log("ERROR", error_msg)
                     log_print(error_msg)
+                    self.signal_queue.put(('error_occurred', error_msg))
+                    return None
+                except shutil.Error as e:
+                    error_msg = f"复制文件失败: {str(e)}"
+                    log("ERROR", error_msg)
+                    log_print(f"[ERROR] 文件已被占用或路径无效: {filename}")
                     self.signal_queue.put(('error_occurred', error_msg))
                     return None
                 except Exception as e:

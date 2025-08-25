@@ -133,6 +133,13 @@ class LocalClient(BaseClient):
         processed_image = None
         original_image = None
 
+        # 参数校验
+        try:
+            self.validate_image_source(image_source, is_url)
+        except ValueError as e:
+            log("ERROR", f"参数校验失败: {str(e)}")
+            return None
+
         try:
             if is_url:
                 import requests
@@ -149,6 +156,7 @@ class LocalClient(BaseClient):
                     original_image = Image.open(BytesIO(image_source))
                 except (IOError, OSError) as e:
                     log("ERROR", f"无法打开图像: {str(e)}")
+                    log_print(f"[ERROR] 文件不是有效的图像格式或已损坏: {filename}")
                     return None
 
             for attempt in range(self.recognition_attempts):
@@ -208,6 +216,7 @@ class LocalClient(BaseClient):
                     log_print(f"[ERROR] {error_msg}")
                     continue
                 finally:
+                    # 优化：及时释放处理后的图像资源
                     if 'processed_image' in locals():
                         del processed_image
                         gc.collect()
@@ -224,14 +233,15 @@ class LocalClient(BaseClient):
             return None
         finally:
             try:
+                # 优化：确保所有图像资源都被释放
                 if original_image is not None:
                     original_image.close()
+                    del original_image
                 if 'processed_image' in locals() and processed_image is not None:
                     del processed_image
                 gc.collect()
             except (TypeError, AttributeError, OSError) as e:
                 log_print(f"[WARNING] 图像资源释放失败: {str(e)}")
-                log_print("[ERROR] 图像预处理失败")
                 return None
 
     def validate_image_source(self, image_source, is_url):

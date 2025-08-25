@@ -192,10 +192,12 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
 
             QMessageBox.information(self, "保存成功", "配置已成功保存！")
             log("INFO", "配置保存成功")
+            # 优化：设置保存成功后自动关闭窗口
+            self.close()
 
         except (IOError, OSError) as e:
             log("ERROR", f"保存配置失败: {str(e)}")
-            QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}")
+            QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}窗口将保持打开，您可以重试操作。")
         except ValueError as ve:
             log("ERROR", f"配置验证失败: {str(ve)}")
             QMessageBox.warning(self, "配置无效", str(ve))
@@ -203,7 +205,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             try:
                 error_msg = f"保存配置失败: {str(e)}"
                 log("ERROR", error_msg)
-                QMessageBox.critical(self, "保存失败", error_msg)
+                QMessageBox.critical(self, "保存失败", f"{error_msg}窗口将保持打开，您可以重试操作。")
             except Exception as log_err:
                 print(f"双重错误: {str(log_err)} - 原始错误: {str(e)}")
 

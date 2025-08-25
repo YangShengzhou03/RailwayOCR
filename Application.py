@@ -143,9 +143,9 @@ def has_password():
     """
     try:
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"SOFTWARE\RailwayOCR")
-        winreg.QueryValueEx(key, "PasswordHash")
+        value, _ = winreg.QueryValueEx(key, "PasswordHash")
         winreg.CloseKey(key)
-        return True
+        return bool(value)
     except (FileNotFoundError, OSError) as e:
         log("DEBUG", f"检查密码时出错: {str(e)}")
         return False
@@ -164,13 +164,15 @@ def main():
     client_socket = QLocalSocket()
     client_socket.connectToServer(socket_name)
 
-    if client_socket.waitForConnected(500):
-        # 如果连接成功，通知已有实例将窗口带到前台
-        client_socket.write(b"bring_to_front")
-        client_socket.waitForBytesWritten()
+    try:
+        if client_socket.waitForConnected(500):
+            # 如果连接成功，通知已有实例将窗口带到前台
+            client_socket.write(b"bring_to_front")
+            client_socket.waitForBytesWritten()
+            log("INFO", "应用程序已在运行，切换到前台")
+            return 1
+    finally:
         client_socket.disconnectFromServer()
-        log("INFO", "应用程序已在运行，切换到前台")
-        return 1
 
     # 移除可能残留的服务器
     QLocalServer.removeServer(socket_name)

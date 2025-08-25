@@ -3,6 +3,8 @@ import os
 import shutil
 import threading
 import time
+import json
+from json import JSONDecodeError
 from datetime import datetime, timedelta
 from queue import Queue, Empty
 
@@ -119,9 +121,9 @@ class ProcessingThread(QtCore.QThread):
             self.Config = new_config
 
             if config_changed:
-
+                log("INFO", f"配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
             else:
-
+                pass
         except (FileNotFoundError, PermissionError, OSError) as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4
@@ -404,6 +406,7 @@ class ProcessingThread(QtCore.QThread):
 
             max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == MODE_LOCAL else (
                 self.Config.get("RETRY_TIMES") if self.Config else 3)
+            ocr_result = None  # 初始化ocr_result变量
             for attempt in range(max_attempts):
                 if attempt > 0:
                     backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)

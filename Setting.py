@@ -200,18 +200,29 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 'ALI_APPCODE': self.lineEdit_ALI_APPCODE.text(),
                 'CONCURRENCY': self.spinBox_CONCURRENCY.value(),
                 'RETRY_TIMES': self.spinBox_RETRY_TIMES.value(),
-                'MODE_INDEX': self.comboBox_mode.currentIndex(),
-                'RE': self.lineEdit_RE.text()
+                'RE': self.lineEdit_RE.text(),
+                'MODE_INDEX': self.comboBox_mode.currentIndex()
             }
 
-            # 验证配置有效性
-            self._validate_config(config)
-
-            # 使用统一的配置文件路径
-            os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
+            # 保存配置到文件
             with open(self.CONFIG_FILE, 'w', encoding='utf-8') as f:
-                json.dump(config, f, ensure_ascii=False, indent=4)
-            QMessageBox.information(self, '提示', '设置已保存')
+                json.dump(config, f, ensure_ascii=False, indent=2)
+
+            # 清除缓存并重新加载配置
+            from utils import load_config
+            load_config.cache_clear()
+            new_config = load_config()
+
+            # 通知主窗口配置已更新
+            if hasattr(utils.main_window, 'on_config_updated'):
+                utils.main_window.on_config_updated()
+
+            QMessageBox.information(self, "保存成功", "配置已成功保存！")
+            log("INFO", "配置保存成功")
+
+        except (IOError, OSError) as e:
+            log("ERROR", f"保存配置失败: {str(e)}")
+            QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}")
         except ValueError as ve:
             log("ERROR", f"配置验证失败: {str(ve)}")
             QMessageBox.warning(self, "配置无效", str(ve))

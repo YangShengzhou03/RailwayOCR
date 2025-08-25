@@ -45,7 +45,7 @@ class BaiduClient(BaseClient):
                 else:
                     raise Exception(f"获取token失败: {response.text}")
             except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                log("错误", f"认证失败")
+                log("ERROR", f"认证失败")
                 log_print(f"[ERROR] 获取百度access_token失败: {str(e)}")
         return self.access_token
 
@@ -107,6 +107,6 @@ class BaiduClient(BaseClient):
                 log("警告", f"未识别到有效结果 (来源: {filename})")
                 return None
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
-            log("错误", f"识别服务请求失败")
+            log("ERROR", f"识别服务请求失败")
             return None
     

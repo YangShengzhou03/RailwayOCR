@@ -200,44 +200,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if not self.processing_thread or not self.processing_thread.isRunning():
             return True
 
-        self.processing_thread.stop()
-        # 使用QEventLoop等待线程终止，避免UI卡顿
-        loop = QtCore.QEventLoop()
-        timer = QtCore.QTimer()
-        timer.setInterval(100)
-        timer.timeout.connect(loop.quit)
-        
-        start_time = time.time()
-        max_wait_time = 10.0  # 最多等待10秒
-        
-        while self.processing_thread.isRunning() and (time.time() - start_time) < max_wait_time:
-            timer.start(100)
-            loop.exec()
-            timer.stop()
-            QApplication.processEvents()
-
-        if self.processing_thread.isRunning():
-            log("ERROR", "无法正常停止处理线程")
-            # 尝试强制终止（不推荐，但在极端情况下可能必要）
-            try:
-                # 在线程对象上设置一个标志，通知线程必须立即终止
-                self.processing_thread.is_running = False
-                # 使用事件循环等待短暂时间
-                timer.start(500)
-                loop.exec()
-                timer.stop()
-                
-                if self.processing_thread.isRunning():
-                    log("ERROR", "线程仍在运行，可能导致资源泄漏")
-                    return False
-            except (FileNotFoundError, PermissionError) as e:
-                log("ERROR", f"强制终止线程时出错: {str(e)}")
+        try:
+            # 请求线程停止
+            self.processing_thread.stop()
+            # 等待线程终止，最多等待2秒
+            if self.processing_thread.wait(2000):
+                log("INFO", "处理线程已成功停止")
+                return True
+            else:
+                log("WARNING", "处理线程未能正常终止，强制终止")
+                self.processing_thread.terminate()
                 return False
-        else:
-            log("INFO", "处理线程已成功终止")
-            # 清理线程资源
-            self.processing_thread = None
-        return True
+        except Exception as e:
+            log("ERROR", f"停止线程时发生错误: {str(e)}")
+            return False
 
     def start_processing(self):
         if not self._validate_processing_conditions():

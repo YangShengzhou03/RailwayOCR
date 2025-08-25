@@ -97,7 +97,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if hasattr(self, 'processing_thread') and self.processing_thread:
             self.processing_thread._load_config()
             log_print("处理线程配置已更新")
-        log("INFO", "打开设置窗口")
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -152,11 +151,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                         continue
         except PermissionError:
             log("ERROR", f"访问文件夹 {self.source_dir} 时权限不足")
-            QMessageBox.warning(self, "权限错误", f"无法访问文件夹 {self.source_dir}，权限不足")
             return
         except (ValueError, TypeError) as e:
             log("ERROR", f"扫描文件夹时出错: {str(e)}")
-            QMessageBox.warning(self, "扫描错误", f"扫描文件夹时出错: {str(e)}")
             return
 
         total_count = len(self.image_files)
@@ -250,7 +247,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if mode_index == MODE_ALI:
                 appcode = self.config.get("ALI_APPCODE", "")
                 if not appcode:
-                    QMessageBox.critical(self, "错误", "未配置阿里云AppCode")
                     log("ERROR", "未配置阿里云AppCode")
                     return
                 client = AliClient()
@@ -258,14 +254,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif mode_index == MODE_LOCAL:
                 client = self.client
                 if not isinstance(client, LocalClient):
-                    QMessageBox.critical(self, "错误", "客户端类型不匹配，请重启应用")
                     return
                 log("INFO", "使用本地OCR模式")
             elif mode_index == MODE_BAIDU:
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:
-                    QMessageBox.critical(self, "错误", "未配置百度云API Key或Secret Key")
                     log("ERROR", "未配置百度云API Key或Secret Key")
                     return
                 client = BaiduClient()
@@ -283,7 +277,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.progress_updated.connect(self.on_progress_updated)
             self.processing_thread.processing_stopped.connect(self.on_processing_stopped)
             self.processing_thread.error_occurred.connect(self.on_error_occurred)
-            self.processing_thread.finished.connect(self._cleanup_thread)  # 自动清理线程
+            self.processing_thread.finished.connect(self._cleanup_thread)
 
             self.processing_thread.start()
             log("INFO", "正在处理图像，请耐心等待")
@@ -314,13 +308,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         if mode_index == MODE_ALI and not self.config.get("ALI_APPCODE"):
             log("WARNING", "未配置阿里云AppCode")
-            QMessageBox.warning(self, "配置缺失", "请先在设置中配置阿里云AppCode")
             return False
         elif mode_index == MODE_LOCAL:
             pass
-        elif mode_index == MODE_BAIDU and not (self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
+        elif mode_index == MODE_BAIDU and not (
+                self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
             log("WARNING", "未配置百度API Key或Secret Key")
-            QMessageBox.warning(self, "配置缺失", "请先在设置中配置百度API Key and Secret Key")
             return False
 
         return True

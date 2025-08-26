@@ -1,29 +1,42 @@
+"""
+工具函数模块，包含日志系统、配置管理、文件处理等通用功能。
+"""
 import json
 import os
 import sys
 import time
 from datetime import datetime
-import traceback
+
 from functools import lru_cache
 
 from PyQt6 import QtCore
+
 from PyQt6.QtWidgets import QMessageBox
 
 MODE_LOCAL = 0
 MODE_BAIDU = 1
 MODE_ALI = 2
 
-main_window = None
+MAIN_WINDOW = None
 LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_internal', 'log')
 MAX_LINES = 3000
-_log_file_handle = None
+_LOG_FILE_HANDLE = None
 
 
 @lru_cache(maxsize=128)
 def get_resource_path(relative_path):
+    """获取资源文件的绝对路径
+
+    Args:
+        relative_path (str): 资源文件的相对路径
+
+    Returns:
+        str: 资源文件的绝对路径，兼容PyInstaller打包环境
+    """
     try:
+        # pylint: disable=protected-access,no-member
         base_path = sys._MEIPASS
-    except:
+    except AttributeError:
         base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path).replace(os.sep, '/')
 
@@ -32,6 +45,10 @@ file_path = get_resource_path('_internal/Config.json')
 
 
 def _init_log_system():
+    """初始化日志系统
+
+    创建日志目录和初始日志文件，若不存在则自动创建
+    """
     try:
         directory = os.path.dirname(LOG_PATH)
         if not os.path.exists(directory):
@@ -47,10 +64,16 @@ _init_log_system()
 
 
 def _get_log_file_handle():
-    global _log_file_handle
-    if _log_file_handle is None or _log_file_handle.closed:
+    """获取日志文件句柄
+
+    若句柄未初始化或已关闭，则重新打开日志文件
+    返回日志文件句柄，失败时返回None
+    """
+    global _LOG_FILE_HANDLE
+    if _LOG_FILE_HANDLE is None or _LOG_FILE_HANDLE.closed:
         try:
-            _log_file_handle = open(LOG_PATH, 'a', encoding='utf-8')
+            # pylint: disable=R1732
+            _LOG_FILE_HANDLE = open(LOG_PATH, 'a', encoding='utf-8')
         except (IOError, OSError) as e:
             log("ERROR", f"无法打开日志文件: {str(e)}")
             return None
@@ -58,22 +81,31 @@ def _get_log_file_handle():
 
 
 def close_log_file():
-    global _log_file_handle
-    if _log_file_handle and not _log_file_handle.closed:
+    """关闭日志文件句柄
+
+    安全关闭当前打开的日志文件，释放资源
+    """
+    global _LOG_FILE_HANDLE
+    if _LOG_FILE_HANDLE and not _LOG_FILE_HANDLE.closed:
         try:
-            _log_file_handle.close()
-            _log_file_handle = None
+            _LOG_FILE_HANDLE.close()
+            _LOG_FILE_HANDLE = None
             
         except (OSError, IOError) as e:
             print(f"[ERROR] 关闭日志文件失败: {str(e)}")
 
 
 # 添加日志计数器，用于控制flush频率
-_log_counter = 0
+_LOG_COUNTER = 0
 _LOG_FLUSH_INTERVAL = 10  # 每10条日志flush一次
 
 def log_print(debug_message):
-    global _log_counter
+    """打印调试日志并写入文件
+
+    Args:
+        debug_message (str): 调试信息内容
+    """
+    global _LOG_COUNTER
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_log = f"[{timestamp}] [DEBUG] {debug_message}"
     print(formatted_log)
@@ -100,34 +132,42 @@ def log_print(debug_message):
         log_handle = _get_log_file_handle()
         if log_handle:
             log_handle.write(f"{formatted_log}\n")
-            _log_counter += 1
+            _LOG_COUNTER += 1
             # 优化：每10条日志flush一次，降低磁盘IO
-            if _log_counter % _LOG_FLUSH_INTERVAL == 0:
+            if _LOG_COUNTER % _LOG_FLUSH_INTERVAL == 0:
                 log_handle.flush()
 
-        if main_window and hasattr(main_window, 'textEdit_log') and main_window.textEdit_log:
+        if MAIN_WINDOW and hasattr(MAIN_WINDOW, 'textEdit_log') and MAIN_WINDOW.textEdit_log:
+            # pylint: disable=import-outside-toplevel
             from PyQt6.QtCore import QMetaObject, Qt, QCoreApplication
-            if QCoreApplication.instance().thread() != main_window.thread():
+            if QCoreApplication.instance().thread() != MAIN_WINDOW.thread():
                 QMetaObject.invokeMethod(
-                    main_window.textEdit_log,
+                    MAIN_WINDOW.textEdit_log,
                     "append",
                     Qt.ConnectionType.QueuedConnection,
                     QtCore.Q_ARG(str, formatted_log)
                 )
                 QMetaObject.invokeMethod(
-                    main_window.textEdit_log,
+                    MAIN_WINDOW.textEdit_log,
                     "ensureCursorVisible",
                     Qt.ConnectionType.QueuedConnection
                 )
             else:
-                main_window.textEdit_log.append(formatted_log)
-                main_window.textEdit_log.ensureCursorVisible()
+                MAIN_WINDOW.textEdit_log.append(formatted_log)
+                MAIN_WINDOW.textEdit_log.ensureCursorVisible()
+                MAIN_WINDOW.textEdit_log.append(formatted_log)
+                MAIN_WINDOW.textEdit_log.ensureCursorVisible()
     except (OSError, IOError) as e:
         log("ERROR", f"写入日志时出错: {str(e)}")
 
 
 @lru_cache(maxsize=1)
 def load_config():
+    """加载应用配置
+
+    如果配置文件不存在则创建默认配置，支持JSON格式解析
+    返回合并后的配置字典
+    """
     default_config = {
         "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
         "SUMMARY_DIR": "summary",
@@ -158,7 +198,7 @@ def load_config():
     except json.JSONDecodeError:
         log("WARNING", "配置文件格式错误，将使用默认设置")
         return default_config
-    except (IOError, ValueError) as e:
+    except (IOError, ValueError):
         return default_config
 
 
@@ -166,6 +206,12 @@ Config = load_config()
 
 
 def log(level, message):
+    """记录用户可见日志
+
+    Args:
+        level (str): 日志级别，支持ERROR、INFO、WARNING
+        message (str): 日志内容文本
+    """
     # 用户可见日志：使用通俗语言，仅显示关键操作和错误
     if level == "DEBUG":
         return  # 用户日志不显示DEBUG级别
@@ -186,13 +232,23 @@ def log(level, message):
     # 使用更友好的用户语言
     user_friendly_levels = {"ERROR": "错误", "INFO": "信息", "WARNING": "警告"}
     friendly_level = user_friendly_levels.get(level, level)
-    formatted_message = f'<span style="color:{color}">[{timestamp}] [{friendly_level}] {message}</span>'
-    if main_window and hasattr(main_window, 'textEdit_log'):
-        main_window.textEdit_log.append(formatted_message)
-        main_window.textEdit_log.ensureCursorVisible()
+    formatted_message = (
+        f'<span style="color:{color}">[{timestamp}] [{friendly_level}] {message}</span>'
+    )
+    if MAIN_WINDOW and hasattr(MAIN_WINDOW, 'textEdit_log'):
+        MAIN_WINDOW.textEdit_log.append(formatted_message)
+        MAIN_WINDOW.textEdit_log.ensureCursorVisible()
 
 
 def save_summary(results):
+    """保存识别结果统计信息
+
+    Args:
+        results (list): OCR识别结果列表，每个元素为包含识别状态的字典
+
+    Returns:
+        dict: 包含处理时间、总文件数、成功/失败数量及识别成功率的统计字典
+    """
     print("保存统计信息...")
     try:
         summary_dir = Config["SUMMARY_DIR"]
@@ -211,6 +267,6 @@ def save_summary(results):
             json.dump(stats, f, ensure_ascii=False, indent=2)
         
         return stats
-    except (IOError, json.JSONEncodeError) as e:
+    except (IOError, json.JSONDecodeError) as e:
         log("DEBUG", f"保存统计信息时发生错误: {str(e)}")
         return None

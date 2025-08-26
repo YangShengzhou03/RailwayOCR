@@ -278,7 +278,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
     def start_processing(self):
         if not self._validate_processing_conditions():
             return
+
+        total_files = len(self.image_files)
+        mode = "移动" if self.is_move_mode else "复制"
+        reply = QMessageBox.question(
+            self, "确认处理",
+            f"即将识别分类 {total_files} 个图像并 {mode} 。\n是否继续?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        if reply != QMessageBox.StandardButton.Yes:
+            log("INFO", "用户取消处理操作")
+            return
+
         self.processing_start_time = time.time()
+
         log("WARNING", "开始文件处理流程")
         self.processing = True
         self.pushButton_start.setText("停止分类")
@@ -451,14 +465,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         failed_count = total_count - success_count
         success_rate = f"{(success_count / total_count * 100) if total_count > 0 else 0:.2f}%"
 
-        log("INFO", "=" * 50)
-        log("INFO", f"处理完成 | 总耗时: {total_time}")
-        log("INFO", f"总文件数: {total_count} | 成功: {success_count} | 失败: {failed_count}")
-        log("INFO", f"识别率: {success_rate}")
-        log("INFO", "=" * 50)
-
-        log("INFO", f"处理完成，总耗时: {total_time}")
-        log("INFO", f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
+        log("WARNING", "=" * 50)
+        log("DEBUG", f"处理完成，总耗时: {total_time}")
+        log("DEBUG", f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
 
         if total_count > 0:
             result_message = (

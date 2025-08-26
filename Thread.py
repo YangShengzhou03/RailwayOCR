@@ -143,7 +143,7 @@ class ProcessingThread(QtCore.QThread):
                 self.processing_finished.emit([])
                 return
 
-            self.stats_updated.emit(0, 0, 0)
+            self.stats_updated.emit(0,0,0)
             self.progress_updated.emit(0, "开始处理...")
 
             for file_path in self.image_files:
@@ -181,6 +181,32 @@ class ProcessingThread(QtCore.QThread):
         finally:
             # 确保资源正确清理
             self._cleanup_resources()
+
+    def _cleanup_resources(self):
+        """清理线程资源，包括工作线程和信号处理器线程"""
+        log_print("[线程清理] 开始清理线程资源...")
+        
+        # 停止所有工作线程
+        self.is_running = False
+        
+        # 等待工作线程结束
+        for worker in self.workers:
+            if worker.is_alive():
+                worker.join(timeout=1.0)
+        
+        # 停止信号处理器线程
+        self.signal_processor_running = False
+        if self.signal_processor_thread and self.signal_processor_thread.is_alive():
+            self.signal_processor_thread.join(timeout=1.0)
+        
+        # 清理共享客户端资源
+        if hasattr(self.shared_client, 'cleanup'):
+            try:
+                self.shared_client.cleanup()
+            except Exception as e:
+                log_print(f"[线程清理] 客户端清理失败: {str(e)}")
+        
+        log_print("[线程清理] 线程资源清理完成")
 
     def _worker(self, worker_id):
         """工作线程函数，处理队列中的图像文件
@@ -232,7 +258,7 @@ class ProcessingThread(QtCore.QThread):
                         else:
                             with self.counter_lock:
                                 self.failed_count += 1
-                            self.copy_to_classified_folder(file_path, None, self.dest_dir, self.is_move_mode)
+                            self.copy_to_classified_folder(file_path, '识别失败', self.dest_dir, self.is_move_mode)
 
                         self.signal_queue.put(('file_processed', result))
                         self.signal_queue.put(

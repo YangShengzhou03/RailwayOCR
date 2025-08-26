@@ -13,7 +13,7 @@ from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 
 from main_window import MainWindow
 from security import PasswordDialog, verify_password, has_password
-from utils import get_resource_path, log, log_print
+from utils import get_resource_path, log_print
 
 
 def center_window(window):
@@ -26,6 +26,7 @@ def center_window(window):
     cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
     qr.moveCenter(cp)
     window.move(qr.topLeft())
+
 
 def main():
     """Main application entry point.
@@ -46,14 +47,12 @@ def main():
         if client_socket.waitForConnected(500):
             client_socket.write(b"bring_to_front")
             client_socket.waitForBytesWritten()
-            log("INFO", "程序已在运行，正在切换到前台窗口")
             return 1
     finally:
         client_socket.disconnectFromServer()
 
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
-        log("ERROR", "程序启动失败，可能已有实例在运行")
         log_print(f"[本地服务] 服务器启动失败: {server.errorString()}")
         return 1
 
@@ -96,7 +95,6 @@ def main():
 
         while attempts < max_attempts:
             if dialog.exec() != QtWidgets.QDialog.DialogCode.Accepted:
-                log("INFO", "用户取消密码输入")
                 return 1
 
             password = dialog.get_password()
@@ -107,11 +105,10 @@ def main():
                 password_bytes[i] = 0
             del password_bytes
             if result:
-                log("INFO", "密码验证成功")
                 break
             attempts += 1
             remaining = max_attempts - attempts
-            delay = 2 **attempts
+            delay = 2 ** attempts
             time.sleep(delay)
             msg_box = QtWidgets.QMessageBox(
                 QtWidgets.QMessageBox.Icon.Warning,
@@ -127,7 +124,6 @@ def main():
             msg_box.exec()
 
         if attempts >= max_attempts:
-            log("ERROR", "密码验证失败次数过多")
             msg_box = QtWidgets.QMessageBox(
                 QtWidgets.QMessageBox.Icon.Critical,
                 "验证失败",
@@ -150,6 +146,7 @@ def main():
 
     return exit_code
 
+
 def handle_incoming_connection(server):
     """Handles incoming local server connections.
 
@@ -165,24 +162,25 @@ def handle_incoming_connection(server):
                 for widget in enumerate(QtWidgets.QApplication.topLevelWidgets()):
                     if isinstance(widget[1], QtWidgets.QMainWindow) and widget[1].windowTitle() == "LeafView Railway":
                         widget[1].setWindowState(
-                            widget[1].windowState() & 
-                            ~QtCore.Qt.WindowState.WindowMinimized | 
+                            widget[1].windowState() &
+                            ~QtCore.Qt.WindowState.WindowMinimized |
                             QtCore.Qt.WindowState.WindowActive
                         )
                         widget[1].activateWindow()
                         widget[1].raise_()
                         widget[1].setStyleSheet(""
-                            "QMainWindow {"
-                            "    border: 1px solid #007aff;"
-                            "}"
-                        )
+                                                "QMainWindow {"
+                                                "    border: 1px solid #007aff;"
+                                                "}"
+                                                )
                         QtCore.QTimer.singleShot(300, lambda w=widget[1]: w.setStyleSheet(""))
                         break
     except (OSError, RuntimeError) as e:
-        log("ERROR", f"处理连接时出错: {str(e)}")
+        pass
     finally:
         socket.disconnectFromServer()
         socket.close()
+
 
 if __name__ == '__main__':
     try:

@@ -46,7 +46,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         self.setting_window = None
         
         # 系统配置
-        utils.main_window = self
+        utils.MAIN_WINDOW = self
         self.config = load_config()
         self._initialize_ocr_client()
 
@@ -94,9 +94,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
                 self.client = LocalClient(max_retries=5)
                 log("INFO", "已切换至本地OCR引擎")
         except (ConnectionError, ValueError, OSError) as e:
-            error_msg = f"OCR客户端初始化失败: {str(e)}"
             log("ERROR", f"OCR服务启动失败: {str(e)}")
-            QMessageBox.critical(self, "初始化失败", error_msg)
             self.client = None
 
     def _setup_connections(self):
@@ -122,7 +120,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         self.setting_window.show()
 
     def on_config_updated(self):
-        log_print("[配置管理] 检测到配置更新，正在重新加载...")
         self.config = load_config()
         log_print("[配置管理] 配置文件重新加载完成")
         if hasattr(self, 'processing_thread') and self.processing_thread:
@@ -328,7 +325,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
                 client = BaiduClient()
                 log("INFO", "使用百度云OCR模式")
             else:
-                QMessageBox.critical(self, "错误", f"无效的模式索引: {mode_index}")
                 log("ERROR", f"无效的模式索引: {mode_index}")
                 return
 
@@ -413,7 +409,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
 
         if reply == QMessageBox.StandardButton.Yes:
             log("WARNING", "用户请求停止处理")
-            self.pushButton_start.setText("正在刹停...")
+            self.pushButton_start.setText("正在刹停")
             self.pushButton_start.setEnabled(False)
             self.processing = False
 
@@ -428,8 +424,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
 
         重新启用开始按钮并重置文本
         """
-
-        
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
 

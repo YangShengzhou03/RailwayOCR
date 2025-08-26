@@ -69,7 +69,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         """加载默认配置值到UI控件."""
         self.spinBox_CONCURRENCY.setValue(4)
         self.spinBox_RETRY_TIMES.setValue(3)
-        self.lineEdit_RE.setText(r"^[A-K][1-7]$")
+        self.lineEdit_RE.setText(r".*")
         self.comboBox_mode.setCurrentIndex(0)
 
     def validate_required_fields(self):

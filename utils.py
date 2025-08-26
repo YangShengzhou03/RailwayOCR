@@ -77,7 +77,7 @@ def _get_log_file_handle():
         except (IOError, OSError) as e:
             log("ERROR", f"无法打开日志文件: {str(e)}")
             return None
-    return _log_file_handle
+    return None
 
 
 def close_log_file():
@@ -90,7 +90,7 @@ def close_log_file():
         try:
             _LOG_FILE_HANDLE.close()
             _LOG_FILE_HANDLE = None
-            
+
         except (OSError, IOError) as e:
             print(f"[ERROR] 关闭日志文件失败: {str(e)}")
 
@@ -98,6 +98,7 @@ def close_log_file():
 # 添加日志计数器，用于控制flush频率
 _LOG_COUNTER = 0
 _LOG_FLUSH_INTERVAL = 10  # 每10条日志flush一次
+
 
 def log_print(debug_message):
     """打印调试日志并写入文件
@@ -108,7 +109,6 @@ def log_print(debug_message):
     global _LOG_COUNTER
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_log = f"[{timestamp}] [DEBUG] {debug_message}"
-    print(formatted_log)
 
     try:
         log_rotation_size = Config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
@@ -206,38 +206,17 @@ Config = load_config()
 
 
 def log(level, message):
-    """记录用户可见日志
-
-    Args:
-        level (str): 日志级别，支持ERROR、INFO、WARNING
-        message (str): 日志内容文本
-    """
-    # 用户可见日志：使用通俗语言，仅显示关键操作和错误
-    if level == "DEBUG":
-        return  # 用户日志不显示DEBUG级别
-    allowed_levels = {"ERROR", "INFO", "WARNING"}
-    allowed_levels = {"ERROR", "DEBUG", "INFO", "WARNING"}
-    if level not in allowed_levels:
-        print(f"错误：不支持的日志级别 '{level}'，必须是 ERROR、DEBUG、INFO 或 WARNING")
-        return
-    print(f"{level} {message}")
     timestamp = time.strftime("%m-%d %H:%M:%S")
     colors = {
         "INFO": "#691bfd",
         "ERROR": "#FF0000",
         "WARNING": "#FFA500",
-        "DEBUG": "#3232CD"
+        "DEBUG": "#008000"
     }
-    color = colors[level]
-    # 使用更友好的用户语言
-    user_friendly_levels = {"ERROR": "错误", "INFO": "信息", "WARNING": "警告"}
-    friendly_level = user_friendly_levels.get(level, level)
-    formatted_message = (
-        f'<span style="color:{color}">[{timestamp}] [{friendly_level}] {message}</span>'
-    )
-    if MAIN_WINDOW and hasattr(MAIN_WINDOW, 'textEdit_log'):
-        MAIN_WINDOW.textEdit_log.append(formatted_message)
-        MAIN_WINDOW.textEdit_log.ensureCursorVisible()
+    color = colors.get(level, "#000000")
+    formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
+    MAIN_WINDOW.textEdit_log.append(formatted_message)
+    MAIN_WINDOW.textEdit_log.ensureCursorVisible()
 
 
 def save_summary(results):
@@ -249,7 +228,6 @@ def save_summary(results):
     Returns:
         dict: 包含处理时间、总文件数、成功/失败数量及识别成功率的统计字典
     """
-    print("保存统计信息...")
     try:
         summary_dir = Config["SUMMARY_DIR"]
         os.makedirs(summary_dir, exist_ok=True)
@@ -265,7 +243,7 @@ def save_summary(results):
         }
         with open(stats_path, 'w', encoding='utf-8') as f:
             json.dump(stats, f, ensure_ascii=False, indent=2)
-        
+
         return stats
     except (IOError, json.JSONDecodeError) as e:
         log("DEBUG", f"保存统计信息时发生错误: {str(e)}")

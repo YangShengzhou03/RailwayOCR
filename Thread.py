@@ -550,8 +550,6 @@ class ProcessingThread(QtCore.QThread):
                     if attempt == max_attempts - 1:
                         return {'filename': filename, 'success': False, 'error': error_msg}
                 finally:
-                    # 移除每次识别后的cleanup调用，避免多线程环境下的资源竞争
-                    # 资源清理由stop()方法统一处理
                     pass
 
             return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
@@ -621,8 +619,7 @@ class ProcessingThread(QtCore.QThread):
 
         try:
             if skip_copy:
-                    # 文件已存在且相同，直接返回分类目录
-                    return category
+                return category
                 
             if is_move:
                 try:

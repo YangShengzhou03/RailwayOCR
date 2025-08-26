@@ -1,6 +1,5 @@
 import sys
 import time
-import traceback
 
 import bcrypt
 import keyring
@@ -9,7 +8,7 @@ from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtNetwork import QLocalServer, QLocalSocket
 
 from MainWindow import MainWindow
-from utils import get_resource_path, log
+from utils import get_resource_path, log, log_print
 
 
 class PasswordDialog(QtWidgets.QDialog):
@@ -126,7 +125,7 @@ def verify_password(password):
         return result
     except (keyring.errors.KeyringError, ValueError, TypeError) as e:
         log("ERROR", "密码验证失败")
-            log_print(f"[安全模块] 验证异常: {str(e)} (类型:{type(e).__name__})")
+        log_print(f"[安全模块] 验证异常: {str(e)} (类型:{type(e).__name__})")
         return False
 
 
@@ -165,7 +164,7 @@ def main():
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
         log("ERROR", "程序启动失败，可能已有实例在运行")
-            log_print(f"[本地服务] 服务器启动失败: {server.errorString()}")
+        log_print(f"[本地服务] 服务器启动失败: {server.errorString()}")
         return 1
 
     server.newConnection.connect(lambda: handle_incoming_connection(server))

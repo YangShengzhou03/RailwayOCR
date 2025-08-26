@@ -108,6 +108,6 @@ class BaiduClient(BaseClient):
                 return None
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")
-                log_print(f"[百度API] 识别请求异常: {str(e)} (文件: {filename})")
+            log_print(f"[百度API] 识别请求异常: {str(e)} (文件: {filename})")
             return None
     

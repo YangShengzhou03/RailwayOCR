@@ -193,6 +193,7 @@ def log(level, message):
 
 
 def save_summary(results):
+    print("保存统计信息...")
     try:
         summary_dir = Config["SUMMARY_DIR"]
         os.makedirs(summary_dir, exist_ok=True)

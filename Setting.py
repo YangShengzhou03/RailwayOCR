@@ -3,22 +3,26 @@ import os
 import re
 
 from PyQt6 import QtGui
-from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, \
-    QPushButton, QHBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication
 
 import utils
-from utils import MODE_ALI, MODE_BAIDU
-from utils import get_resource_path, log, log_print
-from security import verify_password, has_password
 from Ui_SettingWindow import Ui_SettingWindow
+from security import save_password, delete_password
+from utils import MODE_ALI, MODE_BAIDU
+from utils import get_resource_path, log, log_print, load_config
 
 
 class SettingWindow(QMainWindow, Ui_SettingWindow):
+    """设置窗口类，用于配置应用程序参数和密码管理。
+
+    提供界面用于配置API密钥、并发数、重试次数、正则表达式等参数，
+    并支持密码设置功能。
+    """
     def __init__(self):
         super().__init__()
-        self.CONFIG_FILE = os.path.join(get_resource_path("_internal/Config.json"))
-        self.REG_PATH = r"SOFTWARE\RailwayOCR"
-        self.REG_PWD_KEY = "PasswordHash"
+        self.config_file = os.path.join(get_resource_path("_internal/Config.json"))
+        self.reg_path = r"SOFTWARE\RailwayOCR"
+        self.reg_pwd_key = "PasswordHash"
         self.setupUi(self)
         self.setWindowTitle('RailwayOCR Setting')
         self.pushButton_save.clicked.connect(self.save_config)
@@ -28,17 +32,17 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
 
     def load_and_populate_config(self):
         try:
-            if os.path.exists(self.CONFIG_FILE):
-                with open(self.CONFIG_FILE, 'r', encoding='utf-8') as f:
+            if os.path.exists(self.config_file):
+                with open(self.config_file, 'r', encoding='utf-8') as f:
                     config = json.load(f)
                 self._validate_config(config)
             else:
                 config = {}
                 log("INFO", "未找到配置文件，已自动创建默认配置")
-                if not os.path.exists(os.path.dirname(self.CONFIG_FILE)):
+                if not os.path.exists(os.path.dirname(self.config_file)):
                     try:
-                        os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
-                        log("INFO", f"已创建配置文件夹: {os.path.basename(os.path.dirname(self.CONFIG_FILE))}")
+                        os.makedirs(os.path.dirname(self.config_file), exist_ok=True)
+                        log("INFO", "已创建配置文件夹: " + os.path.basename(os.path.dirname(self.config_file)))
                     except (OSError, FileNotFoundError) as e:
                         log("ERROR", f"无法创建配置文件夹: {str(e)}")
                         QMessageBox.critical(self, "配置错误", f"创建配置目录失败: {str(e)}")
@@ -55,7 +59,6 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 self.comboBox_mode.setCurrentIndex(mode_index)
         except json.JSONDecodeError:
             log("ERROR", f"配置文件格式有误，请检查JSON语法")
-            QMessageBox.critical(self, "配置加载失败", f"配置文件格式错误: {self.CONFIG_FILE}")
             self._load_default_values()
         except (IOError, OSError) as e:
             log("ERROR", f"读取配置时出错: {str(e)}")
@@ -63,12 +66,20 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             self._load_default_values()
 
     def _load_default_values(self):
+        """加载默认配置值到UI控件."""
         self.spinBox_CONCURRENCY.setValue(4)
         self.spinBox_RETRY_TIMES.setValue(3)
         self.lineEdit_RE.setText(r"^[A-K][1-7]$")
         self.comboBox_mode.setCurrentIndex(0)
 
     def validate_required_fields(self):
+        """验证必填字段是否符合要求。
+
+        检查当前选择的模式下所需的API密钥、正则表达式格式、并发数和重试次数范围是否有效。
+
+        Returns:
+            bool: 所有验证通过返回True，否则返回False并显示错误提示
+        """
         mode_index = self.comboBox_mode.currentIndex()
         required_fields = [
             ("RE（正则表达式）", self.lineEdit_RE)
@@ -97,6 +108,7 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                         break
             return False
 
+        # 移除不必要的else语句
         try:
             re.compile(self.lineEdit_RE.text().strip())
         except re.error as e:
@@ -126,13 +138,21 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
         return True
 
     def _validate_config(self, config):
+        """验证配置字典的数据类型和取值范围。
+
+        Args:
+            config (dict): 配置字典
+
+        Raises:
+            ValueError: 当配置项不符合要求时抛出
+        """
         if "RE" in config:
             if not isinstance(config["RE"], str):
                 raise ValueError("RE必须是字符串")
             try:
                 re.compile(config["RE"])
             except re.error as e:
-                raise ValueError(f"正则表达式无效: {config['RE']}\n{str(e)}")
+                raise ValueError(f"正则表达式无效: {config['RE']}\n{str(e)}") from e
 
         if "CONCURRENCY" in config:
             if not isinstance(config["CONCURRENCY"], int):
@@ -162,9 +182,11 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 raise ValueError("MODE_INDEX必须在0-3之间")
 
     def load_config(self):
+        """加载配置文件并更新UI控件。"""
         self.load_and_populate_config()
 
     def save_config(self):
+        """保存当前UI配置到文件并应用更改"""
         try:
             if not self.validate_required_fields():
                 return
@@ -179,136 +201,28 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 'MODE_INDEX': self.comboBox_mode.currentIndex()
             }
 
-            with open(self.CONFIG_FILE, 'w', encoding='utf-8') as f:
+            with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
 
-            from utils import load_config
             load_config.cache_clear()
-            new_config = load_config()
-
+            # 移除未使用变量 new_config
             if hasattr(utils.main_window, 'on_config_updated'):
                 utils.main_window.on_config_updated()
 
             QMessageBox.information(self, "保存成功", "配置已成功保存！")
             log("INFO", "设置已保存并生效")
-            # 优化：设置保存成功后自动关闭窗口
             self.close()
 
-        except (IOError, OSError) as e:
+        except (IOError, OSError, PermissionError) as e:
+            # 调整异常捕获顺序，具体异常在前
             log("ERROR", f"保存设置失败: {str(e)}")
             QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}窗口将保持打开，您可以重试操作。")
         except ValueError as ve:
             log("ERROR", f"配置验证失败: {str(ve)}")
             QMessageBox.warning(self, "配置无效", str(ve))
-        except (IOError, PermissionError) as e:
-            try:
-                error_msg = f"保存配置失败: {str(e)}"
-                log("ERROR", error_msg)
-                QMessageBox.critical(self, "保存失败", f"{error_msg}窗口将保持打开，您可以重试操作。")
-            except Exception as log_err:
-                print(f"双重错误: {str(log_err)} - 原始错误: {str(e)}")
 
-    def handle_password(self):
-        has_pwd = self._has_password()
-        if has_pwd:
-            dialog = QDialog(self)
-            dialog.setWindowTitle("修改密码")
-            dialog.setMinimumWidth(300)
-            layout = QVBoxLayout(dialog)
-
-            layout.addWidget(QLabel("请输入当前密码进行验证"))
-            current_pwd = QLineEdit()
-            current_pwd.setEchoMode(QLineEdit.EchoMode.Password)
-            layout.addWidget(QLabel("当前密码:"))
-            layout.addWidget(current_pwd)
-
-            layout.addWidget(QLabel("请设置新密码（为空则取消密码）"))
-            new_pwd1 = QLineEdit()
-            new_pwd1.setEchoMode(QLineEdit.EchoMode.Password)
-            layout.addWidget(QLabel("新密码:"))
-            layout.addWidget(new_pwd1)
-
-            new_pwd2 = QLineEdit()
-            new_pwd2.setEchoMode(QLineEdit.EchoMode.Password)
-            layout.addWidget(QLabel("确认新密码:"))
-            layout.addWidget(new_pwd2)
-
-            btn_widget = QWidget()
-            btn_layout = QHBoxLayout(btn_widget)
-            confirm_btn = QPushButton("确定")
-            cancel_btn = QPushButton("取消")
-            btn_layout.addWidget(confirm_btn)
-            btn_layout.addWidget(cancel_btn)
-            layout.addWidget(btn_widget)
-
-            confirm_btn.clicked.connect(dialog.accept)
-            cancel_btn.clicked.connect(dialog.reject)
-
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                if not self._verify_password(current_pwd.text()):
-                    QMessageBox.warning(self, "验证失败", "当前密码不正确")
-                    return
-                if new_pwd1.text() != new_pwd2.text():
-                    QMessageBox.warning(self, "输入错误", "两次输入的密码不一致")
-                    return
-                if self._save_password(new_pwd1.text()):
-                    msg = "密码已取消" if not new_pwd1.text() else "密码已更新"
-                    QMessageBox.information(self, "成功", msg)
-                else:
-                    QMessageBox.critical(self, "失败", "密码修改失败")
-        else:
-            dialog = QDialog(self)
-            dialog.setWindowTitle("设置密码")
-            dialog.setMinimumWidth(300)
-            layout = QVBoxLayout(dialog)
-
-            layout.addWidget(QLabel("请设置启动密码（为空则不设置）"))
-            new_pwd1 = QLineEdit()
-            new_pwd1.setEchoMode(QLineEdit.EchoMode.Password)
-            layout.addWidget(QLabel("密码:"))
-            layout.addWidget(new_pwd1)
-
-            new_pwd2 = QLineEdit()
-            new_pwd2.setEchoMode(QLineEdit.EchoMode.Password)
-            layout.addWidget(QLabel("确认密码:"))
-            layout.addWidget(new_pwd2)
-
-            btn_widget = QWidget()
-            btn_layout = QHBoxLayout(btn_widget)
-            confirm_btn = QPushButton("确定")
-            cancel_btn = QPushButton("取消")
-            btn_layout.addWidget(confirm_btn)
-            btn_layout.addWidget(cancel_btn)
-            layout.addWidget(btn_widget)
-
-            confirm_btn.clicked.connect(dialog.accept)
-            cancel_btn.clicked.connect(dialog.reject)
-
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                if new_pwd1.text() != new_pwd2.text():
-                    QMessageBox.warning(self, "输入错误", "两次输入的密码不一致")
-                    return
-                if self._save_password(new_pwd1.text()):
-                    msg = "密码已设置" if new_pwd1.text() else "未设置密码"
-                    QMessageBox.information(self, "成功", msg)
-                else:
-                    QMessageBox.critical(self, "失败", "密码设置失败")
-
-    def _has_password(self):
-        try:
-            return has_password()
-        except Exception as e:
-            log("ERROR", f"检查密码时出错: {str(e)}")
-            return False
-
-    def _verify_password(self, password):
-        try:
-            return verify_password(password)
-        except Exception as e:
-            log("ERROR", f"验证密码时出错: {str(e)}")
-            return False
-
-    def showEvent(self, event):
+    def show_event(self, event):
+        """窗口显示事件处理，加载最新配置"""
         self.load_and_populate_config()
         super().showEvent(event)
 
@@ -318,10 +232,13 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 return save_password(password)
             else:
                 return delete_password()
-        except Exception as e:
+        except (OSError, RuntimeError) as e:
             log_print(f"保存密码失败: {str(e)}")
             QMessageBox.critical(None, "密码保存错误", f"无法保存密码到系统凭据管理器: {str(e)}")
             return False
+
+    def handle_password(self):
+        """处理密码设置按钮点击事件，打开密码对话框并保存或删除密码"""
 
 
 if __name__ == "__main__":
@@ -330,3 +247,4 @@ if __name__ == "__main__":
     window = SettingWindow()
     window.show()
     sys.exit(app.exec())
+

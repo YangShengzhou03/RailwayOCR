@@ -24,7 +24,7 @@ class AliClient(BaseClient):
         self.context = ssl._create_unverified_context()
         self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
         self.client_type = 'ali'
-        self.api_lock = threading.Lock()  # API请求线程锁
+        self.api_lock = threading.Lock()
 
     def get_img(self, img_file):
         if img_file.startswith("http"):
@@ -78,7 +78,6 @@ class AliClient(BaseClient):
     def recognize(self, image_source: Union[str, bytes], is_url: bool = False) -> Optional[str]:
         self.validate_image_source(image_source, is_url)
         params = None
-        # 检查AppCode是否提供
         if not self.appcode:
             log("ERROR", "未提供AppCode, 无法调用API")
             return None
@@ -98,7 +97,6 @@ class AliClient(BaseClient):
             }
 
         try:
-            # Get image data
             if is_url:
                 img_url = image_source
                 params.update({'url': img_url})
@@ -106,16 +104,12 @@ class AliClient(BaseClient):
                 img_base64 = str(base64.b64encode(image_source), 'utf-8')
                 params.update({'img': img_base64})
 
-            # Prepare headers
             headers = {
                 'Authorization': f'APPCODE {self.appcode}',
                 'Content-Type': 'application/json; charset=UTF-8'
             }
 
-            # Send request
             response = self.posturl(headers, params)
-
-            # Parse response and extract matches
             result = self.extract_matches(response)
             return self.process_recognition_result(result, image_source, is_url)
         except (ValueError, IOError, requests.exceptions.RequestException) as e:

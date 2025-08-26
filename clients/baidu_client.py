@@ -18,7 +18,7 @@ from .base_client import BaseClient
 class BaiduClient(BaseClient):
     client_type: str = "baidu"
     def __init__(self):
-        self.api_lock = threading.Lock()  # API请求线程锁
+        self.api_lock = threading.Lock()
         self.REQUEST_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
         self.config = load_config()
         self.api_key = self.config.get("BAIDU_API_KEY", "")
@@ -87,8 +87,6 @@ class BaiduClient(BaseClient):
 
         try:
             if is_url:
-                # 对于URL，需要先下载图像再编码
-                import requests
                 response = requests.get(image_source, timeout=10)
                 image_data = response.content
                 img_base64 = str(base64.b64encode(image_data), 'utf-8')

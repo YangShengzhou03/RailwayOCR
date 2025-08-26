@@ -1,5 +1,6 @@
 """本地OCR客户端实现，提供离线图像识别功能"""
 import gc
+import os
 import re
 import threading
 import time

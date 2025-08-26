@@ -37,11 +37,17 @@ class ProcessingThread(QtCore.QThread):
         self.lock = threading.Lock()
         self.results_lock = threading.Lock()
         cpu_count = os.cpu_count() or 4
-        # 优化：根据CPU核心数动态调整工作线程数
-        if cpu_count <= 4:
+        # 本地识别模式强制使用单线程
+        self.client_type = getattr(client, 'client_type', 'unknown')
+        if self.client_type == 'local':
             self.worker_count = 1
+            log("INFO", "本地OCR模式已启用单线程处理")
         else:
-            self.worker_count = min(max(2, cpu_count // 4), 4)
+            # 其他模式根据CPU核心数动态调整工作线程数
+            if cpu_count <= 4:
+                self.worker_count = 1
+            else:
+                self.worker_count = min(max(2, cpu_count // 4), 4)
         # 添加进度更新时间阈值，避免频繁更新UI
         self.last_progress_update_time = 0
         self.progress_update_interval = 0.5  # 秒
@@ -200,12 +206,8 @@ class ProcessingThread(QtCore.QThread):
             self.signal_processor_thread.join(timeout=1.0)
         
         # 清理共享客户端资源
-        if hasattr(self.shared_client, 'cleanup'):
-            try:
-                self.shared_client.cleanup()
-            except Exception as e:
-                log_print(f"[线程清理] 客户端清理失败: {str(e)}")
-        
+        # 本地模式下不在这里清理资源，防止模型被反复加载
+        # 资源清理会在整个处理完成后由主线程调用
         log_print("[线程清理] 线程资源清理完成")
 
     def _worker(self, worker_id):
@@ -437,7 +439,9 @@ class ProcessingThread(QtCore.QThread):
         log_print("处理线程已成功停止")
 
         # 清理资源
-        if hasattr(self.shared_client, 'cleanup') and callable(self.shared_client.cleanup):
+        # 本地模式下不在这里清理资源，防止模型被反复加载
+        # 资源清理会在整个处理完成后由主线程调用
+        if self.client_type != 'local' and hasattr(self.shared_client, 'cleanup') and callable(self.shared_client.cleanup):
             try:
                 self.shared_client.cleanup()
                 import gc
@@ -520,6 +524,12 @@ class ProcessingThread(QtCore.QThread):
                             'result': result_value,
                             'recognition': result_value
                         }
+                        
+                        # 本地模式下，处理完成一张图像后等待1秒再处理下一张
+                        if self.client_type == 'local':
+                            log("INFO", "本地OCR模式下，等待1秒后处理下一张图像")
+                            time.sleep(1)
+                        
                         return result
                     else:
                         error_msg = '未识别到有效结果'

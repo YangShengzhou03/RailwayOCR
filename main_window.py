@@ -512,6 +512,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         在处理完成后删除线程对象，释放资源
         """
         if self.processing_thread:
+            # 清理本地OCR资源
+            if hasattr(self.client, 'cleanup') and hasattr(self.client, 'client_type') and self.client.client_type == 'local':
+                try:
+                    self.client.cleanup()
+                    log("INFO", "本地OCR资源已在处理完成后释放")
+                except Exception as e:
+                    log("ERROR", f"清理本地OCR资源失败: {str(e)}")
             self.processing_thread.deleteLater()
             self.processing_thread = None
 
@@ -544,6 +551,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
                         time.sleep(0.1)
                     if self.processing_thread.isRunning():
                         log("ERROR", "无法正常停止处理线程，强制退出")
+
+            # 清理本地OCR资源
+            if hasattr(self.client, 'cleanup') and hasattr(self.client, 'client_type') and self.client.client_type == 'local':
+                try:
+                    self.client.cleanup()
+                    log("INFO", "本地OCR资源已在应用程序关闭前释放")
+                except Exception as e:
+                    log("ERROR", f"清理本地OCR资源失败: {str(e)}")
 
             log("INFO", "应用程序即将关闭")
             QApplication.quit()

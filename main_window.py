@@ -518,7 +518,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
     def minimize_window(self):
         """最小化主窗口"""
         try:
-            log("INFO", "窗口最小化")
             self.showMinimized()
         except Exception as e:  # pylint: disable=broad-exception-caught
             log("ERROR", f"最小化窗口失败: {str(e)}")

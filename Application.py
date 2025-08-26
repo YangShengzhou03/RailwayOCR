@@ -1,3 +1,8 @@
+"""Railway OCR Application Main Module
+
+This module contains the main application entry point and window management
+functions for the Railway OCR application.
+"""
 import sys
 import time
 import traceback
@@ -12,12 +17,25 @@ from utils import get_resource_path, log, log_print
 
 
 def center_window(window):
+    """Centers the given window on the primary screen.
+
+    Args:
+        window: QWidget instance to be centered
+    """
     qr = window.frameGeometry()
     cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
     qr.moveCenter(cp)
     window.move(qr.topLeft())
 
 def main():
+    """Main application entry point.
+
+    Handles single instance management, password verification,
+    main window creation and application execution.
+
+    Returns:
+        int: Application exit code
+    """
     server = QLocalServer()
     socket_name = "LeafView_Railway_Server_Socket"
 
@@ -91,23 +109,22 @@ def main():
             if result:
                 log("INFO", "密码验证成功")
                 break
-            else:
-                attempts += 1
-                remaining = max_attempts - attempts
-                delay = 2 **attempts
-                time.sleep(delay)
-                msg_box = QtWidgets.QMessageBox(
-                    QtWidgets.QMessageBox.Icon.Warning,
-                    "密码错误",
-                    f"输入的密码不正确，还剩{remaining}次机会，将延迟{delay}秒",
-                    parent=None
-                )
-                msg_box.setStyleSheet("""
-                    QPushButton {
-                        min-width: 80px;
-                    }
-                """)
-                msg_box.exec()
+            attempts += 1
+            remaining = max_attempts - attempts
+            delay = 2 **attempts
+            time.sleep(delay)
+            msg_box = QtWidgets.QMessageBox(
+                QtWidgets.QMessageBox.Icon.Warning,
+                "密码错误",
+                f"输入的密码不正确，还剩{remaining}次机会，将延迟{delay}秒",
+                parent=None
+            )
+            msg_box.setStyleSheet("""
+                QPushButton {
+                    min-width: 80px;
+                }
+            """)
+            msg_box.exec()
 
         if attempts >= max_attempts:
             log("ERROR", "密码验证失败次数过多")
@@ -134,26 +151,34 @@ def main():
     return exit_code
 
 def handle_incoming_connection(server):
+    """Handles incoming local server connections.
+
+    Args:
+        server: QLocalServer instance
+    """
     socket = server.nextPendingConnection()
 
     try:
         if socket.waitForReadyRead(1000):
             message = socket.readAll().data().decode('utf-8')
             if message == "bring_to_front":
-                for widget in QtWidgets.QApplication.topLevelWidgets():
-                    if isinstance(widget, QtWidgets.QMainWindow) and widget.windowTitle() == "LeafView Railway":
-                        widget.setWindowState(
-                            widget.windowState() & ~QtCore.Qt.WindowState.WindowMinimized | QtCore.Qt.WindowState.WindowActive)
-                        widget.activateWindow()
-                        widget.raise_()
-                        widget.setStyleSheet("""
-                            QMainWindow {
-                                border: 1px solid #007aff;
-                            }
-                        """)
-                        QtCore.QTimer.singleShot(300, lambda: widget.setStyleSheet(""))
+                for widget in enumerate(QtWidgets.QApplication.topLevelWidgets()):
+                    if isinstance(widget[1], QtWidgets.QMainWindow) and widget[1].windowTitle() == "LeafView Railway":
+                        widget[1].setWindowState(
+                            widget[1].windowState() & 
+                            ~QtCore.Qt.WindowState.WindowMinimized | 
+                            QtCore.Qt.WindowState.WindowActive
+                        )
+                        widget[1].activateWindow()
+                        widget[1].raise_()
+                        widget[1].setStyleSheet(""
+                            "QMainWindow {"
+                            "    border: 1px solid #007aff;"
+                            "}"
+                        )
+                        QtCore.QTimer.singleShot(300, lambda w=widget[1]: w.setStyleSheet(""))
                         break
-    except Exception as e:
+    except (OSError, RuntimeError) as e:
         log("ERROR", f"处理连接时出错: {str(e)}")
     finally:
         socket.disconnectFromServer()
@@ -162,12 +187,13 @@ def handle_incoming_connection(server):
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except (OSError, RuntimeError, ImportError) as e:
-        sys.__stderr__.write(f"Fatal error: {str(e)}\n")
+    except (RuntimeError, TypeError, ValueError, ImportError) as e:
+        # 捕获特定异常而非通用Exception
+        sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
         sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)
-    except Exception as e:
+    except (Exception) as e:
         # 捕获所有其他未处理的异常
-        sys.__stderr__.write(f"Unexpected fatal error: {str(e)}\n")
+        sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
         sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)

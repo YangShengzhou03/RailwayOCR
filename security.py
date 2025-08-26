@@ -1,3 +1,8 @@
+"""
+安全模块：提供密码管理功能，包括密码验证、存储和删除。
+
+使用bcrypt进行密码哈希，keyring进行安全存储。
+"""
 import bcrypt
 import keyring
 from PyQt6 import QtWidgets, QtCore
@@ -6,6 +11,7 @@ from utils import get_resource_path, log, log_print
 
 
 class PasswordDialog(QtWidgets.QDialog):
+    """密码对话框：用于输入和验证用户密码的UI组件。"""
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("请输入密码")
@@ -97,6 +103,14 @@ class PasswordDialog(QtWidgets.QDialog):
 
 
 def verify_password(password):
+    """验证密码是否与存储的哈希匹配。
+
+    Args:
+        password (str): 用户输入的密码
+
+    Returns:
+        bool: 密码验证是否成功
+    """
     try:
         stored_value = keyring.get_password("RailwayOCR", "admin")
         if not stored_value:
@@ -124,6 +138,11 @@ def verify_password(password):
 
 
 def has_password():
+    """检查是否已设置密码。
+
+    Returns:
+        bool: 如果已设置密码则返回True，否则返回False
+    """
     try:
         stored_value = keyring.get_password("RailwayOCR", "admin")
         return bool(stored_value)
@@ -133,6 +152,14 @@ def has_password():
 
 
 def save_password(password):
+    """保存密码到密钥环，使用bcrypt进行哈希处理。
+
+    Args:
+        password (str): 要存储的密码
+
+    Returns:
+        bool: 密码保存是否成功
+    """
     try:
         # 生成salt并哈希密码
         salt = bcrypt.gensalt()
@@ -151,6 +178,11 @@ def save_password(password):
 
 
 def delete_password():
+    """从密钥环中删除已存储的密码。
+
+    Returns:
+        bool: 密码删除是否成功
+    """
     try:
         keyring.delete_password("RailwayOCR", "admin")
         log("INFO", "密码已删除")

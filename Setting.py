@@ -35,13 +35,13 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 self._validate_config(config)
             else:
                 config = {}
-                log("INFO", "配置文件不存在，使用默认配置")
+                log("INFO", "未找到配置文件，已自动创建默认配置")
                 if not os.path.exists(os.path.dirname(self.CONFIG_FILE)):
                     try:
                         os.makedirs(os.path.dirname(self.CONFIG_FILE), exist_ok=True)
-                        log("INFO", f"创建配置目录: {os.path.dirname(self.CONFIG_FILE)}")
+                        log("INFO", f"已创建配置文件夹: {os.path.basename(os.path.dirname(self.CONFIG_FILE))}")
                     except (OSError, FileNotFoundError) as e:
-                        log("ERROR", f"创建配置目录失败: {str(e)}")
+                        log("ERROR", f"无法创建配置文件夹: {str(e)}")
                         QMessageBox.critical(self, "配置错误", f"创建配置目录失败: {str(e)}")
                 QMessageBox.information(self, "提示", "首次启动，使用默认配置模板")
             self.lineEdit_BAIDU_API_KEY.setText(config.get("BAIDU_API_KEY", ""))
@@ -55,11 +55,11 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
             if 0 <= mode_index < self.comboBox_mode.count():
                 self.comboBox_mode.setCurrentIndex(mode_index)
         except json.JSONDecodeError:
-            log("ERROR", f"配置文件格式错误: {self.CONFIG_FILE}")
+            log("ERROR", f"配置文件格式有误，请检查JSON语法")
             QMessageBox.critical(self, "配置加载失败", f"配置文件格式错误: {self.CONFIG_FILE}")
             self._load_default_values()
         except (IOError, OSError) as e:
-            log("ERROR", f"配置加载失败: {str(e)}")
+            log("ERROR", f"读取配置时出错: {str(e)}")
             QMessageBox.critical(self, "配置加载失败", f"读取配置时出错：{str(e)}")
             self._load_default_values()
 
@@ -191,12 +191,12 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
                 utils.main_window.on_config_updated()
 
             QMessageBox.information(self, "保存成功", "配置已成功保存！")
-            log("INFO", "配置保存成功")
+            log("INFO", "设置已保存并生效")
             # 优化：设置保存成功后自动关闭窗口
             self.close()
 
         except (IOError, OSError) as e:
-            log("ERROR", f"保存配置失败: {str(e)}")
+            log("ERROR", f"保存设置失败: {str(e)}")
             QMessageBox.critical(self, "保存失败", f"写入配置文件时出错：{str(e)}窗口将保持打开，您可以重试操作。")
         except ValueError as ve:
             log("ERROR", f"配置验证失败: {str(ve)}")

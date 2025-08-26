@@ -77,7 +77,7 @@ class ProcessingThread(QtCore.QThread):
 
         except (IOError, OSError) as e:
             error_msg = f"共享客户端初始化失败: {str(e)}"
-            log_print(error_msg)
+            log_print(f"[线程初始化] 共享客户端初始化失败: {str(e)}")
             self.error_occurred.emit(error_msg)
             raise
 
@@ -118,7 +118,7 @@ class ProcessingThread(QtCore.QThread):
 
             if config_changed:
                 log("INFO",
-                    f"配置已更新: 工作线程数={self.worker_count}, 最大请求数/分钟={self.max_requests_per_minute}")
+                    f"系统配置已更新: 工作线程数={self.worker_count}, 请求限制={self.max_requests_per_minute}次/分钟")
         except (FileNotFoundError, PermissionError, OSError) as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4
@@ -128,13 +128,13 @@ class ProcessingThread(QtCore.QThread):
             self.max_backoff_time = 30
             self.request_timeout = 60
             error_msg = f"配置加载失败: {str(e)}"
-            log("ERROR", error_msg)
+            log("ERROR", f"配置文件加载失败: {str(e)}, 使用默认设置")
             self.error_occurred.emit(error_msg)
 
     def run(self):
         try:
             if not self.image_files:
-                log_print("没有待处理的图像文件")
+                log("INFO", "没有需要处理的图像文件")
                 self.processing_finished.emit([])
                 return
 
@@ -161,12 +161,14 @@ class ProcessingThread(QtCore.QThread):
 
             self.processing_finished.emit(self.results)
             self.progress_updated.emit(100, "处理完成")
+            log("INFO",
+                f"处理完成: 共{self.processed_count}个文件，成功{self.success_count}个，失败{self.failed_count}个")
             log_print(
-                f"处理完成，共 {self.processed_count} 个文件，成功 {self.success_count} 个，失败 {self.failed_count} 个")
+                f"[处理统计] 总文件:{self.processed_count}, 成功:{self.success_count}, 失败:{self.failed_count}")
 
         except (ValueError, RuntimeError) as e:
             error_msg = f"处理过程中发生致命错误: {str(e)}"
-            log_print(error_msg)
+            log_print(f"[工作线程{worker_id}] 处理文件出错: {str(e)}")
             self.error_occurred.emit(error_msg)
             self.processing_finished.emit([])
 

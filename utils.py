@@ -72,10 +72,10 @@ def close_log_file():
 _log_counter = 0
 _LOG_FLUSH_INTERVAL = 10  # 每10条日志flush一次
 
-def log_print(formatted_log):
+def log_print(debug_message):
     global _log_counter
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    formatted_log = f"[{timestamp}] {formatted_log}"
+    formatted_log = f"[{timestamp}] [DEBUG] {debug_message}"
     print(formatted_log)
 
     try:
@@ -166,6 +166,10 @@ Config = load_config()
 
 
 def log(level, message):
+    # 用户可见日志：使用通俗语言，仅显示关键操作和错误
+    if level == "DEBUG":
+        return  # 用户日志不显示DEBUG级别
+    allowed_levels = {"ERROR", "INFO", "WARNING"}
     allowed_levels = {"ERROR", "DEBUG", "INFO", "WARNING"}
     if level not in allowed_levels:
         print(f"错误：不支持的日志级别 '{level}'，必须是 ERROR、DEBUG、INFO 或 WARNING")
@@ -179,7 +183,10 @@ def log(level, message):
         "DEBUG": "#3232CD"
     }
     color = colors[level]
-    formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
+    # 使用更友好的用户语言
+    user_friendly_levels = {"ERROR": "错误", "INFO": "信息", "WARNING": "警告"}
+    friendly_level = user_friendly_levels.get(level, level)
+    formatted_message = f'<span style="color:{color}">[{timestamp}] [{friendly_level}] {message}</span>'
     if main_window and hasattr(main_window, 'textEdit_log'):
         main_window.textEdit_log.append(formatted_message)
         main_window.textEdit_log.ensureCursorVisible()

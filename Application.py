@@ -107,11 +107,13 @@ def verify_password(password):
     try:
         stored_value = keyring.get_password("RailwayOCR", "admin")
         if not stored_value:
-            log("ERROR", "未找到存储的密码")
+            log("ERROR", "未设置启动密码")
+            log_print("[安全模块] 密钥环中未找到存储的密码哈希")
             return False
 
         if ':' not in stored_value:
-            log("ERROR", "密码存储格式无效")
+            log("ERROR", "密码格式错误")
+            log_print("[安全模块] 存储格式应为'salt:hash'，实际为:{stored_value}")
             return False
         salt_hex, hash_hex = stored_value.split(':', 1)
 
@@ -120,10 +122,11 @@ def verify_password(password):
 
         result = bcrypt.checkpw(password.encode('utf-8'), stored_hash)
         if not result:
-            log("WARNING", "密码验证失败")
+            log("WARNING", "密码不正确，请重试")
         return result
     except (keyring.errors.KeyringError, ValueError, TypeError) as e:
-        log("ERROR", f"密码验证时出错: {str(e)}")
+        log("ERROR", "密码验证失败")
+            log_print(f"[安全模块] 验证异常: {str(e)} (类型:{type(e).__name__})")
         return False
 
 
@@ -132,7 +135,7 @@ def has_password():
         stored_value = keyring.get_password("RailwayOCR", "admin")
         return bool(stored_value)
     except (keyring.errors.KeyringError, OSError) as e:
-        log("DEBUG", f"检查密码时出错: {str(e)}")
+        log_print(f"[安全模块] 密码检查异常: {str(e)} (类型:{type(e).__name__})")
         return False
 
 
@@ -154,14 +157,15 @@ def main():
         if client_socket.waitForConnected(500):
             client_socket.write(b"bring_to_front")
             client_socket.waitForBytesWritten()
-            log("INFO", "应用程序已在运行，切换到前台")
+            log("INFO", "程序已在运行，正在切换到前台窗口")
             return 1
     finally:
         client_socket.disconnectFromServer()
 
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
-        log("ERROR", f"无法启动本地服务器: {server.errorString()}")
+        log("ERROR", "程序启动失败，可能已有实例在运行")
+            log_print(f"[本地服务] 服务器启动失败: {server.errorString()}")
         return 1
 
     server.newConnection.connect(lambda: handle_incoming_connection(server))

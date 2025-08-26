@@ -45,8 +45,8 @@ class BaiduClient(BaseClient):
                 else:
                     raise Exception(f"获取token失败: {response.text}")
             except (requests.exceptions.RequestException, json.JSONDecodeError) as e:
-                log("ERROR", f"认证失败")
-                log_print(f"[ERROR] 获取百度access_token失败: {str(e)}")
+                log("ERROR", f"百度OCR认证失败，请检查API密钥")
+                log_print(f"[百度认证] 获取access_token失败: {str(e)} (API_KEY:{self.api_key[:4]}****)")
         return self.access_token
 
     def posturl(self, headers, body):
@@ -73,12 +73,12 @@ class BaiduClient(BaseClient):
     def recognize(self, image_source: Union[str, bytes], is_url: bool = False) -> Optional[str]:
         self.validate_image_source(image_source, is_url)
         if not self.api_key or not self.secret_key:
-            log("ERROR", "未提供百度API Key或Secret Key")
+            log("ERROR", "百度API密钥未设置，请在设置中配置")
             return None
 
         self.get_access_token()
         if not self.access_token:
-            log("ERROR", "获取百度access_token失败")
+            log("ERROR", "无法获取访问令牌，请检查网络连接或API密钥")
             return None
 
         headers = {
@@ -101,12 +101,13 @@ class BaiduClient(BaseClient):
             filename = self.get_image_filename(image_source, is_url)
 
             if result:
-                log("INFO", f"图像识别成功: {result} (来源: {filename})")
+                log("INFO", f"识别成功: {result} (文件: {filename})")
                 return result
             else:
-                log("警告", f"未识别到有效结果 (来源: {filename})")
+                log("WARNING", f"未识别到有效内容 (文件: {filename})")
                 return None
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
-            log("ERROR", f"识别服务请求失败")
+            log("ERROR", f"图像识别请求失败: {str(e)}")
+                log_print(f"[百度API] 识别请求异常: {str(e)} (文件: {filename})")
             return None
     

@@ -42,7 +42,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
 
-        log("INFO", "LeafView-RailwayOCR 启动成功")
+        log("INFO", "RailwayOCR应用已成功启动")
 
     def _init_ui_components(self):
         self.total_files_label.setText("0")
@@ -61,16 +61,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         try:
             if mode_index == MODE_ALI:
                 self.client = AliClient()
-                log("INFO", "使用阿里云OCR模式")
+                log("INFO", "已切换至阿里云OCR服务")
             elif mode_index == MODE_BAIDU:
                 self.client = BaiduClient()
-                log("INFO", "使用百度OCR模式")
+                log("INFO", "已切换至百度OCR服务")
             else:
                 self.client = LocalClient(max_retries=5)
-                log("INFO", "使用本地OCR模式")
+                log("INFO", "已切换至本地OCR引擎")
         except Exception as e:
             error_msg = f"OCR客户端初始化失败: {str(e)}"
-            log("ERROR", error_msg)
+            log("ERROR", f"OCR服务启动失败: {str(e)}")
             QMessageBox.critical(self, "初始化失败", error_msg)
             self.client = None
 
@@ -91,12 +91,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setting_window.show()
 
     def on_config_updated(self):
-        log_print("配置已更新，正在重新加载...")
+        log_print("[配置管理] 检测到配置更新，正在重新加载...")
         self.config = load_config()
-        log_print("配置重新加载成功")
+        log_print("[配置管理] 配置文件重新加载完成")
         if hasattr(self, 'processing_thread') and self.processing_thread:
             self.processing_thread._load_config()
-            log_print("处理线程配置已更新")
+            log_print("[线程管理] 处理线程配置参数已更新")
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -118,7 +118,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if directory:
             self.source_dir = directory
             self.lineEdit_src_folder.setText(directory)
-            log("INFO", f"已选择源文件夹: {directory}")
+            log("INFO", f"源文件夹已选择: {os.path.basename(directory)}")
 
             if not self.check_directory_conflict():
                 self.load_images()
@@ -129,7 +129,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if directory:
             self.dest_dir = directory
             self.lineEdit_dst_folder.setText(directory)
-            log("INFO", f"已选择目标文件夹: {directory}")
+            log("INFO", f"目标文件夹已选择: {os.path.basename(directory)}")
             self.check_directory_conflict()
 
     def load_images(self):

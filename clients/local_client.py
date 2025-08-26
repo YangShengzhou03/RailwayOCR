@@ -31,7 +31,7 @@ class LocalClient(BaseClient):
 
     def _initialize_reader(self):
         if self._is_initializing:
-            log_print("[DEBUG] 已有线程正在初始化OCR模型，等待完成...")
+            log_print("[本地OCR] 模型初始化中，其他线程等待中...")
             while self._is_initializing:
                 time.sleep(0.1)
             return
@@ -53,15 +53,15 @@ class LocalClient(BaseClient):
                 return
             except (ImportError, RuntimeError, OSError) as e:
                 error_msg = f"模型加载失败: {str(e)}"
-                log("ERROR", error_msg)
-                log_print(f"[ERROR] {error_msg}")
+                log("ERROR", f"OCR模型加载失败: {str(e)}")
+                log_print(f"[本地OCR] 模型加载异常: {str(e)} (重试次数: {retry_count}/{self.max_retries})")
                 retry_count += 1
                 if retry_count < self.max_retries:
                     wait_time = min(2 ** retry_count, 10)
                     time.sleep(wait_time)
                 else:
                     self._is_initializing = False
-                    log("ERROR", f"达到最大重试次数 ({self.max_retries})，无法加载OCR模型")
+                    log("ERROR", f"OCR模型加载失败: 已尝试{self.max_retries}次仍无法加载，请检查模型文件")
                     raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}")
 
     def get_img(self, img_file):
@@ -77,7 +77,8 @@ class LocalClient(BaseClient):
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
 
             if image.mode not in ['L', 'RGB', 'RGBA']:
-                log_print(f"[WARNING] 不支持的图像模式: {image.mode}，转换为RGB")
+                log("WARNING", f"不支持的图像格式，已自动转换")
+                log_print(f"[本地预处理] 图像模式转换: {image.mode}→RGB (文件: {filename})")
                 image = image.convert('RGB')
 
             if enhance_attempt == 0:
@@ -106,7 +107,7 @@ class LocalClient(BaseClient):
             error_msg = f"图像预处理错误: {str(e)}"
             log("ERROR", error_msg)
             log_print(f"[ERROR] {error_msg}")
-            log("错误", f"图像预处理失败: {filename}")
+            log("ERROR", f"图像预处理失败: {filename}")
             return None
 
     def extract_matches(self, texts):
@@ -149,13 +150,14 @@ class LocalClient(BaseClient):
                     img_data = response.content
                     original_image = Image.open(BytesIO(img_data))
                 except requests.exceptions.RequestException as e:
-                    log("错误", f"图像下载失败: {str(e)}")
+                    log("ERROR", f"图像下载失败: {str(e)}")
+                    log_print(f"[本地OCR] URL下载异常: {str(e)} (URL: {image_source[:50]}...)")
                     return None
             else:
                 try:
                     original_image = Image.open(BytesIO(image_source))
                 except (IOError, OSError) as e:
-                    log("ERROR", f"无法打开图像: {str(e)}")
+                    log("ERROR", f"无法打开图像文件: {str(e)}")
                     log_print(f"[ERROR] 文件不是有效的图像格式或已损坏: {filename}")
                     return None
 
@@ -173,7 +175,7 @@ class LocalClient(BaseClient):
                         img_height, img_width = processed_image.shape[:2]
 
                         if self.reader is None:
-                            log_print("[WARNING] OCR阅读器未初始化，尝试重新初始化")
+                            log_print("[本地OCR] 阅读器未就绪，触发重新初始化...")
                             self._initialize_reader()
 
                             if self.reader is None:

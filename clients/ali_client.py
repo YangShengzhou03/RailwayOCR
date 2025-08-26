@@ -120,10 +120,10 @@ class AliClient(BaseClient):
             filename = self.get_image_filename(image_source, is_url)
 
             if result:
-                log("成功", f"识别结果: {result} (来源: {filename})\n")
+                log("INFO", f"识别成功: {result} (文件: {filename})")
                 return result
             else:
-                log("警告", f"未识别到有效结果 (来源: {filename})\n")
+                log("WARNING", f"未识别到有效内容 (文件: {filename})")
                 return None
         except (ValueError, IOError, requests.exceptions.RequestException) as e:
             error_msg = f"识别过程中发生错误: {str(e)}"

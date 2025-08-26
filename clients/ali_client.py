@@ -117,14 +117,7 @@ class AliClient(BaseClient):
 
             # Parse response and extract matches
             result = self.extract_matches(response)
-            filename = self.get_image_filename(image_source, is_url)
-
-            if result:
-                log("INFO", f"识别成功: {result} (文件: {filename})")
-                return result
-            else:
-                log("WARNING", f"未识别到有效内容 (文件: {filename})")
-                return None
+            return self.process_recognition_result(result, image_source, is_url)
         except (ValueError, IOError, requests.exceptions.RequestException) as e:
             error_msg = f"识别过程中发生错误: {str(e)}"
             log("ERROR", error_msg)

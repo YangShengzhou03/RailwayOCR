@@ -1,0 +1,4 @@
+[MASTER]
+extension-pkg-allow-list=PyQt6
+
+[IMPORTS]

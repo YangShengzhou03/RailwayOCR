@@ -98,14 +98,7 @@ class BaiduClient(BaseClient):
             body = urllib.parse.urlencode({"image": img_base64})
             response = self.posturl(headers, body)
             result = self.extract_matches(response)
-            filename = self.get_image_filename(image_source, is_url)
-
-            if result:
-                log("INFO", f"识别成功: {result} (文件: {filename})")
-                return result
-            else:
-                log("WARNING", f"未识别到有效内容 (文件: {filename})")
-                return None
+            return self.process_recognition_result(result, image_source, is_url)
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")
             log_print(f"[百度API] 识别请求异常: {str(e)} (文件: {filename})")

@@ -3,6 +3,8 @@ from typing import Optional, Union
 import base64
 import os
 
+from utils import log
+
 
 class BaseClient(ABC):
     """客户端基类，定义统一的OCR识别接口"""
@@ -21,6 +23,16 @@ class BaseClient(ABC):
             识别到的匹配字符串（如A1、B2等），未识别到则返回None
         """
         pass
+
+    def process_recognition_result(self, result, image_source, is_url):
+        """处理识别结果的通用逻辑"""
+        filename = self.get_image_filename(image_source, is_url)
+        if result:
+            log("INFO", f"识别成功: {result} (文件: {filename})")
+            return result
+        else:
+            log("WARNING", f"未识别到有效内容 (文件: {filename})")
+            return None
 
     @staticmethod
     def validate_image_source(image_source: Union[str, bytes], is_url: bool) -> None:

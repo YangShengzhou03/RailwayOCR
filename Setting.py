@@ -2,8 +2,6 @@ import json
 import os
 import re
 
-import bcrypt
-import keyring
 from PyQt6 import QtGui
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDialog, QVBoxLayout, QLabel, QLineEdit, \
     QPushButton, QHBoxLayout, QWidget
@@ -11,6 +9,7 @@ from PyQt6.QtWidgets import QMainWindow, QMessageBox, QApplication, QDialog, QVB
 import utils
 from utils import MODE_ALI, MODE_BAIDU
 from utils import get_resource_path, log, log_print
+from security import verify_password, has_password
 from Ui_SettingWindow import Ui_SettingWindow
 
 
@@ -297,31 +296,15 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
 
     def _has_password(self):
         try:
-            password = keyring.get_password("RailwayOCR", "admin")
-            return password is not None and password != ""
-        except keyring.errors.KeyringError as e:
+            return has_password()
+        except Exception as e:
             log("ERROR", f"检查密码时出错: {str(e)}")
-            return False
-        except FileNotFoundError:
-            log("WARNING", "密码存储文件不存在，视为无密码保护")
             return False
 
     def _verify_password(self, password):
         try:
-            stored_value = keyring.get_password("RailwayOCR", "admin")
-            if not stored_value:
-                return False
-
-            if ':' not in stored_value:
-                log("ERROR", "密码存储格式无效")
-                return False
-            salt_hex, hash_hex = stored_value.split(':', 1)
-
-            salt = bytes.fromhex(salt_hex)
-            stored_hash = bytes.fromhex(hash_hex)
-
-            return bcrypt.checkpw(password.encode('utf-8'), stored_hash)
-        except keyring.errors.KeyringError as e:
+            return verify_password(password)
+        except Exception as e:
             log("ERROR", f"验证密码时出错: {str(e)}")
             return False
 
@@ -332,34 +315,17 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
     def _save_password(self, password):
         try:
             if password:
-                salt = bcrypt.gensalt(12)
-                password_hash = bcrypt.hashpw(password.encode('utf-8'), salt)
-                stored_value = f"{salt.hex()}:{password_hash.hex()}"
-
-                keyring.set_password("RailwayOCR", "admin", stored_value)
-                log_print("密码已成功保存到系统凭据管理器")
+                return save_password(password)
             else:
-                try:
-                    keyring.delete_password("RailwayOCR", "admin")
-                    log_print("密码已从系统凭据管理器中删除")
-                except keyring.errors.PasswordDeleteError:
-                    log_print("尝试删除不存在的密码")
-                    pass
-            return True
-        except keyring.errors.PasswordSetError as e:
+                return delete_password()
+        except Exception as e:
             log_print(f"保存密码失败: {str(e)}")
             QMessageBox.critical(None, "密码保存错误", f"无法保存密码到系统凭据管理器: {str(e)}")
-            return False
-        except keyring.errors.KeyringError as e:
-            error_msg = f"密码操作失败: {str(e)}"
-            log_print(error_msg)
-            QMessageBox.critical(None, "密码错误", error_msg)
             return False
 
 
 if __name__ == "__main__":
     import sys
-
     app = QApplication(sys.argv)
     window = SettingWindow()
     window.show()

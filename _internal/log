@@ -12200,3 +12200,12 @@ E5
 [2025-08-26 08:25:58] [DEBUG] 已复制文件: Marki_20250820_182257112.jpg -> C1
 [2025-08-26 08:25:58] [DEBUG] 已复制文件: Marki_20250820_182441024.jpg -> 识别失败
 [2025-08-26 08:25:58] [DEBUG] 已复制文件: Marki_20250820_182336757.jpg -> 识别失败
+{
+  "BAI测试测试DU_测试测试API_KEY": "OnnNMoO测试测试Zkn5PSxM测试测试WoBiZx5UX",
+  "BAID测试测试U_SE测试测试CRET_KEY": "GfFNJ测试测试ritZ测试测试V6mfqSh7Yak8QSWOEQuD8C4",
+  "ALI_APPCODE": "阿里code",
+  "CONCURRENCY": 4,
+  "RETRY_TIMES": 3,
+  "RE": "^[A-Za-z][0-9]$",
+  "MODE_INDEX": 0
+}

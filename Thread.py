@@ -102,7 +102,12 @@ class ProcessingThread(QtCore.QThread):
             new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
 
             config_changed = False
-            if new_worker_count != self.worker_count:
+            # 本地模式下强制使用单线程，忽略配置文件中的设置
+            if self.client_type == 'local':
+                if self.worker_count != 1:
+                    self.worker_count = 1
+                    config_changed = True
+            elif new_worker_count != self.worker_count:
                 self.worker_count = new_worker_count
                 config_changed = True
             if new_max_requests_per_minute != self.max_requests_per_minute:
@@ -526,9 +531,9 @@ class ProcessingThread(QtCore.QThread):
                         }
                         
                         # 本地模式下，处理完成一张图像后等待1秒再处理下一张
-                        if self.client_type == 'local':
-                            log("INFO", "本地OCR模式下，等待1秒后处理下一张图像")
-                            time.sleep(1)
+                        # if self.client_type == 'local':
+                        #     log("INFO", "本地OCR模式下，等待1秒后处理下一张图像")
+                        #     time.sleep(1)
                         
                         return result
                     else:

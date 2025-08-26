@@ -11,7 +11,7 @@ from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
 from clients import AliClient, BaiduClient, LocalClient
-from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, save_summary, get_resource_path, log_print, log, load_config
+from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, get_resource_path, log_print, log, load_config
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
@@ -57,8 +57,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
-
-        log("INFO", "RailwayOCR应用已成功启动")
 
     def _init_ui_components(self):
         """初始化所有UI组件
@@ -280,23 +278,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
     def start_processing(self):
         if not self._validate_processing_conditions():
             return
-
-        total_files = len(self.image_files)
-        mode = "移动" if self.is_move_mode else "复制"
-        reply = QMessageBox.question(
-            self, "确认处理",
-            f"即将识别分类 {total_files} 个图像并 {mode} 。\n是否继续?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-
-        if reply != QMessageBox.StandardButton.Yes:
-            log("INFO", "用户取消处理操作")
-            return
-
         self.processing_start_time = time.time()
-
         log("WARNING", "开始文件处理流程")
-        log("INFO", f"开始处理 {len(self.image_files)} 个图像文件")
         self.processing = True
         self.pushButton_start.setText("停止分类")
         self.progressBar.setValue(0)
@@ -477,10 +460,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         log("INFO", f"处理完成，总耗时: {total_time}")
         log("INFO", f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
 
-        stats = save_summary(results)
-        if stats:
-            log("INFO", "统计信息已保存到summary文件夹")
-
         if total_count > 0:
             result_message = (
                 f"LeafView-RailWayORC 处理完成!\n\n"
@@ -493,7 +472,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
             QMessageBox.information(self, "处理完成", result_message)
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
-        save_summary(results)
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):

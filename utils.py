@@ -108,8 +108,8 @@ def log_print(debug_message):
     """
     global _LOG_COUNTER
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    formatted_log = f"[{timestamp}] [DEBUG] {debug_message}"
-
+    formatted_log = f"[{timestamp}] {debug_message}"
+    print(formatted_log)
     try:
         log_rotation_size = Config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
         log_backup_count = Config.get("LOG_BACKUP_COUNT", 3)
@@ -136,27 +136,6 @@ def log_print(debug_message):
             # 优化：每10条日志flush一次，降低磁盘IO
             if _LOG_COUNTER % _LOG_FLUSH_INTERVAL == 0:
                 log_handle.flush()
-
-        if MAIN_WINDOW and hasattr(MAIN_WINDOW, 'textEdit_log') and MAIN_WINDOW.textEdit_log:
-            # pylint: disable=import-outside-toplevel
-            from PyQt6.QtCore import QMetaObject, Qt, QCoreApplication
-            if QCoreApplication.instance().thread() != MAIN_WINDOW.thread():
-                QMetaObject.invokeMethod(
-                    MAIN_WINDOW.textEdit_log,
-                    "append",
-                    Qt.ConnectionType.QueuedConnection,
-                    QtCore.Q_ARG(str, formatted_log)
-                )
-                QMetaObject.invokeMethod(
-                    MAIN_WINDOW.textEdit_log,
-                    "ensureCursorVisible",
-                    Qt.ConnectionType.QueuedConnection
-                )
-            else:
-                MAIN_WINDOW.textEdit_log.append(formatted_log)
-                MAIN_WINDOW.textEdit_log.ensureCursorVisible()
-                MAIN_WINDOW.textEdit_log.append(formatted_log)
-                MAIN_WINDOW.textEdit_log.ensureCursorVisible()
     except (OSError, IOError) as e:
         log("ERROR", f"写入日志时出错: {str(e)}")
 
@@ -217,34 +196,3 @@ def log(level, message):
     formatted_message = f'<span style="color:{color}">[{timestamp}] [{level}] {message}</span>'
     MAIN_WINDOW.textEdit_log.append(formatted_message)
     MAIN_WINDOW.textEdit_log.ensureCursorVisible()
-
-
-def save_summary(results):
-    """保存识别结果统计信息
-
-    Args:
-        results (list): OCR识别结果列表，每个元素为包含识别状态的字典
-
-    Returns:
-        dict: 包含处理时间、总文件数、成功/失败数量及识别成功率的统计字典
-    """
-    try:
-        summary_dir = Config["SUMMARY_DIR"]
-        os.makedirs(summary_dir, exist_ok=True)
-        stats_path = os.path.join(summary_dir, "statistics.json")
-        total = len(results)
-        success_count = sum(1 for r in results if r.get('success', False))
-        stats = {
-            "处理时间": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            "总文件数": total,
-            "成功识别": success_count,
-            "识别失败": total - success_count,
-            "识别成功率": f"{success_count / total * 100:.2f}%" if total > 0 else "0.00%"
-        }
-        with open(stats_path, 'w', encoding='utf-8') as f:
-            json.dump(stats, f, ensure_ascii=False, indent=2)
-
-        return stats
-    except (IOError, json.JSONDecodeError) as e:
-        log("DEBUG", f"保存统计信息时发生错误: {str(e)}")
-        return None

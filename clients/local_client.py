@@ -59,7 +59,6 @@ class LocalClient(BaseClient):
                         model_storage_directory=self.config.get('MODEL_DIR', None),
                         download_enabled=self.config.get('ALLOW_DOWNLOAD', True)
                     )
-                log("INFO", "OCR模型加载成功")
                 self._is_initializing = False
                 return
             except (ImportError, RuntimeError, OSError) as e:

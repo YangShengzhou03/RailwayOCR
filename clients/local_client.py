@@ -25,6 +25,7 @@ class LocalClient(BaseClient):
         self.gpu = gpu
         self._reader_lock = threading.Lock()
         self._is_initializing = False
+        self._is_cleaning = False  # 初始化清理状态标志
         self.recognition_attempts = self.config.get("RECOGNITION_ATTEMPTS", 2)
         self.max_threads = 1
         self._initialize_reader()
@@ -34,9 +35,13 @@ class LocalClient(BaseClient):
             log_print("[本地OCR] 模型初始化中，其他线程等待中...")
             while self._is_initializing:
                 time.sleep(0.1)
+            # 初始化完成后再次检查reader状态
+            if self.reader is None:
+                log("WARNING", "OCR模型初始化完成但reader仍为None")
             return
 
         retry_count = 0
+        self.reader = None  # 确保初始状态为None
         while retry_count < self.max_retries:
             try:
                 self._is_initializing = True
@@ -56,6 +61,7 @@ class LocalClient(BaseClient):
                 log("ERROR", f"OCR模型加载失败: {str(e)}")
                 log_print(f"[本地OCR] 模型加载异常: {str(e)} (重试次数: {retry_count}/{self.max_retries})")
                 retry_count += 1
+                self.reader = None  # 确保失败后reader为None
                 if retry_count < self.max_retries:
                     wait_time = min(2 ** retry_count, 10)
                     time.sleep(wait_time)
@@ -174,6 +180,7 @@ class LocalClient(BaseClient):
                     if processed_image is not None:
                         img_height, img_width = processed_image.shape[:2]
 
+                        # 双重检查锁定模式
                         if self.reader is None:
                             log_print("[本地OCR] 阅读器未就绪，触发重新初始化...")
                             self._initialize_reader()
@@ -183,25 +190,31 @@ class LocalClient(BaseClient):
                                 continue
 
                         with self._reader_lock:
+                            # 再次检查，防止在获取锁期间reader被设为None
                             if self.reader is None:
                                 log_print("[ERROR] OCR阅读器在锁定期间变为None，无法继续识别")
                                 continue
 
-                            if attempt == 0:
-                                result = self.reader.readtext(
-                                    processed_image,
-                                    detail=0,
-                                    contrast_ths=0.1,
-                                    adjust_contrast=0.5
-                                )
-                            else:
-                                result = self.reader.readtext(
-                                    processed_image,
-                                    detail=0,
-                                    contrast_ths=0.05,
-                                    adjust_contrast=0.7,
-                                    text_threshold=0.7
-                                )
+                            try:
+                                if attempt == 0:
+                                    result = self.reader.readtext(
+                                        processed_image,
+                                        detail=0,
+                                        contrast_ths=0.1,
+                                        adjust_contrast=0.5
+                                    )
+                                else:
+                                    result = self.reader.readtext(
+                                        processed_image,
+                                        detail=0,
+                                        contrast_ths=0.05,
+                                        adjust_contrast=0.7,
+                                        text_threshold=0.7
+                                    )
+                            except Exception as e:
+                                log("ERROR", f"OCR识别过程中发生异常: {str(e)}")
+                                log_print(f"[ERROR] OCR识别异常: {str(e)}")
+                                continue
 
                         matched_result = self.extract_matches(result)
 
@@ -261,10 +274,19 @@ class LocalClient(BaseClient):
     def cleanup(self):
         try:
             with self._reader_lock:
+                # 标记为正在清理
+                self._is_cleaning = True
                 if self.reader is not None:
-                    del self.reader
-                    self.reader = None
+                    try:
+                        # 安全删除reader
+                        del self.reader
+                        self.reader = None
+                        log("INFO", "OCR阅读器资源已释放")
+                    except Exception as e:
+                        log("ERROR", f"删除OCR阅读器时出错: {str(e)}")
+                self._is_cleaning = False
             gc.collect()
 
         except Exception as e:
             log_print(f"[WARNING] 清理资源时出错: {str(e)}")
+            self._is_cleaning = False

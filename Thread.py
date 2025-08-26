@@ -460,13 +460,9 @@ class ProcessingThread(QtCore.QThread):
                     if attempt == max_attempts - 1:
                         return {'filename': filename, 'success': False, 'error': error_msg}
                 finally:
-                    if hasattr(client, 'cleanup') and callable(client.cleanup):
-                        try:
-                            client.cleanup()
-                            import gc
-                            gc.collect()
-                        except (IOError, OSError) as e:
-                            log_print(f"客户端资源清理失败: {str(e)}")
+                    # 移除每次识别后的cleanup调用，避免多线程环境下的资源竞争
+                    # 资源清理由stop()方法统一处理
+                    pass
 
             return {'filename': filename, 'success': False, 'error': '达到最大重试次数'}
         except (RuntimeError, TypeError, OSError) as e:

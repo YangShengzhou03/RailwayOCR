@@ -20,11 +20,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
     集成了图像处理、OCR识别、文件分类等核心功能，
     通过UI组件与后台线程协作完成批量处理任务。
     """
-    """主窗口类，负责OCR图像处理应用的UI交互和流程控制
-
-    集成了图像处理、OCR识别、文件分类等核心功能，
-    通过UI组件与后台线程协作完成批量处理任务。
-    """
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -84,23 +79,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         try:
             if mode_index == MODE_ALI:
                 self.client = AliClient()
-                log("INFO", "已切换至阿里云OCR服务")
+                log("WARNING", "已切换至阿里云OCR服务")
             elif mode_index == MODE_BAIDU:
                 self.client = BaiduClient()
-                log("INFO", "已切换至百度OCR服务")
+                log("WARNING", "已切换至百度OCR服务")
             else:
-                self.client = LocalClient(max_retries=5)
-                log("INFO", "已切换至本地OCR引擎")
+                self.client = LocalClient(max_retries=1)
+                log("WARNING", "已切换至本地OCR引擎")
         except (ConnectionError, ValueError, OSError) as e:
             log("ERROR", f"OCR服务启动失败: {str(e)}")
-            self.client = None
+            self.client = LocalClient(max_retries=1)
 
     def _setup_connections(self):
         """设置UI组件与事件处理函数的信号连接
 
         将按钮点击、状态切换等UI事件绑定到对应的处理方法
         """
-        """设置UI组件与事件处理函数的连接"""
         self.pushButton_src_folder.clicked.connect(self.browse_source_directory)
         self.pushButton_dst_folder.clicked.connect(self.browse_dest_directory)
 
@@ -119,10 +113,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
 
     def on_config_updated(self):
         self.config = load_config()
-        log_print("[配置管理] 配置文件重新加载完成")
+        log_print("[main_window] 配置文件重新加载完成")
         if hasattr(self, 'processing_thread') and self.processing_thread:
             self.processing_thread._load_config()  # pylint: disable=protected-access
-            log_print("[线程管理] 处理线程配置参数已更新")
+            log_print("[main_window] 处理线程配置参数已更新")
 
     def mousePressEvent(self, event):  # pylint: disable=invalid-name
         """鼠标按下事件处理，用于窗口拖动初始化
@@ -163,7 +157,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         if directory:
             self.source_dir = directory
             self.lineEdit_src_folder.setText(directory)
-            log("INFO", f"源文件夹已选择: {os.path.basename(directory)}")
+            log("WARNING", f"待分类文件夹已选择: {os.path.basename(directory)}")
 
             if not self._check_directory_conflict():
                 self._load_images()
@@ -178,7 +172,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
         if directory:
             self.dest_dir = directory
             self.lineEdit_dst_folder.setText(directory)
-            log("INFO", f"目标文件夹已选择: {os.path.basename(directory)}")
+            log("WARNING", f"目标文件夹已选择: {os.path.basename(directory)}")
             self._check_directory_conflict()
 
     def _load_images(self):
@@ -334,7 +328,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):  # pylint: disable=R0902
             )
             # 使用QueuedConnection确保跨线程信号安全
             from PyQt6.QtCore import Qt
-            # 使用正确的枚举路径
             self.processing_thread.processing_finished.connect(self.on_processing_finished,
                                                                Qt.ConnectionType.QueuedConnection)
             self.processing_thread.stats_updated.connect(self.on_stats_updated, Qt.ConnectionType.QueuedConnection)

@@ -53,7 +53,7 @@ def main():
 
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
-        log_print(f"[本地服务] 服务器启动失败: {server.errorString()}")
+        log_print(f"[Application] 服务器启动失败: {server.errorString()}")
         return 1
 
     server.newConnection.connect(lambda: handle_incoming_connection(server))
@@ -186,12 +186,10 @@ if __name__ == '__main__':
     try:
         sys.exit(main())
     except (RuntimeError, TypeError, ValueError, ImportError) as e:
-        # 捕获特定异常而非通用Exception
         sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
         sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)
     except (Exception) as e:
-        # 捕获所有其他未处理的异常
         sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
         sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)

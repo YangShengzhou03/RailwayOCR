@@ -12,7 +12,7 @@ if not os.path.exists(image_path):
     print(f"错误：图片文件不存在 - {image_path}")
 else:
     # 进行OCR识别
-    result = ocr.ocr(image_path, cls=True)
+    result = ocr.predict(image_path)
 
     # 提取并打印识别结果
     print("识别结果：")

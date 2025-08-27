@@ -22,7 +22,7 @@ class AliClient(BaseClient):
         self.config = load_config()
         self.appcode = self.config.get("ALI_APPCODE", "")
         self.context = ssl._create_unverified_context()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
+        self.pattern = re.compile(self.config.get("RE", r'.*'))
         self.client_type = 'ali'
         self.api_lock = threading.Lock()
 

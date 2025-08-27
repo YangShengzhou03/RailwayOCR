@@ -1,15 +1,9 @@
-"""
-工具函数模块，包含日志系统、配置管理、文件处理等通用功能。
-"""
 import json
 import os
 import sys
 import time
 from datetime import datetime
-
 from functools import lru_cache
-
-from PyQt6 import QtCore
 
 from PyQt6.QtWidgets import QMessageBox
 

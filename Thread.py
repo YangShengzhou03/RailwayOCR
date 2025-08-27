@@ -1,6 +1,5 @@
 import json
 import os
-import shutil
 import threading
 import time
 from datetime import datetime, timedelta
@@ -37,20 +36,16 @@ class ProcessingThread(QtCore.QThread):
         self.lock = threading.Lock()
         self.results_lock = threading.Lock()
         cpu_count = os.cpu_count() or 4
-        # 本地识别模式强制使用单线程
         self.client_type = getattr(client, 'client_type', 'unknown')
         if self.client_type == 'local':
             self.worker_count = 1
-            log("INFO", "本地OCR模式已启用单线程处理")
         else:
-            # 其他模式根据CPU核心数动态调整工作线程数
             if cpu_count <= 4:
                 self.worker_count = 1
             else:
                 self.worker_count = min(max(2, cpu_count // 4), 4)
-        # 添加进度更新时间阈值，避免频繁更新UI
         self.last_progress_update_time = 0
-        self.progress_update_interval = 0.5  # 秒
+        self.progress_update_interval = 0.5
         self.max_requests_per_minute = 60
         self.backoff_factor = 2.0
         self.request_interval = 0.5
@@ -66,7 +61,7 @@ class ProcessingThread(QtCore.QThread):
         self.workers = []
         self.signal_queue = Queue()
         self.signal_processor_running = True
-        self.signal_processor_thread = None  # 初始化线程属性
+        self.signal_processor_thread = None
         client_type = getattr(client, 'client_type', '未知')
 
         self.client_type = client_type
@@ -102,7 +97,6 @@ class ProcessingThread(QtCore.QThread):
             new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
 
             config_changed = False
-            # 本地模式下强制使用单线程，忽略配置文件中的设置
             if self.client_type == 'local':
                 if self.worker_count != 1:
                     self.worker_count = 1
@@ -129,8 +123,8 @@ class ProcessingThread(QtCore.QThread):
             self.Config = new_config
 
             if config_changed:
-                log("INFO",
-                    f"系统配置已更新: 工作线程数={self.worker_count}, 请求限制={self.max_requests_per_minute}次/分钟")
+                log("WARNING",
+                    f"配置: 工作线程数={self.worker_count}, 请求限制={self.max_requests_per_minute}次/分钟")
         except (FileNotFoundError, PermissionError, OSError) as e:
             self.max_requests_per_minute = 60
             cpu_count = os.cpu_count() or 4
@@ -144,10 +138,6 @@ class ProcessingThread(QtCore.QThread):
             self.error_occurred.emit(error_msg)
 
     def run(self):
-        """启动处理线程，初始化工作线程池并协调任务执行
-
-        负责创建工作线程、处理任务队列、协调信号处理，并在完成后清理资源。
-        """
         try:
             if not self.image_files:
                 log("INFO", "没有需要处理的图像文件")
@@ -165,7 +155,6 @@ class ProcessingThread(QtCore.QThread):
                 self.workers.append(worker)
                 worker.start()
 
-            # 保存信号处理器线程的引用
             self.signal_processor_thread = threading.Thread(target=self._signal_processor, daemon=True)
             self.signal_processor_thread.start()
 
@@ -175,7 +164,7 @@ class ProcessingThread(QtCore.QThread):
             self.signal_queue.join()
             self.signal_processor_running = False
             if self.signal_processor_thread.is_alive():
-                self.signal_processor_thread.join(1.0)  # 等待最多1秒
+                self.signal_processor_thread.join(1.0)
 
             self.processing_finished.emit(self.results)
             self.progress_updated.emit(100, "处理完成")
@@ -190,37 +179,20 @@ class ProcessingThread(QtCore.QThread):
             self.error_occurred.emit(error_msg)
             self.processing_finished.emit([])
         finally:
-            # 确保资源正确清理
             self._cleanup_resources()
 
     def _cleanup_resources(self):
-        """清理线程资源，包括工作线程和信号处理器线程"""
-        log_print("[线程清理] 开始清理线程资源...")
-        
-        # 停止所有工作线程
         self.is_running = False
-        
-        # 等待工作线程结束
+
         for worker in self.workers:
             if worker.is_alive():
                 worker.join(timeout=1.0)
-        
-        # 停止信号处理器线程
+
         self.signal_processor_running = False
         if self.signal_processor_thread and self.signal_processor_thread.is_alive():
             self.signal_processor_thread.join(timeout=1.0)
-        
-        # 清理共享客户端资源
-        # 本地模式下不在这里清理资源，防止模型被反复加载
-        # 资源清理会在整个处理完成后由主线程调用
-        log_print("[线程清理] 线程资源清理完成")
 
     def _worker(self, worker_id):
-        """工作线程函数，处理队列中的图像文件
-
-        Args:
-            worker_id (int): 工作线程ID，用于日志标识
-        """
         client = self.shared_client
 
         while self.is_running or not self.file_queue.empty():
@@ -260,7 +232,7 @@ class ProcessingThread(QtCore.QThread):
                         if result['success']:
                             with self.counter_lock:
                                 self.success_count += 1
-                            result['category_dir'] = self.copy_to_classified_folder(
+                            self.copy_to_classified_folder(
                                 file_path, recognition, self.dest_dir, self.is_move_mode)
                         else:
                             with self.counter_lock:
@@ -271,7 +243,6 @@ class ProcessingThread(QtCore.QThread):
                         self.signal_queue.put(
                             ('stats_updated', self.processed_count, self.success_count, self.failed_count))
 
-                        # 优化：限制进度更新频率，避免UI卡顿
                         current_time = time.time()
                         if current_time - self.last_progress_update_time >= self.progress_update_interval:
                             progress = int((self.processed_count / self.total_files) * 100)
@@ -284,10 +255,6 @@ class ProcessingThread(QtCore.QThread):
         log_print(f"工作线程 {worker_id + 1} 已结束")
 
     def _signal_processor(self):
-        """信号处理器线程，处理跨线程信号并转发到UI
-
-        从信号队列中提取信号并调用相应的信号发射器方法。
-        """
         while self.signal_processor_running or not self.signal_queue.empty():
             try:
                 signal = self.signal_queue.get(timeout=0.1)
@@ -323,7 +290,6 @@ class ProcessingThread(QtCore.QThread):
                     else:
                         log_print("error_occurred信号参数错误")
                 elif signal_name == 'stop_signal':
-                    # 处理停止信号，确保线程可以退出
                     break
                 else:
                     log_print(f"未知信号类型: {signal_name}")
@@ -333,17 +299,6 @@ class ProcessingThread(QtCore.QThread):
                 self.signal_queue.task_done()
 
     def rate_limited_process(self, file_path, client):
-        """带速率限制的文件处理方法
-
-        确保API调用不超过速率限制，处理请求频率控制和重试逻辑。
-
-        Args:
-            file_path (str): 待处理文件路径
-            client: OCR客户端实例
-
-        Returns:
-            dict: 处理结果字典
-        """
         if not self.is_running:
             return {'filename': os.path.basename(file_path), 'success': False, 'error': '处理已取消'}
 
@@ -360,10 +315,6 @@ class ProcessingThread(QtCore.QThread):
             return {'filename': os.path.basename(file_path), 'success': False, 'error': error_msg}
 
     def _check_rate_limit(self):
-        """检查并控制API请求速率
-
-        确保每分钟请求数不超过设定阈值，必要时进行等待。
-        """
         with self.lock:
             now = datetime.now()
             if now - self.window_start > timedelta(minutes=1):
@@ -377,11 +328,8 @@ class ProcessingThread(QtCore.QThread):
                 self.rate_limit_warning.emit(warning_msg)
                 log_print(warning_msg)
 
-                # 移除未使用变量
                 remaining_wait = wait_time
-                # 优化：动态调整sleep时长，避免过长等待
                 while remaining_wait > 0 and self.is_running:
-                    # 每次最多等待0.5秒，以便及时响应停止信号
                     sleep_duration = min(0.5, remaining_wait)
                     time.sleep(sleep_duration)
                     remaining_wait -= sleep_duration
@@ -394,25 +342,15 @@ class ProcessingThread(QtCore.QThread):
 
             self.requests_counter += 1
 
-            # 优化：精准控制请求间隔
             if self.request_interval > 0:
                 time.sleep(self.request_interval)
 
     def stop(self):
-        """停止处理线程并清理资源
-
-        优雅地终止所有工作线程，清空任务队列，释放客户端资源。
-        """
-        log("INFO", "正在停止处理线程")
-        log_print("正在停止处理线程")
-
         with self.lock:
             if not self.is_running:
-                log("INFO", "处理线程已处于停止状态")
                 return
             self.is_running = False
 
-        # 优化：快速清空任务队列，避免线程等待
         while not self.file_queue.empty():
             try:
                 self.file_queue.get_nowait()
@@ -420,65 +358,42 @@ class ProcessingThread(QtCore.QThread):
             except Empty:
                 break
 
-        # 确保信号处理器线程能够退出
         self.signal_processor_running = False
-        # 添加一个停止信号到队列，确保信号处理器能够立即响应
         self.signal_queue.put(('stop_signal',))
-        
-        # 等待工作线程终止，但设置超时避免无限等待
+
         for worker in self.workers:
             if worker.is_alive():
-                worker.join(timeout=1.0)  # 等待最多1秒
+                worker.join(timeout=1.0)
                 if worker.is_alive():
                     log("WARNING", f"工作线程未能正常退出")
 
-        # 等待信号处理器线程终止
         if self.signal_processor_thread and self.signal_processor_thread.is_alive():
-            self.signal_processor_thread.join(timeout=1.0)  # 等待最多1秒
+            self.signal_processor_thread.join(timeout=1.0)
             if self.signal_processor_thread.is_alive():
                 log("WARNING", "信号处理器线程未能正常退出")
 
-        # 发出停止信号
         self.processing_stopped.emit()
         log("INFO", "处理线程已成功停止")
         log_print("处理线程已成功停止")
 
-        # 清理资源
-        # 本地模式下不在这里清理资源，防止模型被反复加载
-        # 资源清理会在整个处理完成后由主线程调用
         if self.client_type != 'local' and hasattr(self.shared_client, 'cleanup') and callable(self.shared_client.cleanup):
             try:
                 self.shared_client.cleanup()
                 import gc
                 gc.collect()
-            except (RuntimeError, OSError) as e:  # 捕获特定异常类型
+            except (RuntimeError, OSError) as e:
                 log_print(f"客户端资源清理失败: {str(e)}")
 
-        # 重置线程状态
         self.workers = []
         self.signal_processor_thread = None
 
     def process_image_file(self, local_file_path, client):
-        """处理单个图像文件的OCR识别与结果分类
-
-        Args:
-            local_file_path (str): 本地图像文件路径
-            client: OCR识别客户端实例
-
-        Returns:
-            dict: 包含处理状态、结果和错误信息的字典
-        """
         filename = os.path.basename(local_file_path)
-        log("INFO", f"开始处理图像文件: {filename}")
-        log_print(f"开始处理图像文件: {filename}")
-
         try:
             if not os.path.exists(local_file_path):
                 error_msg = f"文件不存在: {local_file_path}"
                 log("ERROR", error_msg)
                 return {'filename': filename, 'success': False, 'error': error_msg}
-
-            log_print(f"使用本地文件处理: {filename}")
 
             with open(local_file_path, 'rb') as f:
                 image_source = f.read()
@@ -499,7 +414,6 @@ class ProcessingThread(QtCore.QThread):
 
             max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == MODE_LOCAL else (
                 self.Config.get("RETRY_TIMES") if self.Config else 3)
-            ocr_result = None
             for attempt in range(max_attempts):
                 if attempt > 0:
                     backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
@@ -508,19 +422,12 @@ class ProcessingThread(QtCore.QThread):
 
                 try:
                     is_url = False
-                    if not isinstance(image_source, bytes):
-                        error_msg = f"image_source必须是bytes类型，但得到的是{type(image_source)}类型"
-                        log("ERROR", error_msg)
-                        log_print(f"[ERROR] {error_msg}")
-                        return {'filename': filename, 'success': False, 'error': error_msg}
                     ocr_result = client.recognize(image_source, is_url=is_url)
-                    log_print(f"OCR识别结果: {ocr_result}")
-
                     time.sleep(self.request_interval)
 
                     if ocr_result:
                         result_value = ocr_result
-                        log("INFO", f"OCR识别成功: {filename}, 结果: {result_value}")
+                        log("DEBUG", f"OCR识别成功: {filename}, 结果: {result_value}")
                         log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
 
                         result = {
@@ -529,12 +436,6 @@ class ProcessingThread(QtCore.QThread):
                             'result': result_value,
                             'recognition': result_value
                         }
-                        
-                        # 本地模式下，处理完成一张图像后等待1秒再处理下一张
-                        # if self.client_type == 'local':
-                        #     log("INFO", "本地OCR模式下，等待1秒后处理下一张图像")
-                        #     time.sleep(1)
-                        
                         return result
                     else:
                         error_msg = '未识别到有效结果'
@@ -575,119 +476,4 @@ class ProcessingThread(QtCore.QThread):
             return {'filename': filename, 'success': False, 'error': error_msg}
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
-        """将处理后的文件复制或移动到分类目录
-
-        Args:
-            local_file_path (str): 源文件路径
-            recognition (str): OCR识别结果，用于分类
-            output_dir (str): 输出根目录
-            is_move (bool): 是否移动文件（True）或复制（False）
-
-        Returns:
-            str: 分类目录名称，或None（若失败）
-        """
-        filename = os.path.basename(local_file_path)
-
-        if recognition:
-            category = recognition.replace('\n', ' ').replace('【', '[').replace('】', ']')
-            invalid_chars = '\\/:*?"<>|'
-            for char in invalid_chars:
-                category = category.replace(char, '-')
-            max_length = 100
-            if len(category) > max_length:
-                category = category[:max_length] + '...'
-            if '未识别到有效内容' in category:
-                category = '未识别到有效内容'
-        else:
-            category = "识别失败"
-
-        category_dir = os.path.join(output_dir, category)
-        if not os.path.exists(category_dir):
-            try:
-                os.makedirs(category_dir, exist_ok=True)
-            except OSError as e:
-                error_msg = f"创建目录失败: {str(e)}"
-                log("ERROR", error_msg)
-                log_print(error_msg)
-                self.signal_queue.put(('error_occurred', error_msg))
-                return None
-
-        dest_path = os.path.join(category_dir, filename)
-        counter = 1
-
-        # 检查目标文件是否已存在且与源文件相同
-        skip_copy = False
-        if os.path.exists(dest_path):
-            src_stat = os.stat(local_file_path)
-            dest_stat = os.stat(dest_path)
-            # 如果文件大小和修改时间相同，则认为文件内容相同
-            if src_stat.st_size == dest_stat.st_size and abs(src_stat.st_mtime - dest_stat.st_mtime) < 1:
-                skip_copy = True
-                log("INFO", f"文件已存在且相同，跳过复制/移动: {filename}")
-                log_print(f"文件已存在且相同，跳过复制/移动: {filename}")
-        
-        # 如果文件已存在但不相同，则生成新文件名
-        while os.path.exists(dest_path) and not skip_copy:
-            name, ext = os.path.splitext(filename)
-            dest_path = os.path.join(category_dir, f"{name}_{counter}{ext}")
-            counter += 1
-
-        try:
-            if skip_copy:
-                return category
-                
-            if is_move:
-                try:
-                    with self.file_lock:
-                        shutil.move(local_file_path, dest_path)
-                        log("INFO", f"已移动文件: {filename} -> {category}")
-                        log_print(f"已移动文件: {filename} -> {category}")
-                except PermissionError:
-                    error_msg = f"移动文件时权限不足: {filename}"
-                    log("ERROR", error_msg)
-                    log_print(error_msg)
-                    self.signal_queue.put(('error_occurred', error_msg))
-                    return None
-                except shutil.Error as e:
-                    error_msg = f"移动文件失败: {str(e)}"
-                    log("ERROR", error_msg)
-                    log_print(f"[ERROR] 文件已被占用或路径无效: {filename}")
-                    self.signal_queue.put(('error_occurred', error_msg))
-                    return None
-                except Exception as e:
-                    error_msg = f"移动文件时出错: {str(e)}"
-                    log("ERROR", error_msg)
-                    log_print(error_msg)
-                    self.signal_queue.put(('error_occurred', error_msg))
-                    return None
-            else:
-                try:
-                    shutil.copy2(local_file_path, dest_path)
-                    log("INFO", f"已复制文件: {filename} -> {category}")
-                    log_print(f"已复制文件: {filename} -> {category}")
-                except PermissionError:
-                    error_msg = f"复制文件时权限不足: {filename}"
-                    log("ERROR", error_msg)
-                    log_print(error_msg)
-                    self.signal_queue.put(('error_occurred', error_msg))
-                    return None
-                except shutil.Error as e:
-                    error_msg = f"复制文件失败: {str(e)}"
-                    log("ERROR", error_msg)
-                    log_print(f"[ERROR] 文件已被占用或路径无效: {filename}")
-                    self.signal_queue.put(('error_occurred', error_msg))
-                    return None
-                except Exception as e:
-                    error_msg = f"复制文件时出错: {str(e)}"
-                    log("ERROR", error_msg)
-                    log_print(error_msg)
-                    self.signal_queue.put(('error_occurred', error_msg))
-                    return None
-
-            return category
-        except Exception as e:
-            error_msg = f"处理文件时发生未知错误: {str(e)}"
-            log("ERROR", error_msg)
-            log_print(error_msg)
-            self.signal_queue.put(('error_occurred', error_msg))
-            return None
+        print(f"{local_file_path} {recognition} 移动={is_move} {output_dir}")

@@ -13,11 +13,6 @@ from utils import get_resource_path, log, log_print, load_config
 
 
 class SettingWindow(QMainWindow, Ui_SettingWindow):
-    """设置窗口类，用于配置应用程序参数和密码管理。
-
-    提供界面用于配置API密钥、并发数、重试次数、正则表达式等参数，
-    并支持密码设置功能。
-    """
     def __init__(self):
         super().__init__()
         self.config_file = os.path.join(get_resource_path("_internal/Config.json"))
@@ -247,4 +242,3 @@ if __name__ == "__main__":
     window = SettingWindow()
     window.show()
     sys.exit(app.exec())
-

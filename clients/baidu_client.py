@@ -1,17 +1,16 @@
 import base64
 import json
-import os
 import re
 import ssl
-import urllib.parse
 import threading
-import requests
+import urllib.parse
+from typing import Optional, Union
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
-from typing import Optional, Union
+
+import requests
 
 from utils import load_config, log, log_print
-
 from .base_client import BaseClient
 
 
@@ -25,7 +24,7 @@ class BaiduClient(BaseClient):
         self.secret_key = self.config.get("BAIDU_SECRET_KEY", "")
         self.access_token = ""
         self.context = ssl._create_unverified_context()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-Za-z][0-9]$'))
+        self.pattern = re.compile(self.config.get("RE", r'.*'))
         self.client_type = 'baidu'
 
     def get_access_token(self):
@@ -99,6 +98,5 @@ class BaiduClient(BaseClient):
             return self.process_recognition_result(result, image_source, is_url)
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")
-            log_print(f"[百度API] 识别请求异常: {str(e)} (文件: {filename})")
             return None
     

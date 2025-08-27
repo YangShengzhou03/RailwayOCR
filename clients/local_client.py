@@ -1,15 +1,14 @@
 """本地OCR客户端实现，提供离线图像识别功能"""
 import gc
-import os
 import re
 import threading
 import time
 from io import BytesIO
 from typing import Optional, Union
 
-import requests
 import easyocr
 import numpy as np
+import requests
 from PIL import Image, ImageEnhance, ImageFilter
 
 from utils import load_config, log, log_print
@@ -23,7 +22,7 @@ class LocalClient(BaseClient):
 
     def __init__(self, max_retries=3, gpu=False):
         self.config = load_config()
-        self.pattern = re.compile(self.config.get("RE", r'^[A-K][1-7]$'))
+        self.pattern = re.compile(self.config.get("RE", r'.*'))
         self.client_type = 'local'
         self.reader = None
         self.max_retries = max_retries
@@ -267,10 +266,6 @@ class LocalClient(BaseClient):
                             gc.collect()
                             # 短暂延迟减轻CPU压力
                             time.sleep(0.01)
-
-            processing_time = time.time() - start_time
-
-            log("警告", "未识别到有效结果")
             return None
 
         except (RuntimeError, ValueError, TypeError) as e:
@@ -280,7 +275,6 @@ class LocalClient(BaseClient):
             return None
         finally:
             try:
-                # 优化：确保所有图像资源都被释放
                 if original_image is not None:
                     original_image.close()
                     del original_image
@@ -307,14 +301,11 @@ class LocalClient(BaseClient):
         """释放OCR阅读器资源并清理状态标志"""
         try:
             with self._reader_lock:
-                # 标记为正在清理
                 self._is_cleaning = True
                 if self.reader is not None:
                     try:
-                        # 安全删除reader
                         del self.reader
                         self.reader = None
-                        log("INFO", "OCR阅读器资源已释放")
                     except (TypeError, AttributeError, OSError) as e:
                         log("ERROR", f"删除OCR阅读器时出错: {str(e)}")
                 self._is_cleaning = False

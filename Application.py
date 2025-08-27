@@ -1,8 +1,3 @@
-"""Railway OCR Application Main Module
-
-This module contains the main application entry point and window management
-functions for the Railway OCR application.
-"""
 import sys
 import time
 import traceback
@@ -17,11 +12,6 @@ from utils import get_resource_path, log_print
 
 
 def center_window(window):
-    """Centers the given window on the primary screen.
-
-    Args:
-        window: QWidget instance to be centered
-    """
     qr = window.frameGeometry()
     cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
     qr.moveCenter(cp)
@@ -29,14 +19,6 @@ def center_window(window):
 
 
 def main():
-    """Main application entry point.
-
-    Handles single instance management, password verification,
-    main window creation and application execution.
-
-    Returns:
-        int: Application exit code
-    """
     server = QLocalServer()
     socket_name = "LeafView_Railway_Server_Socket"
 
@@ -48,8 +30,10 @@ def main():
             client_socket.write(b"bring_to_front")
             client_socket.waitForBytesWritten()
             return 1
-    finally:
-        client_socket.disconnectFromServer()
+    except Exception:
+        pass
+
+    client_socket.disconnectFromServer()
 
     QLocalServer.removeServer(socket_name)
     if not server.listen(socket_name):
@@ -148,11 +132,6 @@ def main():
 
 
 def handle_incoming_connection(server):
-    """Handles incoming local server connections.
-
-    Args:
-        server: QLocalServer instance
-    """
     socket = server.nextPendingConnection()
 
     try:
@@ -168,11 +147,7 @@ def handle_incoming_connection(server):
                         )
                         widget[1].activateWindow()
                         widget[1].raise_()
-                        widget[1].setStyleSheet(""
-                                                "QMainWindow {"
-                                                "    border: 1px solid #007aff;"
-                                                "}"
-                                                )
+                        widget[1].setStyleSheet("")
                         QtCore.QTimer.singleShot(300, lambda w=widget[1]: w.setStyleSheet(""))
                         break
     except (OSError, RuntimeError) as e:
@@ -185,11 +160,7 @@ def handle_incoming_connection(server):
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except (RuntimeError, TypeError, ValueError, ImportError) as e:
-        sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
-        sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
-        sys.exit(1)
-    except (Exception) as e:
+    except Exception as e:
         sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
         sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
         sys.exit(1)

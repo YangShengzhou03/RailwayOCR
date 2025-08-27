@@ -28,7 +28,6 @@ class BaseClient(ABC):
         else:
             filename = image_source if is_url else os.path.basename(str(image_source))
             log("WARNING", f"未识别到有效结果: {filename}")
-            log_print(f"[识别结果] 文件: {filename} 未找到匹配模式")
             return None
 
     @staticmethod

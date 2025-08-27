@@ -1,3 +1,14 @@
+"""
+RailwayOCR主窗口模块
+
+该模块负责应用程序的主界面管理，包括：
+- 文件选择和目录管理
+- OCR客户端初始化和配置
+- 图像处理线程控制
+- 用户界面交互处理
+- 异常处理和资源清理
+"""
+
 import os
 import sys
 import time
@@ -15,6 +26,18 @@ from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, get_resource_path, log, load
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+    """
+    主窗口类，负责管理OCR应用程序的主界面和核心功能
+    
+    属性:
+        client: OCR客户端实例，用于文本识别
+        source_dir: 源文件夹路径
+        dest_dir: 目标文件夹路径
+        processing: 处理状态标志
+        processing_thread: 处理线程实例
+        config: 应用程序配置
+    """
+    
     def __init__(self):
         super().__init__()
         self.setupUi(self)
@@ -31,6 +54,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.dragging = False
         self.drag_position = QtCore.QPoint()
         self.setting_window = None
+        self.client = None
 
         utils.MAIN_WINDOW = self
         self.config = load_config()
@@ -45,6 +69,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
 
     def _init_ui_components(self):
+        """初始化用户界面组件的初始状态"""
         self.total_files_label.setText("0")
         self.processed_label.setText("0")
         self.success_label.setText("0")
@@ -57,6 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.textEdit_log.setReadOnly(True)
 
     def _initialize_ocr_client(self):
+        """初始化OCR客户端实例，根据配置选择不同的OCR服务提供商"""
         mode_index = self.config.get("MODE_INDEX", 0)
         try:
             if mode_index == MODE_ALI:
@@ -73,6 +99,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.client = LocalClient(max_retries=1)
 
     def _setup_connections(self):
+        """设置UI组件的事件信号连接"""
         self.pushButton_src_folder.clicked.connect(self.browse_source_directory)
         self.pushButton_dst_folder.clicked.connect(self.browse_dest_directory)
 
@@ -85,21 +112,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.toolButton_mini.clicked.connect(self.minimize_window)
 
     def open_setting(self):
+        """打开设置窗口"""
         self.setting_window = SettingWindow()
         self.setting_window.show()
 
     def mousePressEvent(self, event):
+        """处理鼠标按下事件，支持窗口拖动"""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.dragging = True
             self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             event.accept()
 
     def mouseMoveEvent(self, event):
+        """处理鼠标移动事件，实现窗口拖动功能"""
         if self.dragging and event.buttons() & QtCore.Qt.MouseButton.LeftButton:
             self.move(event.globalPosition().toPoint() - self.drag_position)
             event.accept()
 
     def mouseReleaseEvent(self, event):
+        """处理鼠标释放事件，结束窗口拖动"""
         self.dragging = False
 
     def browse_source_directory(self):
@@ -336,22 +367,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot(int, str)
     def on_progress_updated(self, value, message):
+        """处理进度更新信号，更新进度条显示"""
         try:
             self.progressBar.setValue(value)
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"更新进度条失败: {str(e)}")
 
     @QtCore.pyqtSlot(int, int, int)
     def on_stats_updated(self, processed, success, failed):
+        """处理统计信息更新信号，更新处理结果统计"""
         try:
             self.processed_label.setText(str(processed))
             self.success_label.setText(str(success))
             self.failed_label.setText(str(failed))
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"更新统计信息失败: {str(e)}")
 
     @QtCore.pyqtSlot(list)
     def on_processing_finished(self, results):
+        """处理完成信号，显示最终处理结果统计"""
         self.processing = False
         processing_end_time = time.time()
         total_seconds = int(processing_end_time - self.processing_start_time)
@@ -382,42 +416,47 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     @QtCore.pyqtSlot()
     def on_processing_stopped(self):
+        """处理停止信号，清理处理状态"""
         try:
             log("INFO", "处理已停止")
             self.processing = False
             QtCore.QTimer.singleShot(0, self._update_ui_after_stop)
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"处理停止信号失败: {str(e)}")
 
     @QtCore.pyqtSlot(str)
     def on_error_occurred(self, error_msg):
+        """处理错误信号，显示错误信息并重置界面"""
         try:
             log("ERROR", f"处理线程错误: {error_msg}")
             QMessageBox.critical(self, "处理错误", error_msg)
             self.processing = False
             self.pushButton_start.setEnabled(True)
             self.pushButton_start.setText("开始分类")
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"处理错误信号失败: {str(e)}")
 
     def _cleanup_thread(self):
+        """清理处理线程和OCR资源"""
         if self.processing_thread:
             if hasattr(self.client, 'cleanup') and hasattr(self.client,
                                                            'client_type') and self.client.client_type == 'local':
                 try:
                     self.client.cleanup()
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     log("ERROR", f"清理本地OCR资源失败: {str(e)}")
             self.processing_thread.deleteLater()
             self.processing_thread = None
 
     def minimize_window(self):
+        """最小化应用程序窗口"""
         try:
             self.showMinimized()
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"最小化窗口失败: {str(e)}")
 
     def close_application(self):
+        """关闭应用程序，清理资源并安全退出"""
         try:
             if self.processing:
                 reply = QMessageBox.question(
@@ -444,12 +483,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 try:
                     self.client.cleanup()
                     log("INFO", "本地OCR资源已在应用程序关闭前释放")
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     log("ERROR", f"清理本地OCR资源失败: {str(e)}")
 
             log("INFO", "应用程序即将关闭")
             QApplication.quit()
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"关闭应用程序失败: {str(e)}")
 
 

@@ -261,7 +261,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mode_index = self.config.get("MODE_INDEX", 0)
 
             if mode_index == MODE_ALI:
-                print("阿里云")
                 appcode = self.config.get("ALI_APPCODE", "")
                 if not appcode:
                     log("ERROR", "未配置阿里云AppCode")
@@ -270,12 +269,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.client = AliClient()
                 client = self.client
             elif mode_index == MODE_LOCAL:
-                print("本地")
                 if not hasattr(self.client, 'client_type') or self.client.client_type != 'local':
                     self.client = LocalClient(max_retries=1)
                 client = self.client
             elif mode_index == MODE_BAIDU:
-                print("百度")
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:

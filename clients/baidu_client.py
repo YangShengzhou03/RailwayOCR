@@ -139,7 +139,7 @@ class BaiduClient(BaseClient):
             body = urllib.parse.urlencode({"image": img_base64})
             response = self.posturl(headers, body)
             result = self.extract_matches(response)
-            return self.process_recognition_result(result, image_source, is_url)
+            return self.process_recognition_result(str(result), image_source, is_url)
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")
             return None

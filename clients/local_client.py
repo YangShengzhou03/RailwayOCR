@@ -261,7 +261,6 @@ class LocalClient(BaseClient):
 
                         if matched_result:
                             processing_time = time.time() - start_time
-                            log("INFO", f"识别完成，耗时{processing_time:.2f}秒")
                             return matched_result
 
                 except (RuntimeError, ValueError) as e:

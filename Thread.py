@@ -1,9 +1,19 @@
+"""
+多线程图像处理模块
+
+该模块提供ProcessingThread类，用于多线程处理OCR图像识别任务，
+支持速率限制、重试机制和线程安全的文件操作。
+"""
+
+import gc
 import json
 import os
+import shutil
 import threading
 import time
 from datetime import datetime, timedelta
 from queue import Queue, Empty
+        
 
 import requests
 from PyQt6 import QtCore
@@ -12,6 +22,12 @@ from utils import load_config, log_print, log, MODE_LOCAL
 
 
 class ProcessingThread(QtCore.QThread):
+    """
+    多线程图像处理类
+    
+    负责管理OCR图像处理的多线程任务，包括速率限制、重试机制
+    和线程安全的文件复制/移动操作。
+    """
     file_processed = QtCore.pyqtSignal(dict)
     processing_finished = QtCore.pyqtSignal(list)
     processing_stopped = QtCore.pyqtSignal()
@@ -21,6 +37,16 @@ class ProcessingThread(QtCore.QThread):
     error_occurred = QtCore.pyqtSignal(str)
 
     def __init__(self, client, image_files, dest_dir, is_move_mode, parent=None):
+        """
+        初始化处理线程
+        
+        Args:
+            client: OCR客户端实例
+            image_files: 要处理的图像文件列表
+            dest_dir: 目标目录
+            is_move_mode: 是否为移动模式
+            parent: 父对象
+        """
         super().__init__(parent)
         self.client_config = client.config if hasattr(client, 'config') else {}
         self.image_files = image_files
@@ -55,7 +81,7 @@ class ProcessingThread(QtCore.QThread):
         self.request_interval = 0.5
         self.max_backoff_time = 30
         self.request_timeout = 60
-        self.Config = {}
+        self.config = {}
         self._load_config()
         self.requests_counter = 0
         self.window_start = datetime.now()
@@ -70,6 +96,7 @@ class ProcessingThread(QtCore.QThread):
         log_print(f"[线程初始化] 使用{self.client_type} OCR客户端")
 
     def _load_config(self):
+        """加载并应用配置文件设置"""
         try:
             new_config = load_config()
             cpu_count = os.cpu_count() or 4
@@ -103,7 +130,7 @@ class ProcessingThread(QtCore.QThread):
             if new_request_timeout != self.request_timeout:
                 self.request_timeout = new_request_timeout
                 config_changed = True
-            self.Config = new_config
+            self.config = new_config
             if config_changed:
                 log("WARNING",
                     f"配置: 工作线程数={self.worker_count}, 请求限制={self.max_requests_per_minute}次/分钟")
@@ -175,6 +202,7 @@ class ProcessingThread(QtCore.QThread):
             self.signal_processor_thread.join(timeout=1.0)
 
     def _worker(self, worker_id):
+        """工作线程处理函数，从文件队列中获取并处理文件"""
         client = self.shared_client
 
         while self.is_running or not self.file_queue.empty():
@@ -237,6 +265,7 @@ class ProcessingThread(QtCore.QThread):
         log_print(f"工作线程 {worker_id + 1} 已结束")
 
     def _signal_processor(self):
+        """信号处理器线程函数，处理来自工作线程的信号"""
         while self.signal_processor_running or not self.signal_queue.empty():
             try:
                 signal = self.signal_queue.get(timeout=0.1)
@@ -281,6 +310,16 @@ class ProcessingThread(QtCore.QThread):
                 self.signal_queue.task_done()
 
     def rate_limited_process(self, file_path, client):
+        """
+        带速率限制的文件处理函数
+        
+        Args:
+            file_path: 要处理的文件路径
+            client: OCR客户端实例
+            
+        Returns:
+            dict: 处理结果字典
+        """
         if not self.is_running:
             return {'filename': os.path.basename(file_path), 'success': False, 'error': '处理已取消'}
 
@@ -297,6 +336,7 @@ class ProcessingThread(QtCore.QThread):
             return {'filename': os.path.basename(file_path), 'success': False, 'error': error_msg}
 
     def _check_rate_limit(self):
+        """检查并实施速率限制"""
         with self.lock:
             now = datetime.now()
             if now - self.window_start > timedelta(minutes=1):
@@ -361,7 +401,6 @@ class ProcessingThread(QtCore.QThread):
         if self.client_type != 'local' and hasattr(self.shared_client, 'cleanup') and callable(self.shared_client.cleanup):
             try:
                 self.shared_client.cleanup()
-                import gc
                 gc.collect()
             except (RuntimeError, OSError) as e:
                 log_print(f"客户端资源清理失败: {str(e)}")
@@ -370,6 +409,16 @@ class ProcessingThread(QtCore.QThread):
         self.signal_processor_thread = None
 
     def process_image_file(self, local_file_path, client):
+        """
+        处理单个图像文件，包含重试逻辑
+        
+        Args:
+            local_file_path: 图像文件路径
+            client: OCR客户端实例
+            
+        Returns:
+            dict: 处理结果字典
+        """
         filename = os.path.basename(local_file_path)
         try:
             if not os.path.exists(local_file_path):
@@ -394,8 +443,8 @@ class ProcessingThread(QtCore.QThread):
                 log("ERROR", f"OCR返回非字符串结果: {type(result).__name__}")
                 return {'filename': filename, 'success': False, 'error': 'OCR识别结果格式错误'}
 
-            max_attempts = 1 if self.Config and self.Config.get("MODE_INDEX") == MODE_LOCAL else (
-                self.Config.get("RETRY_TIMES") if self.Config else 3)
+            max_attempts = 1 if self.config and self.config.get("MODE_INDEX") == MODE_LOCAL else (
+                self.config.get("RETRY_TIMES") if self.config else 3)
             for attempt in range(max_attempts):
                 if attempt > 0:
                     backoff_time = min(self.backoff_factor ** attempt, self.max_backoff_time)
@@ -405,7 +454,6 @@ class ProcessingThread(QtCore.QThread):
                 try:
                     is_url = False
                     ocr_result = client.recognize(image_source, is_url=is_url)
-                    log_print(f"OCR识别结果: {ocr_result}")
 
                     time.sleep(self.request_interval)
 
@@ -421,15 +469,15 @@ class ProcessingThread(QtCore.QThread):
                             'recognition': result_value
                         }
                         return result
-                    else:
-                        error_msg = '未识别到有效结果'
-                        log("WARNING",
-                            f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
-                        log_print(f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
-                        if attempt == max_attempts - 1:
-                            log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
-                            log_print(f"文件 {filename} 识别失败: {error_msg}")
-                            return {'filename': filename, 'success': False, 'error': error_msg}
+                    
+                    error_msg = '未识别到有效结果'
+                    log("WARNING",
+                        f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                    log_print(f"OCR识别失败 (尝试 {attempt + 1}/{max_attempts}): {filename}, 错误: {error_msg}")
+                    if attempt == max_attempts - 1:
+                        log("ERROR", f"文件 {filename} 识别失败: {error_msg}")
+                        log_print(f"文件 {filename} 识别失败: {error_msg}")
+                        return {'filename': filename, 'success': False, 'error': error_msg}
 
                 except requests.exceptions.RequestException as e:
                     error_msg = f'网络请求异常: {str(e)}'
@@ -460,4 +508,97 @@ class ProcessingThread(QtCore.QThread):
             return {'filename': filename, 'success': False, 'error': error_msg}
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
-        print(f"{local_file_path} {recognition} 移动={is_move} {output_dir}")
+        """
+        将文件复制或移动到分类文件夹，使用文件锁确保线程安全
+        
+        Args:
+            local_file_path: 源文件路径
+            recognition: 识别结果（用于创建目标子文件夹）
+            output_dir: 输出目录
+            is_move: 是否为移动操作（True=移动，False=复制）
+        """
+
+        # 使用文件锁确保同一文件的并发操作安全
+        with self.file_lock:
+            try:
+                if not os.path.exists(local_file_path):
+                    log("ERROR", f"源文件不存在: {local_file_path}")
+                    return
+                
+                # 清理识别结果，创建有效的文件夹名称
+                safe_recognition = self._sanitize_folder_name(recognition)
+                
+                # 创建目标子文件夹
+                target_subdir = os.path.join(output_dir, safe_recognition)
+                os.makedirs(target_subdir, exist_ok=True)
+                
+                # 构建目标文件路径
+                filename = os.path.basename(local_file_path)
+                target_path = os.path.join(target_subdir, filename)
+                
+                # 处理文件名冲突
+                counter = 1
+                base_name, ext = os.path.splitext(filename)
+                while os.path.exists(target_path):
+                    target_path = os.path.join(target_subdir, f"{base_name}_{counter}{ext}")
+                    counter += 1
+                
+                # 执行文件操作
+                # operation变量用于日志记录，但当前未使用
+                
+                if is_move:
+                    # 移动操作：先复制再删除，确保原子性
+                    shutil.copy2(local_file_path, target_path)
+                    if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
+                        os.remove(local_file_path)
+                        log("INFO", f"文件移动成功: {filename} -> {safe_recognition}")
+                    else:
+                        log("ERROR", f"文件移动失败: {filename}")
+                        if os.path.exists(target_path):
+                            os.remove(target_path)
+                else:
+                    # 复制操作
+                    shutil.copy2(local_file_path, target_path)
+                    if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
+                        log("INFO", f"文件复制成功: {filename} -> {safe_recognition}")
+                    else:
+                        log("ERROR", f"文件复制失败: {filename}")
+                        if os.path.exists(target_path):
+                            os.remove(target_path)
+                
+            except (OSError, PermissionError, shutil.Error) as e:
+                log("ERROR", f"文件操作错误: {str(e)}")
+                # 等待并重试一次
+                time.sleep(0.1)
+                try:
+                    if is_move:
+                        shutil.move(local_file_path, target_path)
+                    else:
+                        shutil.copy2(local_file_path, target_path)
+                except (OSError, PermissionError, shutil.Error) as retry_e:
+                    log("ERROR", f"文件操作重试失败: {str(retry_e)}")
+    
+    def _sanitize_folder_name(self, name):
+        """清理文件夹名称，移除非法字符"""
+        if not name or not isinstance(name, str):
+            return "未知分类"
+        
+        # 移除非法文件名字符
+        invalid_chars = '<>:"/\\|?*'
+        for char in invalid_chars:
+            name = name.replace(char, '_')
+        
+        # 移除首尾空格和点
+        name = name.strip().strip('.')
+        
+        # 限制长度
+        if len(name) > 100:
+            name = name[:100]
+        
+        # 如果名称为空，使用默认名称
+        if not name:
+            name = "未知分类"
+            
+        return name
+
+

@@ -21,7 +21,6 @@ class LocalClient(BaseClient):
     client_type: str = "local"
 
     def __init__(self, max_retries=1, gpu=False):
-        print("运行到本地")
         self.config = load_config()
         self.pattern = re.compile(self.config.get("RE", r'.*'))
         self.client_type = 'local'
@@ -73,7 +72,7 @@ class LocalClient(BaseClient):
                 else:
                     self._is_initializing = False
                     log("ERROR", f"OCR模型加载失败: 已尝试{self.max_retries}次仍无法加载，请检查模型文件")
-                    raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}")
+                    raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}") from e
 
     def get_img(self, img_file):
         """获取并验证图像文件
@@ -88,7 +87,22 @@ class LocalClient(BaseClient):
         """
         return img_file
 
-    def optimized_preprocess_from_image(self, image: Image.Image, filename: str, max_size=800, enhance_attempt=0):
+    def optimized_preprocess_from_image(self, image: Image.Image, filename: str,
+                                       max_size=800, enhance_attempt=0):
+        """优化图像预处理
+        
+        对输入图像进行尺寸调整、格式转换和增强处理，
+        提高OCR识别准确率。
+        
+        参数:
+            image: PIL图像对象
+            filename: 图像文件名用于日志记录
+            max_size: 最大尺寸限制
+            enhance_attempt: 增强尝试次数，控制处理强度
+            
+        返回:
+            numpy数组格式的预处理图像或None
+        """
         try:
             # 获取图像尺寸但不存储未使用的变量
             if not self.gpu and max(image.size) > max_size:
@@ -211,7 +225,6 @@ class LocalClient(BaseClient):
                                 continue
 
                         with self._reader_lock:
-                            # 再次检查，防止在获取锁期间reader被设为None
                             if self.reader is None:
                                 log_print("[ERROR] OCR阅读器在锁定期间变为None，无法继续识别")
                                 continue
@@ -248,6 +261,7 @@ class LocalClient(BaseClient):
 
                         if matched_result:
                             processing_time = time.time() - start_time
+                            log("INFO", f"识别完成，耗时{processing_time:.2f}秒")
                             return matched_result
 
                 except (RuntimeError, ValueError) as e:
@@ -257,16 +271,16 @@ class LocalClient(BaseClient):
                     log_print(f"[ERROR] {error_msg}")
                     continue
                 finally:
-                            # 确保所有图像资源都被释放
-                            for var in ['processed_image', 'enhanced_img', 'gray_img', 'thresh_img']:
-                                if var in locals():
-                                    try:
-                                        del locals()[var]
-                                    except (RuntimeError, ValueError, TypeError) as e:
-                                        log("WARNING", f"释放资源 {var} 失败: {str(e)}")
-                            gc.collect()
-                            # 短暂延迟减轻CPU压力
-                            time.sleep(0.01)
+                    # 确保所有图像资源都被释放
+                    for var in ['processed_image', 'enhanced_img', 'gray_img', 'thresh_img']:
+                        if var in locals():
+                            try:
+                                del locals()[var]
+                            except (RuntimeError, ValueError, TypeError) as e:
+                                log("WARNING", f"释放资源 {var} 失败: {str(e)}")
+                    gc.collect()
+                    # 短暂延迟减轻CPU压力
+                    time.sleep(0.01)
             return None
 
         except (RuntimeError, ValueError, TypeError) as e:
@@ -285,8 +299,18 @@ class LocalClient(BaseClient):
             except (TypeError, AttributeError, OSError, TypeError, AttributeError, OSError) as e:
                 log_print(f"[WARNING] 图像资源释放失败: {str(e)}")
 
-    @staticmethod
-    def validate_image_source(image_source, is_url):
+    def validate_image_source(self, image_source, is_url):
+        """验证图像源格式
+        
+        重写基类方法，验证图像源是否符合要求格式。
+        
+        参数:
+            image_source: 图像源数据
+            is_url: 是否为URL格式
+            
+        抛出:
+            ValueError: 当图像源格式不符合要求时
+        """
         if is_url and not isinstance(image_source, str):
             raise ValueError("URL必须是字符串类型")
         if not is_url and not isinstance(image_source, bytes):
@@ -312,6 +336,6 @@ class LocalClient(BaseClient):
                 self._is_cleaning = False
             gc.collect()
 
-        except Exception as e:
+        except (TypeError, AttributeError, OSError, RuntimeError) as e:
             log_print(f"[WARNING] 清理资源时出错: {str(e)}")
             self._is_cleaning = False

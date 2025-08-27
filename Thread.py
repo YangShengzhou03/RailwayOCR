@@ -8,7 +8,6 @@ from queue import Queue, Empty
 import requests
 from PyQt6 import QtCore
 
-from clients import AliClient, BaiduClient, LocalClient
 from utils import load_config, log_print, log, MODE_LOCAL
 
 
@@ -462,4 +461,3 @@ class ProcessingThread(QtCore.QThread):
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
         print(f"{local_file_path} {recognition} 移动={is_move} {output_dir}")
-        #

@@ -201,8 +201,8 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
 
             load_config.cache_clear()
             # 移除未使用变量 new_config
-            if hasattr(utils.main_window, 'on_config_updated'):
-                utils.main_window.on_config_updated()
+            if utils.MAIN_WINDOW is not None and hasattr(utils.MAIN_WINDOW, 'on_config_updated'):
+                utils.MAIN_WINDOW.on_config_updated()
 
             QMessageBox.information(self, "保存成功", "配置已成功保存！")
             log("INFO", "设置已保存并生效")

@@ -436,6 +436,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"处理错误信号失败: {str(e)}")
 
+    def on_config_updated(self):
+        """配置更新时的回调方法，重新加载配置并重新初始化OCR客户端"""
+        try:
+            self.config = load_config()
+            self._initialize_ocr_client()
+            log("INFO", "配置已更新，OCR客户端已重新初始化")
+        except Exception as e:
+            log("ERROR", f"配置更新失败: {str(e)}")
+
     def _cleanup_thread(self):
         """清理处理线程和OCR资源"""
         if self.processing_thread:

@@ -492,9 +492,9 @@ QToolButton::menu-indicator {
                       <property name="styleSheet">
                        <string notr="true">QLineEdit {
     border: 1px solid #e2e8f0;
-    border-top-left-radius: 12px;
+    border-top-left-radius: 9px;
     border-top-right-radius: 0px;
-    border-bottom-left-radius: 12px;
+    border-bottom-left-radius: 9px;
     border-bottom-right-radius: 0px;
     padding: 10px 14px;
     background: #ffffff;
@@ -577,9 +577,9 @@ QLineEdit[frame=&quot;false&quot;] {
     background-color: rgb(60, 145, 255);
     color: white;
     border-top-left-radius: 0px;
-    border-top-right-radius: 12px;
+    border-top-right-radius: 9px;
     border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 12px;
+    border-bottom-right-radius: 9px;
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 500;
@@ -645,9 +645,9 @@ QPushButton:pressed {
                       <property name="styleSheet">
                        <string notr="true">QLineEdit {
     border: 1px solid #e2e8f0;
-    border-top-left-radius: 12px;
+    border-top-left-radius: 9px;
     border-top-right-radius: 0px;
-    border-bottom-left-radius: 12px;
+    border-bottom-left-radius: 9px;
     border-bottom-right-radius: 0px;
     padding: 10px 14px;
     background: #ffffff;
@@ -730,9 +730,9 @@ QLineEdit[frame=&quot;false&quot;] {
     background-color: rgb(60, 145, 255);
     color: white;
     border-top-left-radius: 0px;
-    border-top-right-radius: 12px;
+    border-top-right-radius: 9px;
     border-bottom-left-radius: 0px;
-    border-bottom-right-radius: 12px;
+    border-bottom-right-radius: 9px;
     padding: 8px 16px;
     font-size: 14px;
     font-weight: 500;
@@ -1285,7 +1285,7 @@ border-radius:12px
                       <property name="styleSheet">
                        <string notr="true">QProgressBar {
     border: 1px solid rgba(60, 145, 255, 0.5); 
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: #ffffff;
     text-align: center;
     font-size: 14px;

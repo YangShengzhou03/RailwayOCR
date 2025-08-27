@@ -20,7 +20,8 @@ class LocalClient(BaseClient):
     
     client_type: str = "local"
 
-    def __init__(self, max_retries=3, gpu=False):
+    def __init__(self, max_retries=1, gpu=False):
+        print("运行到本地")
         self.config = load_config()
         self.pattern = re.compile(self.config.get("RE", r'.*'))
         self.client_type = 'local'

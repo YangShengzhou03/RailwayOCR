@@ -36,7 +36,11 @@ class ProcessingThread(QtCore.QThread):
         self.lock = threading.Lock()
         self.results_lock = threading.Lock()
         cpu_count = os.cpu_count() or 4
+        
+        # 直接使用传入的client参数，不再重新创建客户端实例
+        self.shared_client = client
         self.client_type = getattr(client, 'client_type', 'unknown')
+        
         if self.client_type == 'local':
             self.worker_count = 1
         else:
@@ -44,6 +48,7 @@ class ProcessingThread(QtCore.QThread):
                 self.worker_count = 1
             else:
                 self.worker_count = min(max(2, cpu_count // 4), 4)
+        
         self.last_progress_update_time = 0
         self.progress_update_interval = 0.5
         self.max_requests_per_minute = 60
@@ -62,31 +67,12 @@ class ProcessingThread(QtCore.QThread):
         self.signal_queue = Queue()
         self.signal_processor_running = True
         self.signal_processor_thread = None
-        client_type = getattr(client, 'client_type', '未知')
-
-        self.client_type = client_type
-
-        try:
-            config = load_config()
-            client_type = config.get('ocr_client', 'local')
-            if client_type == 'ali':
-                self.shared_client = AliClient()
-            elif client_type == 'baidu':
-                self.shared_client = BaiduClient()
-            else:
-                max_retries = self.client_config.get('max_retries', 3)
-                self.shared_client = LocalClient(max_retries=max_retries, gpu=False)
-
-        except (IOError, OSError) as e:
-            error_msg = f"共享客户端初始化失败: {str(e)}"
-            log_print(f"[线程初始化] 共享客户端初始化失败: {str(e)}")
-            self.error_occurred.emit(error_msg)
-            raise
+        
+        log_print(f"[线程初始化] 使用{self.client_type} OCR客户端")
 
     def _load_config(self):
         try:
             new_config = load_config()
-
             cpu_count = os.cpu_count() or 4
             default_worker_count = min(max(1, cpu_count // 8), 1)
             new_worker_count = new_config.get("CONCURRENCY", default_worker_count)
@@ -95,7 +81,6 @@ class ProcessingThread(QtCore.QThread):
             new_request_interval = new_config.get("REQUEST_INTERVAL", 0.5)
             new_max_backoff_time = new_config.get("MAX_BACKOFF_TIME", 30)
             new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
-
             config_changed = False
             if self.client_type == 'local':
                 if self.worker_count != 1:
@@ -119,9 +104,7 @@ class ProcessingThread(QtCore.QThread):
             if new_request_timeout != self.request_timeout:
                 self.request_timeout = new_request_timeout
                 config_changed = True
-
             self.Config = new_config
-
             if config_changed:
                 log("WARNING",
                     f"配置: 工作线程数={self.worker_count}, 请求限制={self.max_requests_per_minute}次/分钟")
@@ -423,11 +406,13 @@ class ProcessingThread(QtCore.QThread):
                 try:
                     is_url = False
                     ocr_result = client.recognize(image_source, is_url=is_url)
+                    log_print(f"OCR识别结果: {ocr_result}")
+
                     time.sleep(self.request_interval)
 
                     if ocr_result:
                         result_value = ocr_result
-                        log("DEBUG", f"OCR识别成功: {filename}, 结果: {result_value}")
+                        log("DEBUG", f"{self.client_type} OCR识别成功: {filename}, 结果: {result_value}")
                         log_print(f"OCR识别成功: {filename}, 结果: {result_value}")
 
                         result = {
@@ -477,3 +462,4 @@ class ProcessingThread(QtCore.QThread):
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
         print(f"{local_file_path} {recognition} 移动={is_move} {output_dir}")
+        #

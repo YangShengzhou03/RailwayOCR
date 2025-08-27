@@ -11,7 +11,7 @@ from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
 from clients import AliClient, BaiduClient, LocalClient
-from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, get_resource_path, log_print, log, load_config
+from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, get_resource_path, log, load_config
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -88,25 +88,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setting_window = SettingWindow()
         self.setting_window.show()
 
-    def on_config_updated(self):
-        old_mode_index = self.config.get("MODE_INDEX", 0) if hasattr(self, 'config') else -1
-
-        self.config = load_config()
-        log_print("[main_window] 配置文件重新加载完成")
-
-        new_mode_index = self.config.get("MODE_INDEX", 0)
-        if old_mode_index != -1 and old_mode_index != new_mode_index:
-            log_print("[main_window] OCR模式已变更，重新初始化客户端")
-            try:
-                self._initialize_ocr_client()
-                log_print("[main_window] OCR客户端已更新")
-            except Exception as e:
-                log("ERROR", f"更新OCR客户端失败: {str(e)}")
-
-        if hasattr(self, 'processing_thread') and self.processing_thread:
-            self.processing_thread._load_config()
-            log_print("[main_window] 处理线程配置参数已更新")
-
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.dragging = True
@@ -134,7 +115,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def browse_dest_directory(self):
         directory = QFileDialog.getExistingDirectory(self, "选择目标文件夹")
-
         if directory:
             self.dest_dir = directory
             self.lineEdit_dst_folder.setText(directory)
@@ -143,7 +123,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _load_images(self):
         self.image_files = []
-
         if not self.source_dir or not os.path.exists(self.source_dir):
             log("ERROR", "源文件夹不存在或未设置")
             return
@@ -243,7 +222,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         self.processing_start_time = time.time()
-
         self.processing = True
         self.pushButton_start.setText("停止分类")
         self.progressBar.setValue(0)
@@ -252,6 +230,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             mode_index = self.config.get("MODE_INDEX", 0)
 
             if mode_index == MODE_ALI:
+                print("阿里云")
                 appcode = self.config.get("ALI_APPCODE", "")
                 if not appcode:
                     log("ERROR", "未配置阿里云AppCode")
@@ -260,10 +239,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.client = AliClient()
                 client = self.client
             elif mode_index == MODE_LOCAL:
+                print("本地")
                 if not hasattr(self.client, 'client_type') or self.client.client_type != 'local':
                     self.client = LocalClient(max_retries=1)
                 client = self.client
             elif mode_index == MODE_BAIDU:
+                print("百度")
                 api_key = self.config.get("BAIDU_API_KEY")
                 secret_key = self.config.get("BAIDU_SECRET_KEY")
                 if not api_key or not secret_key:
@@ -296,12 +277,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.start()
             log("INFO", "正在处理图像，请耐心等待")
 
-        except ValueError as e:
-            error_msg = f"客户端验证失败: {str(e)}"
-            log("ERROR", error_msg)
-            QMessageBox.critical(self, "客户端错误", error_msg)
-            self.processing = False
-            self.pushButton_start.setText("开始分类")
         except Exception as e:
             error_msg = f"启动处理线程失败: {str(e)}"
             log("ERROR", error_msg)
@@ -334,7 +309,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.config.get("BAIDU_API_KEY") and self.config.get("BAIDU_SECRET_KEY")):
             log("WARNING", "未配置百度API Key或Secret Key")
             return False
-
         return True
 
     def stop_processing(self):

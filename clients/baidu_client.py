@@ -16,7 +16,9 @@ from .base_client import BaseClient
 
 class BaiduClient(BaseClient):
     client_type: str = "baidu"
+
     def __init__(self):
+        print("运行到百度")
         self.api_lock = threading.Lock()
         self.REQUEST_URL = "https://aip.baidubce.com/rest/2.0/ocr/v1/general_basic"
         self.config = load_config()
@@ -99,4 +101,3 @@ class BaiduClient(BaseClient):
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")
             return None
-    

@@ -121,23 +121,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setting_window.show()
 
     def mousePressEvent(self, event):
-        """处理鼠标按下事件，支持窗口拖动"""
+        """处理鼠标按下事件，支持窗口拖动
+        
+        Args:
+            event: 鼠标事件对象
+        """
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             self.dragging = True
             self.drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
             event.accept()
 
     def mouseMoveEvent(self, event):
-        """处理鼠标移动事件，实现窗口拖动功能"""
+        """处理鼠标移动事件，实现窗口拖动功能
+        
+        Args:
+            event: 鼠标事件对象
+        """
         if self.dragging and event.buttons() & QtCore.Qt.MouseButton.LeftButton:
             self.move(event.globalPosition().toPoint() - self.drag_position)
             event.accept()
 
     def mouseReleaseEvent(self, event):
-        """处理鼠标释放事件，结束窗口拖动"""
+        """处理鼠标释放事件，结束窗口拖动
+        
+        Args:
+            event: 鼠标事件对象
+        """
         self.dragging = False
 
     def browse_source_directory(self):
+        """打开文件对话框选择源文件夹并加载图像文件"""
         directory = QFileDialog.getExistingDirectory(self, "选择源文件夹")
 
         if directory:
@@ -149,6 +162,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self._load_images()
 
     def browse_dest_directory(self):
+        """打开文件对话框选择目标文件夹"""
         directory = QFileDialog.getExistingDirectory(self, "选择目标文件夹")
         if directory:
             self.dest_dir = directory
@@ -172,7 +186,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     except (FileNotFoundError, PermissionError, OSError) as e:
                         log("ERROR", f"处理文件 {file} 时出错: {str(e)}")
                         continue
-        except PermissionError:
+        except (OSError, PermissionError) as e:
             log("ERROR", f"访问文件夹 {self.source_dir} 时权限不足")
             return
         except (ValueError, TypeError) as e:
@@ -184,9 +198,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         log("DEBUG", f"扫描完成，发现 {total_count} 个图像文件")
 
     def _toggle_move_mode(self):
+        """切换移动/复制模式"""
         self.is_move_mode = self.move_radio.isChecked()
 
     def _check_directory_conflict(self):
+        """检查源文件夹和目标文件夹是否存在冲突
+        
+        Returns:
+            bool: 是否存在冲突
+        """
         if not (self.source_dir and self.dest_dir):
             return False
 
@@ -209,9 +229,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.total_files_label.setText("0")
                 return True
 
-        except (RuntimeError, ConnectionError) as e:
-            log("ERROR", f"文件夹检查出错: {str(e)}")
-
+        except (RuntimeError, ConnectionError):
+            log("ERROR", "文件夹检查出错")
+            return False
+        
         return False
 
     def toggle_processing(self):
@@ -224,6 +245,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.start_processing()
 
     def _safe_stop_thread(self):
+        """安全停止处理线程
+        
+        Returns:
+            bool: 是否成功停止线程
+        """
         if not self.processing_thread or not self.processing_thread.isRunning():
             return True
 
@@ -232,11 +258,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.processing_thread.wait(2000):
                 log("INFO", "处理线程已成功停止")
                 return True
-            else:
-                log("WARNING", "处理线程未能正常终止，强制终止")
-                self.processing_thread.terminate()
-                return False
-        except Exception as e:
+            
+            log("WARNING", "处理线程未能正常终止，强制终止")
+            self.processing_thread.terminate()
+            return False
+        except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"停止线程时发生错误: {str(e)}")
             return False
 
@@ -295,10 +321,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if not hasattr(client, 'recognize') or not callable(client.recognize):
                 raise ValueError("OCR客户端必须实现recognize方法")
 
+            from PyQt6.QtCore import Qt
             self.processing_thread = ProcessingThread(
                 client, self.image_files, self.dest_dir, self.is_move_mode
             )
-            from PyQt6.QtCore import Qt
             self.processing_thread.processing_finished.connect(self.on_processing_finished,
                                                                Qt.ConnectionType.QueuedConnection)
             self.processing_thread.stats_updated.connect(self.on_stats_updated, Qt.ConnectionType.QueuedConnection)
@@ -312,7 +338,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.processing_thread.start()
             log("INFO", "正在处理图像，请耐心等待")
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             error_msg = f"启动处理线程失败: {str(e)}"
             log("ERROR", error_msg)
             QMessageBox.critical(self, "线程启动失败", error_msg)
@@ -320,6 +346,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.pushButton_start.setText("开始分类")
 
     def _validate_processing_conditions(self):
+        """验证处理条件是否满足
+        
+        Returns:
+            bool: 是否满足处理条件
+        """
         if not self.lineEdit_src_folder.text().strip():
             log("WARNING", "未选择源文件夹")
             QMessageBox.warning(self, "参数缺失", "请先选择源文件夹")
@@ -347,6 +378,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return True
 
     def stop_processing(self):
+        """停止处理过程，显示确认对话框"""
         reply = QMessageBox.question(
             self, "确认停止",
             "确定要停止处理吗? 当前进度将会丢失。",
@@ -366,11 +398,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
 
     def _update_ui_after_stop(self):
+        """在处理停止后更新UI状态"""
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
 
     @QtCore.pyqtSlot(int, str)
-    def on_progress_updated(self, value, message):
+    def on_progress_updated(self, value, _):
         """处理进度更新信号，更新进度条显示"""
         try:
             self.progressBar.setValue(value)
@@ -402,7 +435,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         log("DEBUG", "=" * 50)
         log("DEBUG", f"处理完成，总耗时: {total_time}")
-        log("DEBUG", f"总文件数: {total_count}, 成功: {success_count}, 失败: {failed_count}, 识别率: {success_rate}")
+        log("DEBUG", f"总文件数: {total_count}, 成功: {success_count}, "
+                     f"失败: {failed_count}, 识别率: {success_rate}")
         log("DEBUG", "=" * 50)
 
         if total_count > 0:
@@ -446,7 +480,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.config = load_config()
             self._initialize_ocr_client()
             log("INFO", "配置已更新，OCR客户端已重新初始化")
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             log("ERROR", f"配置更新失败: {str(e)}")
 
     def _cleanup_thread(self):
@@ -474,7 +508,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.processing:
                 reply = QMessageBox.question(
                     self, "确认关闭",
-                    "当前正在处理文件, 关闭将终止处理过程。\n确定要关闭吗?",
+                    "当前正在处理文件, 关闭将终止处理过程。\n"
+                    "确定要关闭吗?",
                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
                 )
 
@@ -511,6 +546,6 @@ if __name__ == "__main__":
         window = MainWindow()
         window.show()
         sys.exit(app.exec())
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, ConnectionError, OSError) as e:
         log("ERROR", f"应用程序启动失败: {str(e)}")
         sys.exit(1)

@@ -1,3 +1,7 @@
+"""应用程序主入口模块
+
+提供RailwayOCR应用程序的启动、单实例检测、密码验证和主窗口管理功能
+"""
 import sys
 import time
 import traceback
@@ -12,6 +16,11 @@ from utils import get_resource_path, log_print
 
 
 def center_window(window):
+    """将窗口居中显示在屏幕上
+    
+    Args:
+        window: 需要居中的窗口对象
+    """
     qr = window.frameGeometry()
     cp = QtWidgets.QApplication.primaryScreen().availableGeometry().center()
     qr.moveCenter(cp)
@@ -19,6 +28,13 @@ def center_window(window):
 
 
 def main():
+    """应用程序主入口函数
+    
+    处理单实例检测、密码验证和主窗口创建
+    
+    Returns:
+        int: 应用程序退出代码
+    """
     server = QLocalServer()
     socket_name = "LeafView_Railway_Server_Socket"
 
@@ -30,7 +46,7 @@ def main():
             client_socket.write(b"bring_to_front")
             client_socket.waitForBytesWritten()
             return 1
-    except Exception:
+    except (ConnectionError, TimeoutError):
         pass
 
     client_socket.disconnectFromServer()
@@ -85,7 +101,7 @@ def main():
             result = verify_password(password)
             dialog.password_edit.clear()
             password_bytes = bytearray(password.encode('utf-8'))
-            for i in range(len(password_bytes)):
+            for i, _ in enumerate(password_bytes):
                 password_bytes[i] = 0
             del password_bytes
             if result:
@@ -132,6 +148,11 @@ def main():
 
 
 def handle_incoming_connection(server):
+    """处理来自其他实例的连接请求
+    
+    Args:
+        server: QLocalServer实例
+    """
     socket = server.nextPendingConnection()
 
     try:
@@ -150,7 +171,7 @@ def handle_incoming_connection(server):
                         widget[1].setStyleSheet("")
                         QtCore.QTimer.singleShot(300, lambda w=widget[1]: w.setStyleSheet(""))
                         break
-    except (OSError, RuntimeError) as e:
+    except (OSError, RuntimeError):
         pass
     finally:
         socket.disconnectFromServer()
@@ -160,7 +181,7 @@ def handle_incoming_connection(server):
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except Exception as e:
-        sys.__stderr__.write(f"Unexpected fatal error: {str(e)}")
-        sys.__stderr__.write(''.join(traceback.format_exception(type(e), e, e.__traceback__)))
+    except Exception as exc:
+        sys.__stderr__.write(f"Unexpected fatal error: {str(exc)}")
+        sys.__stderr__.write(''.join(traceback.format_exception(type(exc), exc, exc.__traceback__)))
         sys.exit(1)

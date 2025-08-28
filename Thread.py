@@ -66,7 +66,7 @@ class ProcessingThread(QtCore.QThread):
         self.shared_client = client
         self.client_type = getattr(client, 'client_type', 'unknown')
         
-        if self.client_type == 'local':
+        if self.client_type == 'local' or self.client_type == 'paddle':
             self.worker_count = 1
         else:
             if cpu_count <= 4:
@@ -108,7 +108,7 @@ class ProcessingThread(QtCore.QThread):
             new_max_backoff_time = new_config.get("MAX_BACKOFF_TIME", 30)
             new_request_timeout = new_config.get("REQUEST_TIMEOUT", 60)
             config_changed = False
-            if self.client_type == 'local':
+            if self.client_type == 'local' or self.client_type == 'paddle':
                 if self.worker_count != 1:
                     self.worker_count = 1
                     config_changed = True

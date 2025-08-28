@@ -642,7 +642,12 @@ QComboBox QAbstractItemView {
                </property>
                <item>
                 <property name="text">
-                 <string>本地模型</string>
+                 <string>本地自研</string>
+                </property>
+               </item>
+               <item>
+                <property name="text">
+                 <string>本地飞桨</string>
                 </property>
                </item>
                <item>

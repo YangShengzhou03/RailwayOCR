@@ -8,8 +8,9 @@ from functools import lru_cache
 from PyQt6.QtWidgets import QMessageBox
 
 MODE_LOCAL = 0
-MODE_BAIDU = 1
-MODE_ALI = 2
+MODE_PADDLE = 1
+MODE_BAIDU = 2
+MODE_ALI = 3
 
 MAIN_WINDOW = None
 LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_internal', 'log')

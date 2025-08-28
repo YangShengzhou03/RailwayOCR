@@ -22,7 +22,8 @@ from Setting import SettingWindow
 from Thread import ProcessingThread
 from Ui_MainWindow import Ui_MainWindow
 from clients import AliClient, BaiduClient, LocalClient
-from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, get_resource_path, log, load_config
+from clients.paddle_client import PaddleClient
+from utils import MODE_ALI, MODE_LOCAL, MODE_BAIDU, MODE_PADDLE, get_resource_path, log, load_config
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -91,6 +92,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             elif mode_index == MODE_BAIDU:
                 self.client = BaiduClient()
                 log("WARNING", "已切换至百度OCR服务")
+            elif mode_index == MODE_PADDLE:
+                self.client = PaddleClient()
+                log("WARNING", "已切换至飞桨OCR服务")
             else:
                 self.client = LocalClient(max_retries=1)
                 log("WARNING", "已切换至本地OCR引擎")
@@ -280,6 +284,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     return
                 if not hasattr(self.client, 'client_type') or self.client.client_type != 'baidu':
                     self.client = BaiduClient()
+                client = self.client
+            elif mode_index == MODE_PADDLE:
+                self.client = PaddleClient(max_retries=1)
                 client = self.client
             else:
                 log("ERROR", f"无效的模式索引: {mode_index}")

@@ -86,26 +86,27 @@ class AliClient(BaseClient):
             log("ERROR", f"API请求失败: {error_msg}")
             return json.dumps({"error": error_msg})
 
-    def extract_matches(self, response_text):
+    def extract_matches(self, texts, pattern: re.Pattern):
         """从API响应中提取匹配的文本结果
 
         Args:
-            response_text: API响应文本
+            texts: API响应文本
+            pattern: 正则表达式模式对象
 
         Returns:
             str: 匹配的文本结果，未找到时返回None
         """
         try:
-            data = json.loads(response_text)
+            data = json.loads(texts)
         except json.JSONDecodeError as e:
-            truncated_text = response_text[:100] if len(response_text) > 100 else response_text
+            truncated_text = texts[:100] if len(texts) > 100 else texts
             log("ERROR", f"响应解析失败: {str(e)}, 响应文本: {truncated_text}")
             return None
 
         words_info = data.get("prism_wordsInfo", [])
         for item in words_info:
             word = item.get("word", "").strip()
-            if self.pattern.fullmatch(word):
+            if pattern.fullmatch(word):
                 return word.upper()
         return None
 
@@ -153,7 +154,7 @@ class AliClient(BaseClient):
             }
 
             response = self.posturl(headers, params)
-            result = self.extract_matches(response)
+            result = self.extract_matches(response, self.pattern)
             return self.process_recognition_result(result, image_source, is_url)
         except (ValueError, IOError, requests.exceptions.RequestException) as e:
             error_msg = f"识别过程中发生错误: {str(e)}"

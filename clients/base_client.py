@@ -5,9 +5,12 @@
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 import base64
+import gc
 import os
+import re
+import time
 
-from utils import log
+from utils import log, log_print
 
 
 class BaseClient(ABC):
@@ -88,4 +91,95 @@ class BaseClient(ABC):
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} type={self.client_type} at {hex(id(self))}>"
-    
+
+    def extract_matches(self, texts, pattern: re.Pattern):
+        """从识别文本中提取匹配的模式
+
+        参数:
+            texts: OCR识别返回的文本列表
+            pattern: 正则表达式模式对象
+
+        返回:
+            匹配的模式字符串(如A1, B2等)或None
+        """
+        for text in texts:
+            cleaned_text = text.strip().replace(' ', '').replace('\n', '')
+            if pattern.fullmatch(cleaned_text):
+                return cleaned_text.upper()
+
+        for text in texts:
+            cleaned_text = text.strip().replace(' ', '').replace('\n', '')
+            match = pattern.search(cleaned_text)
+            if match:
+                return match.group().upper()
+
+        return None
+
+    def handle_ocr_error(self, error_msg, attempt, max_retries):
+        """处理OCR识别错误，包含重试逻辑
+        
+        参数:
+            error_msg: 错误消息
+            attempt: 当前尝试次数
+            max_retries: 最大重试次数
+            
+        返回:
+            bool: 是否继续重试
+        """
+        log("ERROR", error_msg)
+        log_print(f"[ERROR] {error_msg}")
+        if attempt < max_retries - 1:
+            wait_time = min(2 ** attempt, 10)
+            log("INFO", f"将在{wait_time}秒后重试...")
+            time.sleep(wait_time)
+            return True
+        return False
+
+    def handle_general_exception(self, error_msg, exception_type=""):
+        """处理通用异常
+        
+        参数:
+            error_msg: 错误消息
+            exception_type: 异常类型名称
+        """
+        log("ERROR", error_msg)
+        if exception_type:
+            log_print(f"[ERROR] {exception_type}: {error_msg}")
+        else:
+            log_print(f"[ERROR] {error_msg}")
+
+    def cleanup_resources(self, local_vars, resource_names):
+        """清理图像处理资源
+        
+        参数:
+            local_vars: locals()字典
+            resource_names: 需要清理的资源名称列表
+        """
+        for var_name in resource_names:
+            if var_name in local_vars and local_vars[var_name] is not None:
+                try:
+                    del local_vars[var_name]
+                except (RuntimeError, ValueError, TypeError) as e:
+                    log("WARNING", f"释放资源 {var_name} 失败: {str(e)}")
+        gc.collect()
+        time.sleep(0.01)
+
+    def handle_initialization_retry(self, retry_count, max_retries, error_msg, engine_name):
+        """处理初始化重试逻辑
+        
+        参数:
+            retry_count: 当前重试次数
+            max_retries: 最大重试次数
+            error_msg: 错误消息
+            engine_name: 引擎名称
+            
+        返回:
+            bool: 是否继续重试
+        """
+        log("ERROR", error_msg)
+        log_print(f"[{engine_name}] 模型加载异常: {error_msg} (重试次数: {retry_count}/{max_retries})")
+        if retry_count < max_retries - 1:
+            wait_time = min(2 ** retry_count, 10)
+            time.sleep(wait_time)
+            return True
+        return False

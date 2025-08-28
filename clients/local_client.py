@@ -17,7 +17,6 @@ from .base_client import BaseClient
 
 class LocalClient(BaseClient):
     """本地OCR客户端，继承BaseClient实现离线图像识别"""
-    
     client_type: str = "local"
 
     def __init__(self, max_retries=1, gpu=True):
@@ -35,8 +34,8 @@ class LocalClient(BaseClient):
         self._initialize_reader()
 
     def _initialize_reader(self):
-        """初始化OCR阅读器, 处理模型加载与重试逻辑"""
-        
+        """初始化OCR阅读器, 处理极速赛车模型加载与重试逻辑"""
+
         if self._is_initializing:
             log_print("[本地OCR] 模型初始化中，其他线程等待中...")
             while self._is_initializing:
@@ -62,17 +61,16 @@ class LocalClient(BaseClient):
                 self._is_initializing = False
                 return
             except (ImportError, RuntimeError, OSError) as e:
-                log("ERROR", f"OCR模型加载失败: {str(e)}")
-                log_print(f"[本地OCR] 模型加载异常: {str(e)} (重试次数: {retry_count}/{self.max_retries})")
                 retry_count += 1
                 self.reader = None  # 确保失败后reader为None
-                if retry_count < self.max_retries:
-                    wait_time = min(2 ** retry_count, 10)
-                    time.sleep(wait_time)
-                else:
-                    self._is_initializing = False
-                    log("ERROR", f"OCR模型加载失败: 已尝试{self.max_retries}次仍无法加载，请检查模型文件")
-                    raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}") from e
+                if super().handle_initialization_retry(
+                     retry_count, self.max_retries,
+                     f"OCR模型加载失败: {str(e)}", "本地OCR"
+                 ):
+                    continue
+                self._is_initializing = False
+                log("ERROR", f"OCR模型加载失败: 已尝试{self.max_retries}次仍无法加载，请检查模型文件")
+                raise RuntimeError(f"无法加载OCR模型，错误: {str(e)}") from e
 
     def get_img(self, img_file):
         """获取并验证图像文件
@@ -144,27 +142,27 @@ class LocalClient(BaseClient):
             log("ERROR", f"图像预处理失败: {filename}")
             return None
 
-    def extract_matches(self, texts):
-        """从识别文本中提取匹配的模式
 
-        参数:
-            texts: OCR识别返回的文本列表
 
-        返回:
-            匹配的模式字符串(如A1, B2等)或None
-        """
-        for text in texts:
-            cleaned_text = text.strip().replace(' ', '').replace('\n', '')
-            if self.pattern.fullmatch(cleaned_text):
-                return cleaned_text.upper()
-
-        for text in texts:
-            cleaned_text = text.strip().replace(' ', '').replace('\n', '')
-            match = self.pattern.search(cleaned_text)
-            if match:
-                return match.group().upper()
-
-        return None
+    def _load_image(self, image_source, is_url, filename):
+        """加载图像并返回PIL图像对象"""
+        if is_url:
+            try:
+                response = requests.get(image_source, timeout=10)
+                response.raise_for_status()
+                img_data = response.content
+                return Image.open(BytesIO(img_data))
+            except requests.exceptions.RequestException as e:
+                log("ERROR", f"图像下载失败: {str(e)}")
+                log_print(f"[本地OCR] URL下载异常: {str(e)} (URL: {image_source[:50]}...)")
+                return None
+        else:
+            try:
+                return Image.open(BytesIO(image_source))
+            except (IOError, OSError) as e:
+                log("ERROR", f"无法打开图像文件: {str(e)}")
+                log_print(f"[ERROR] 文件不是有效的图像格式或已损坏: {filename}")
+                return None
 
     def recognize(self, image_source: Union[str, bytes], is_url: bool = False) -> Optional[str]:
         if image_source is None:
@@ -184,23 +182,9 @@ class LocalClient(BaseClient):
             return None
 
         try:
-            if is_url:
-                try:
-                    response = requests.get(image_source, timeout=10)
-                    response.raise_for_status()
-                    img_data = response.content
-                    original_image = Image.open(BytesIO(img_data))
-                except requests.exceptions.RequestException as e:
-                    log("ERROR", f"图像下载失败: {str(e)}")
-                    log_print(f"[本地OCR] URL下载异常: {str(e)} (URL: {image_source[:50]}...)")
-                    return None
-            else:
-                try:
-                    original_image = Image.open(BytesIO(image_source))
-                except (IOError, OSError) as e:
-                    log("ERROR", f"无法打开图像文件: {str(e)}")
-                    log_print(f"[ERROR] 文件不是有效的图像格式或已损坏: {filename}")
-                    return None
+            original_image = self._load_image(image_source, is_url, filename)
+            if original_image is None:
+                return None
 
             for attempt in range(self.recognition_attempts):
                 try:
@@ -248,38 +232,24 @@ class LocalClient(BaseClient):
                             except (RuntimeError, ValueError, TypeError) as e:
                                 error_type = type(e).__name__
                                 error_msg = f"OCR识别异常 ({error_type}): {str(e)}"
-                                log("ERROR", error_msg)
-                                log_print(f"[ERROR] {error_msg}")
-                                if attempt < self.max_retries - 1:
-                                    wait_time = min(2 ** attempt, 10)
-                                    log("INFO", f"将在{wait_time}秒后重试...")
-                                    time.sleep(wait_time)
+                                if super().handle_ocr_error(error_msg, attempt, self.max_retries):
                                     continue
                                 return None
 
-                        matched_result = self.extract_matches(result)
+                        matched_result = super().extract_matches(result, self.pattern)
 
                         if matched_result:
-                            processing_time = time.time() - start_time
+                            _ = time.time() - start_time  # 处理时间，用于调试
                             return matched_result
 
                 except (RuntimeError, ValueError) as e:
                     error_type = type(e).__name__
                     error_msg = f"OCR识别异常 (尝试 {attempt + 1}, {error_type}): {str(e)}"
-                    log("ERROR", error_msg)
-                    log_print(f"[ERROR] {error_msg}")
+                    super().handle_general_exception(error_msg, error_type)
                     continue
                 finally:
-                    # 确保所有图像资源都被释放
-                    for var in ['processed_image', 'enhanced_img', 'gray_img', 'thresh_img']:
-                        if var in locals():
-                            try:
-                                del locals()[var]
-                            except (RuntimeError, ValueError, TypeError) as e:
-                                log("WARNING", f"释放资源 {var} 失败: {str(e)}")
-                    gc.collect()
-                    # 短暂延迟减轻CPU压力
-                    time.sleep(0.01)
+                    # 使用基类方法清理资源
+                    super().cleanup_resources(locals(), ['processed_image', 'enhanced_img', 'gray_img', 'thresh_img'])
             return None
 
         except (RuntimeError, ValueError, TypeError) as e:
@@ -295,7 +265,7 @@ class LocalClient(BaseClient):
                 if 'processed_image' in locals() and processed_image is not None:
                     del processed_image
                 gc.collect()
-            except (TypeError, AttributeError, OSError, TypeError, AttributeError, OSError) as e:
+            except (TypeError, AttributeError, OSError) as e:
                 log_print(f"[WARNING] 图像资源释放失败: {str(e)}")
 
     def validate_image_source(self, image_source, is_url):

@@ -1,4 +1,4 @@
-"""飞桨本地OCR客户端实现，提供离线图像识别功能"""
+﻿"""飞桨本地OCR客户端实现，提供离线图像识别功能"""
 import gc
 import re
 import threading
@@ -58,17 +58,17 @@ class PaddleClient(BaseClient):
                 self._is_initializing = False
                 return
             except (ImportError, RuntimeError, OSError) as e:
-                log("ERROR", f"PaddleOCR模型加载失败: {str(e)}")
-                log_print(f"[PaddleOCR] 模型加载异常: {str(e)} (重试次数: {retry_count}/{self.max_retries})")
                 retry_count += 1
                 self.ocr = None
-                if retry_count < self.max_retries:
-                    wait_time = min(2 ** retry_count, 10)
-                    time.sleep(wait_time)
-                else:
-                    self._is_initializing = False
-                    log("ERROR", f"PaddleOCR模型加载失败: 已尝试{self.max_retries}次仍无法加载")
-                    raise RuntimeError(f"无法加载PaddleOCR模型，错误: {str(e)}") from e
+                init_error_msg = f"PaddleOCR模型加载失败: {str(e)}"
+                if super().handle_initialization_retry(retry_count,
+                                                      self.max_retries,
+                                                      init_error_msg,
+                                                      "PaddleOCR"):
+                    continue
+                self._is_initializing = False
+                log("ERROR", f"PaddleOCR模型加载失败: 已尝试{self.max_retries}次仍无法加载")
+                raise RuntimeError(f"无法加载PaddleOCR模型，错误: {str(e)}") from e
 
     def get_img(self, img_file):
         """获取并验证图像文件
@@ -88,7 +88,7 @@ class PaddleClient(BaseClient):
         """
         优化图像预处理
 
-        对输入图像进行尺寸调整、格式转换和增强处理，
+        对输入图像进行尺寸调整、格式转换和增强处理。
         提高OCR识别准确率。
 
         参数:
@@ -145,34 +145,78 @@ class PaddleClient(BaseClient):
             log("ERROR", f"图像预处理失败: {filename}")
             return None
 
-    def extract_matches(self, texts):
-        """从识别文本中提取匹配的模式
 
-        参数:
-            texts: OCR识别返回的文本列表
 
-        返回:
-            匹配的模式字符串(如A1, B2等)或None
-        """
-        for text in texts:
-            cleaned_text = text.strip().replace(' ', '').replace('\n', '')
-            if self.pattern.fullmatch(cleaned_text):
-                return cleaned_text.upper()
+    def _load_image_from_source(self, image_source, is_url, filename):
+        """从源加载图像"""
+        if is_url:
+            try:
+                response = requests.get(image_source, timeout=10)
+                response.raise_for_status()
+                img_data = response.content
+                return Image.open(BytesIO(img_data))
+            except requests.exceptions.RequestException as e:
+                log("ERROR", f"图像下载失败: {str(e)}")
+                log_print(f"[本地OCR] URL下载异常: {str(e)} "
+                          f"(URL: {image_source[:50]}...)")
+                return None
+        else:
+            try:
+                return Image.open(BytesIO(image_source))
+            except (IOError, OSError) as e:
+                log("ERROR", f"无法打开图像文件: {str(e)}")
+                log_print(f"[ERROR] 文件不是有效的图像格式或已损坏: {filename}")
+                return None
 
-        for text in texts:
-            cleaned_text = text.strip().replace(' ', '').replace('\n', '')
-            match = self.pattern.search(cleaned_text)
-            if match:
-                return match.group().upper()
+    def _process_ocr_result(self, result):
+        """处理OCR识别结果"""
+        recognized_texts = []
 
-        return None
+        if not result:
+            return recognized_texts
+
+        # 处理不同格式的结果
+        if isinstance(result, list) and len(result) > 0:
+            # 新版本格式：列表包含OCRResult对象
+            first_result = result[0]
+
+            if hasattr(first_result, 'rec_texts') and hasattr(first_result, 'rec_scores'):
+                # OCRResult对象格式
+                rec_texts = first_result.rec_texts
+                rec_scores = first_result.rec_scores
+            elif isinstance(first_result, dict):
+                # 字典格式
+                rec_texts = first_result.get('rec_texts', [])
+                rec_scores = first_result.get('rec_scores', [])
+            else:
+                # 传统列表格式
+                rec_texts = []
+                rec_scores = []
+                for word_info in first_result:
+                    if (len(word_info) >= 2 and isinstance(word_info[1], (list, tuple))
+                        and len(word_info[1]) >= 2):
+                        rec_texts.append(str(word_info[1][0]))
+                        rec_scores.append(float(word_info[1][1]))
+
+        # 确保文本和置信度长度一致
+        if len(rec_texts) != len(rec_scores):
+            # 取最小长度继续处理
+            min_len = min(len(rec_texts), len(rec_scores))
+            rec_texts = rec_texts[:min_len]
+            rec_scores = rec_scores[:min_len]
+
+        # 过滤低置信度结果
+        for text, score in zip(rec_texts, rec_scores):
+            if score >= 0.3 and text and str(text).strip():
+                recognized_texts.append(str(text).strip())
+
+        return recognized_texts
 
     def recognize(self, image_source: Union[str, bytes], is_url: bool = False) -> Optional[str]:
         if image_source is None:
             log("ERROR", "图像源不能为空")
             return None
 
-        start_time = time.time()
         filename = self.get_image_filename(image_source, is_url)
         processed_image = None
         original_image = None
@@ -185,23 +229,9 @@ class PaddleClient(BaseClient):
             return None
 
         try:
-            if is_url:
-                try:
-                    response = requests.get(image_source, timeout=10)
-                    response.raise_for_status()
-                    img_data = response.content
-                    original_image = Image.open(BytesIO(img_data))
-                except requests.exceptions.RequestException as e:
-                    log("ERROR", f"图像下载失败: {str(e)}")
-                    log_print(f"[本地OCR] URL下载异常: {str(e)} (URL: {image_source[:50]}...)")
-                    return None
-            else:
-                try:
-                    original_image = Image.open(BytesIO(image_source))
-                except (IOError, OSError) as e:
-                    log("ERROR", f"无法打开图像文件: {str(e)}")
-                    log_print(f"[ERROR] 文件不是有效的图像格式或已损坏: {filename}")
-                    return None
+            original_image = self._load_image_from_source(image_source, is_url, filename)
+            if original_image is None:
+                return None
 
             for attempt in range(self.recognition_attempts):
                 try:
@@ -217,7 +247,7 @@ class PaddleClient(BaseClient):
 
                         # 双重检查锁定模式
                         if self.ocr is None:
-                            log_print("[PaddleOCR] OCR引擎未就绪，触发重新初始化...")
+                            log_print("[PaddleOCR] OCR引擎未就绪，触发重新初始化..")
                             self._initialize_ocr()
 
                             if self.ocr is None:
@@ -233,85 +263,36 @@ class PaddleClient(BaseClient):
                                 # 使用PaddleOCR进行识别（尝试两种API调用方式）
                                 try:
                                     result = self.ocr.ocr(processed_image)
-                                except Exception:
+                                except (RuntimeError, ValueError, TypeError):
                                     result = self.ocr.predict(processed_image)
-                                
+
                                 # 提取识别文本 - 处理多种格式的结果
-                                recognized_texts = []
-                                
-                                if not result:
+                                recognized_texts = self._process_ocr_result(result)
+                                if not recognized_texts:
                                     continue
-                                    
-                                # 处理不同格式的结果
-                                if isinstance(result, list) and len(result) > 0:
-                                    # 新版本格式：列表包含OCRResult对象
-                                    first_result = result[0]
-                                    
-                                    if hasattr(first_result, 'rec_texts') and hasattr(first_result, 'rec_scores'):
-                                        # OCRResult对象格式
-                                        rec_texts = first_result.rec_texts
-                                        rec_scores = first_result.rec_scores
-                                    elif isinstance(first_result, dict):
-                                        # 字典格式
-                                        rec_texts = first_result.get('rec_texts', [])
-                                        rec_scores = first_result.get('rec_scores', [])
-                                    else:
-                                        # 传统列表格式
-                                        rec_texts = []
-                                        rec_scores = []
-                                        for word_info in first_result:
-                                            if len(word_info) >= 2 and isinstance(word_info[1], (list, tuple)) and len(word_info[1]) >= 2:
-                                                rec_texts.append(str(word_info[1][0]))
-                                                rec_scores.append(float(word_info[1][1]))
-                                
-                                # 确保文本和置信度长度一致
-                                if len(rec_texts) != len(rec_scores):
-                                    # 取最小长度继续处理
-                                    min_len = min(len(rec_texts), len(rec_scores))
-                                    rec_texts = rec_texts[:min_len]
-                                    rec_scores = rec_scores[:min_len]
-                                
-                                # 过滤低置信度结果
-                                for text, score in zip(rec_texts, rec_scores):
-                                    if score >= 0.3 and text and str(text).strip():
-                                        recognized_texts.append(str(text).strip())
-                            except Exception as e:
+                            except (RuntimeError, ValueError, TypeError) as e:
                                 error_type = type(e).__name__
                                 error_msg = f"PaddleOCR识别异常 ({error_type}): {str(e)}"
-                                log("ERROR", error_msg)
-                                log_print(f"[ERROR] {error_msg}")
-                                if attempt < self.max_retries - 1:
-                                    wait_time = min(2 ** attempt, 10)
-                                    log("INFO", f"将在{wait_time}秒后重试...")
-                                    time.sleep(wait_time)
+                                if super().handle_ocr_error(error_msg, attempt, self.max_retries):
                                     continue
                                 return None
 
-                        matched_result = self.extract_matches(recognized_texts)
+                        matched_result = super().extract_matches(recognized_texts, self.pattern)
 
                         if matched_result:
                             return matched_result
 
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError, OSError) as e:
                     error_type = type(e).__name__
                     error_msg = f"PaddleOCR识别异常 (尝试 {attempt + 1}, {error_type}): {str(e)}"
-                    log("ERROR", error_msg)
-                    log_print(f"[ERROR] {error_msg}")
+                    super().handle_general_exception(error_msg, error_type)
                     continue
                 finally:
-                    # 确保所有图像资源都被释放
-                    for var in ['processed_image', 'enhanced_img', 'gray_img', 'thresh_img']:
-                        if var in locals():
-                            try:
-                                del locals()[var]
-                            except (RuntimeError, ValueError, TypeError) as e:
-                                log("WARNING", f"释放资源 {var} 失败: {str(e)}")
-                    gc.collect()
-                    # 短暂延迟减轻CPU压力
-                    time.sleep(0.01)
+                    # 使用基类方法清理资源
+                    super().cleanup_resources(locals(), ['processed_image', 'enhanced_img', 'gray_img', 'thresh_img'])
             return None
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, OSError) as e:
             error_msg = f"识别过程中发生意外错误: {str(e)}"
             log("ERROR", error_msg)
             log_print(f"[ERROR] {error_msg}")
@@ -324,7 +305,7 @@ class PaddleClient(BaseClient):
                 if 'processed_image' in locals() and processed_image is not None:
                     del processed_image
                 gc.collect()
-            except (TypeError, AttributeError, OSError, TypeError, AttributeError, OSError) as e:
+            except (TypeError, AttributeError, OSError) as e:
                 log_print(f"[WARNING] 图像资源释放失败: {str(e)}")
 
     def validate_image_source(self, image_source, is_url):

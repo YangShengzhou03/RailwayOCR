@@ -82,21 +82,21 @@ class BaiduClient(BaseClient):
         except HTTPError as e:
             return json.dumps({"error": f"HTTP错误: {e.code}", "details": e.read().decode("utf8")})
 
-    def extract_matches(self, response_text):
+    def extract_matches(self, texts, pattern: re.Pattern):
         """从API响应中提取匹配结果
         
         Args:
-            response_text: API响应文本
+            texts: API响应文本
+            pattern: 正则表达式模式对象
             
         Returns:
             Optional[str]: 匹配到的文本内容，如果没有匹配则返回None
         """
         try:
-            data = json.loads(response_text)
+            data = json.loads(texts)
         except json.JSONDecodeError:
             return None
 
-        pattern = re.compile(self.config.get("RE", r'.*'))
         words_result = data.get("words_result", [])
         for item in words_result:
             word = item.get("words", "").strip()
@@ -138,7 +138,8 @@ class BaiduClient(BaseClient):
 
             body = urllib.parse.urlencode({"image": img_base64})
             response = self.posturl(headers, body)
-            result = self.extract_matches(response)
+            pattern = re.compile(self.config.get("RE", r'.*'))
+            result = self.extract_matches(response, pattern)
             return self.process_recognition_result(str(result), image_source, is_url)
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")

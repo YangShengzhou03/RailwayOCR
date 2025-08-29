@@ -21,9 +21,9 @@ class Ui_SettingWindow(object):
         self.verticalLayout.setObjectName("verticalLayout")
         self.main_frame = QtWidgets.QFrame(parent=self.centralwidget)
         self.main_frame.setStyleSheet("QFrame{\n"
-"background-color: rgba(0, 0, 0, 0);\n"
-"border:0px solid red;\n"
-"border-radius:0px\n"
+"background-color: rgba(248, 250, 255, 0.95);\n"
+"border: 1px solid rgba(30, 131, 255, 0.2);\n"
+"border-radius: 12px;\n"
 "}")
         self.main_frame.setFrameShape(QtWidgets.QFrame.Shape.StyledPanel)
         self.main_frame.setFrameShadow(QtWidgets.QFrame.Shadow.Raised)
@@ -40,8 +40,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout.setContentsMargins(-1, -1, -1, 24)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(parent=self.main_frame)
+        self.label.setStyleSheet("color: rgb(30, 131, 255);\n"
+"font-weight: bold;")
         font = QtGui.QFont()
-        font.setPointSize(18)
+        font.setPointSize(20)
+        font.setWeight(75)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
@@ -54,8 +57,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
         self.label_2 = QtWidgets.QLabel(parent=self.main_frame)
         self.label_2.setMinimumSize(QtCore.QSize(166, 0))
+        self.label_2.setStyleSheet("color: rgb(60, 60, 60);\n"
+"font-weight: 500;")
         font = QtGui.QFont()
         font.setPointSize(14)
+        font.setWeight(60)
         self.label_2.setFont(font)
         self.label_2.setObjectName("label_2")
         self.horizontalLayout_9.addWidget(self.label_2)
@@ -107,8 +113,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_3 = QtWidgets.QLabel(parent=self.main_frame)
         self.label_3.setMinimumSize(QtCore.QSize(166, 0))
+        self.label_3.setStyleSheet("color: rgb(60, 60, 60);\n"
+"font-weight: 500;")
         font = QtGui.QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
+        font.setWeight(60)
         self.label_3.setFont(font)
         self.label_3.setObjectName("label_3")
         self.horizontalLayout_3.addWidget(self.label_3)
@@ -156,7 +165,7 @@ class Ui_SettingWindow(object):
         self.line_3 = QtWidgets.QFrame(parent=self.main_frame)
         self.line_3.setMinimumSize(QtCore.QSize(0, 1))
         self.line_3.setMaximumSize(QtCore.QSize(16777215, 1))
-        self.line_3.setStyleSheet("background: rgb(206, 206, 206);")
+        self.line_3.setStyleSheet("background: rgba(30, 131, 255, 0.3);")
         self.line_3.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.line_3.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.line_3.setObjectName("line_3")
@@ -219,7 +228,7 @@ class Ui_SettingWindow(object):
         self.line = QtWidgets.QFrame(parent=self.main_frame)
         self.line.setMinimumSize(QtCore.QSize(0, 1))
         self.line.setMaximumSize(QtCore.QSize(16777215, 1))
-        self.line.setStyleSheet("background: rgb(206, 206, 206);")
+        self.line.setStyleSheet("background: rgba(30, 131, 255, 0.3);")
         self.line.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         self.line.setFrameShadow(QtWidgets.QFrame.Shadow.Sunken)
         self.line.setObjectName("line")
@@ -232,8 +241,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_7.setSpacing(12)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.label_7 = QtWidgets.QLabel(parent=self.main_frame)
+        self.label_7.setStyleSheet("color: rgb(60, 60, 60);\n"
+"font-weight: 500;")
         font = QtGui.QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
+        font.setWeight(60)
         self.label_7.setFont(font)
         self.label_7.setObjectName("label_7")
         self.horizontalLayout_7.addWidget(self.label_7)
@@ -296,8 +308,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_14.setSpacing(12)
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
         self.label_6 = QtWidgets.QLabel(parent=self.main_frame)
+        self.label_6.setStyleSheet("color: rgb(60, 60, 60);\n"
+"font-weight: 500;")
         font = QtGui.QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
+        font.setWeight(60)
         self.label_6.setFont(font)
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_14.addWidget(self.label_6)
@@ -362,8 +377,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_16.setSpacing(12)
         self.horizontalLayout_16.setObjectName("horizontalLayout_16")
         self.label_11 = QtWidgets.QLabel(parent=self.main_frame)
+        self.label_11.setStyleSheet("color: rgb(60, 60, 60);\n"
+"font-weight: 500;")
         font = QtGui.QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
+        font.setWeight(60)
         self.label_11.setFont(font)
         self.label_11.setObjectName("label_11")
         self.horizontalLayout_16.addWidget(self.label_11)
@@ -441,43 +459,49 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_6.addItem(spacerItem)
         self.pushButton_Password = QtWidgets.QPushButton(parent=self.main_frame)
         self.pushButton_Password.setStyleSheet("QPushButton {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    border-radius: 6px;\n"
-"    padding: 6px 16px;\n"
+"    border: none;\n"
+"    border-radius: 8px;\n"
+"    padding: 10px 24px;\n"
 "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(255, 255, 255, 1), \n"
-"                              stop:1 rgba(245, 250, 255, 1));\n"
-"    color: rgb(30, 131, 255);\n"
+"                              stop:0 rgba(47, 144, 255, 1), \n"
+"                              stop:1 rgba(25, 118, 210, 1));\n"
+"    color: white;\n"
 "    font-size: 14px;\n"
-"    transition: all 0.2s ease;\n"
+"    font-weight: 600;\n"
+"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);\n"
 "}\n"
 "\n"
 "QPushButton:hover {\n"
 "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(30, 131, 255, 0.15), \n"
-"                              stop:1 rgba(30, 131, 255, 0.05));\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
+"                              stop:0 rgba(60, 160, 255, 1), \n"
+"                              stop:1 rgba(35, 135, 230, 1));\n"
+"    transform: translateY(-2px);\n"
+"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);\n"
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
 "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(30, 131, 255, 0.35), \n"
-"                              stop:1 rgba(30, 131, 255, 0.25));\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
+"                              stop:0 rgba(20, 100, 190, 1), \n"
+"                              stop:1 rgba(15, 85, 170, 1));\n"
+"    transform: translateY(0px);\n"
+"    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);\n"
 "}\n"
 "\n"
 "QPushButton:disabled {\n"
-"    border: 2px solid #cccccc;\n"
+"    border: none;\n"
 "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #f5f5f5, \n"
-"                              stop:1 #f0f0f0);\n"
-"    color: #999999;\n"
+"                              stop:0 rgba(180, 180, 180, 1), \n"
+"                              stop:1 rgba(160, 160, 160, 1));\n"
+"    color: rgba(255, 255, 255, 0.7);\n"
+"    box-shadow: none;\n"
+"    transform: none;\n"
 "}\n"
 "\n"
-"/* 增加焦点状态样式，与输入框保持一致 */\n"
+"/* Modern focus state */\n"
 "QPushButton:focus {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2);\n"
+"    outline: none;\n"
+"    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);\n"
 "}")
         self.pushButton_Password.setObjectName("pushButton_Password")
         self.horizontalLayout_6.addWidget(self.pushButton_Password)
@@ -485,8 +509,11 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.label_8 = QtWidgets.QLabel(parent=self.main_frame)
+        self.label_8.setStyleSheet("color: rgb(60, 60, 60);\n"
+"font-weight: 500;")
         font = QtGui.QFont()
-        font.setPointSize(12)
+        font.setPointSize(14)
+        font.setWeight(60)
         self.label_8.setFont(font)
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_8.addWidget(self.label_8)
@@ -538,28 +565,49 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_15.addItem(spacerItem2)
         self.pushButton_save = QtWidgets.QPushButton(parent=self.main_frame)
         self.pushButton_save.setStyleSheet("QPushButton {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    border-radius: 6px;\n"
-"    padding: 6px 16px;\n"
-"    background-color: rgb(30, 131, 255);\n"
+"    border: none;\n"
+"    border-radius: 8px;\n"
+"    padding: 10px 24px;\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
+"                              stop:0 rgba(47, 144, 255, 1), \n"
+"                              stop:1 rgba(25, 118, 210, 1));\n"
 "    color: white;\n"
 "    font-size: 14px;\n"
+"    font-weight: 600;\n"
+"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);\n"
 "}\n"
 "\n"
 "QPushButton:hover {\n"
-"    background-color: rgb(30, 131, 255);\n"
-"    border-color: rgb(30, 131, 255);\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
+"                              stop:0 rgba(60, 160, 255, 1), \n"
+"                              stop:1 rgba(35, 135, 230, 1));\n"
+"    transform: translateY(-2px);\n"
+"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);\n"
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
-"    background-color: rgb(20, 107, 214);\n"
-"    border-color: rgb(20, 107, 214);\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
+"                              stop:0 rgba(20, 100, 190, 1), \n"
+"                              stop:1 rgba(15, 85, 170, 1));\n"
+"    transform: translateY(0px);\n"
+"    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);\n"
 "}\n"
 "\n"
 "QPushButton:disabled {\n"
-"    border-color: #cccccc;\n"
-"    background-color: #f0f0f0;\n"
-"    color: #999999;\n"
+"    border: none;\n"
+"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
+"                              stop:0 rgba(180, 180, 180, 1), \n"
+"                              stop:1 rgba(160, 160, 160, 1));\n"
+"    color: rgba(255, 255, 255, 0.7);\n"
+"    box-shadow: none;\n"
+"    transform: none;\n"
+"}\n"
+"\n"
+"/* Modern focus state */\n"
+"QPushButton:focus {\n"
+"    outline: none;\n"
+"    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);\n"
 "}")
         self.pushButton_save.setObjectName("pushButton_save")
         self.horizontalLayout_15.addWidget(self.pushButton_save)
@@ -574,7 +622,7 @@ class Ui_SettingWindow(object):
     def retranslateUi(self, SettingWindow):
         _translate = QtCore.QCoreApplication.translate
         SettingWindow.setWindowTitle(_translate("SettingWindow", "MainWindow"))
-        self.label.setText(_translate("SettingWindow", "RailwayOCR Setting"))
+        self.label.setText(_translate("SettingWindow", "RailwayOCR 设置"))
         self.label_2.setText(_translate("SettingWindow", "BAIDU_API_KEY"))
         self.lineEdit_BAIDU_API_KEY.setPlaceholderText(_translate("SettingWindow", "百度千帆KEY"))
         self.label_3.setText(_translate("SettingWindow", "BAIDU_SECRET_KEY"))

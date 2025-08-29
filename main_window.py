@@ -302,9 +302,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.processing:
             self.stop_processing()
             return
+        # 检查线程是否正在运行或正在停止
         if self.processing_thread and self.processing_thread.isRunning():
-            log("WARNING", "存在正在运行的处理线程，尝试停止")
-            self._safe_stop_thread()
+            # 检查线程是否正在停止过程中
+            if hasattr(self.processing_thread, 'stopping') and self.processing_thread.stopping:
+                log("WARNING", "线程正在停止过程中，请等待完全停止后再操作")
+                QMessageBox.warning(self, "提示", "线程正在停止过程中，请等待完全停止后再操作")
+                return
+            log("WARNING", "存在正在运行的处理线程，请等待线程完全停止后再开始新的处理")
+            QMessageBox.warning(self, "线程正在运行", "请等待当前处理线程完全停止后再开始新的处理")
+            return
         self.start_processing()
 
     def _safe_stop_thread(self):

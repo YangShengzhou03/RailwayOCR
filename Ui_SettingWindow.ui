@@ -34,9 +34,9 @@
      <widget class="QFrame" name="main_frame">
       <property name="styleSheet">
        <string notr="true">QFrame{
-background-color: rgba(0, 0, 0, 0);
-border:0px solid red;
-border-radius:0px
+background-color: rgba(248, 250, 255, 0.95);
+border: 1px solid rgba(30, 131, 255, 0.2);
+border-radius: 12px;
 }</string>
       </property>
       <property name="frameShape">
@@ -85,13 +85,18 @@ border-radius:0px
            </property>
            <item>
             <widget class="QLabel" name="label">
+             <property name="styleSheet">
+              <string notr="true">color: rgb(30, 131, 255);
+font-weight: bold;</string>
+             </property>
              <property name="font">
               <font>
-               <pointsize>18</pointsize>
+               <pointsize>20</pointsize>
+               <weight>75</weight>
               </font>
              </property>
              <property name="text">
-              <string>RailwayOCR Setting</string>
+              <string>RailwayOCR 设置</string>
              </property>
             </widget>
            </item>
@@ -115,9 +120,14 @@ border-radius:0px
                  <height>0</height>
                 </size>
                </property>
+               <property name="styleSheet">
+                <string notr="true">color: rgb(60, 60, 60);
+font-weight: 500;</string>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>14</pointsize>
+                 <weight>60</weight>
                 </font>
                </property>
                <property name="text">
@@ -191,9 +201,14 @@ QLineEdit::placeholder {
                  <height>0</height>
                 </size>
                </property>
+               <property name="styleSheet">
+                <string notr="true">color: rgb(60, 60, 60);
+font-weight: 500;</string>
+               </property>
                <property name="font">
                 <font>
-                 <pointsize>12</pointsize>
+                 <pointsize>14</pointsize>
+                 <weight>60</weight>
                 </font>
                </property>
                <property name="text">
@@ -267,7 +282,7 @@ QLineEdit::placeholder {
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">background: rgb(206, 206, 206);</string>
+            <string notr="true">background: rgba(30, 131, 255, 0.3);</string>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -368,7 +383,7 @@ QLineEdit::placeholder {
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">background: rgb(206, 206, 206);</string>
+            <string notr="true">background: rgba(30, 131, 255, 0.3);</string>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -390,11 +405,16 @@ QLineEdit::placeholder {
              </property>
              <item>
               <widget class="QLabel" name="label_7">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
+               <property name="styleSheet">
+              <string notr="true">color: rgb(60, 60, 60);
+font-weight: 500;</string>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>14</pointsize>
+               <weight>60</weight>
+              </font>
+             </property>
                <property name="text">
                 <string>线程并发数</string>
                </property>
@@ -474,11 +494,16 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
              </property>
              <item>
               <widget class="QLabel" name="label_6">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
+               <property name="styleSheet">
+              <string notr="true">color: rgb(60, 60, 60);
+font-weight: 500;</string>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>14</pointsize>
+               <weight>60</weight>
+              </font>
+             </property>
                <property name="text">
                 <string>出错重试数</string>
                </property>
@@ -564,11 +589,16 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
              </property>
              <item>
               <widget class="QLabel" name="label_11">
-               <property name="font">
-                <font>
-                 <pointsize>12</pointsize>
-                </font>
-               </property>
+               <property name="styleSheet">
+              <string notr="true">color: rgb(60, 60, 60);
+font-weight: 500;</string>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>14</pointsize>
+               <weight>60</weight>
+              </font>
+             </property>
                <property name="text">
                 <string>识别模式</string>
                </property>
@@ -681,43 +711,49 @@ QComboBox QAbstractItemView {
             <widget class="QPushButton" name="pushButton_Password">
              <property name="styleSheet">
               <string notr="true">QPushButton {
-    border: 2px solid rgb(30, 131, 255);
-    border-radius: 6px;
-    padding: 6px 16px;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(255, 255, 255, 1), 
-                              stop:1 rgba(245, 250, 255, 1));
-    color: rgb(30, 131, 255);
+                              stop:0 rgba(47, 144, 255, 1), 
+                              stop:1 rgba(25, 118, 210, 1));
+    color: white;
     font-size: 14px;
-    transition: all 0.2s ease;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);
 }
 
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(30, 131, 255, 0.15), 
-                              stop:1 rgba(30, 131, 255, 0.05));
-    border: 2px solid rgb(30, 131, 255);
+                              stop:0 rgba(60, 160, 255, 1), 
+                              stop:1 rgba(35, 135, 230, 1));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);
 }
 
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(30, 131, 255, 0.35), 
-                              stop:1 rgba(30, 131, 255, 0.25));
-    border: 2px solid rgb(30, 131, 255);
+                              stop:0 rgba(20, 100, 190, 1), 
+                              stop:1 rgba(15, 85, 170, 1));
+    transform: translateY(0px);
+    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);
 }
 
 QPushButton:disabled {
-    border: 2px solid #cccccc;
+    border: none;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #f5f5f5, 
-                              stop:1 #f0f0f0);
-    color: #999999;
+                              stop:0 rgba(180, 180, 180, 1), 
+                              stop:1 rgba(160, 160, 160, 1));
+    color: rgba(255, 255, 255, 0.7);
+    box-shadow: none;
+    transform: none;
 }
 
-/* 增加焦点状态样式，与输入框保持一致 */
+/* Modern focus state */
 QPushButton:focus {
-    border: 2px solid rgb(30, 131, 255);
-    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);
 }</string>
              </property>
              <property name="text">
@@ -731,9 +767,14 @@ QPushButton:focus {
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <widget class="QLabel" name="label_8">
+             <property name="styleSheet">
+              <string notr="true">color: rgb(60, 60, 60);
+font-weight: 500;</string>
+             </property>
              <property name="font">
               <font>
-               <pointsize>12</pointsize>
+               <pointsize>14</pointsize>
+               <weight>60</weight>
               </font>
              </property>
              <property name="text">
@@ -822,28 +863,49 @@ QLineEdit::placeholder {
             <widget class="QPushButton" name="pushButton_save">
              <property name="styleSheet">
               <string notr="true">QPushButton {
-    border: 2px solid rgb(30, 131, 255);
-    border-radius: 6px;
-    padding: 6px 16px;
-    background-color: rgb(30, 131, 255);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(47, 144, 255, 1), 
+                              stop:1 rgba(25, 118, 210, 1));
     color: white;
     font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);
 }
 
 QPushButton:hover {
-    background-color: rgb(30, 131, 255);
-    border-color: rgb(30, 131, 255);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(60, 160, 255, 1), 
+                              stop:1 rgba(35, 135, 230, 1));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);
 }
 
 QPushButton:pressed {
-    background-color: rgb(20, 107, 214);
-    border-color: rgb(20, 107, 214);
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(20, 100, 190, 1), 
+                              stop:1 rgba(15, 85, 170, 1));
+    transform: translateY(0px);
+    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);
 }
 
 QPushButton:disabled {
-    border-color: #cccccc;
-    background-color: #f0f0f0;
-    color: #999999;
+    border: none;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(180, 180, 180, 1), 
+                              stop:1 rgba(160, 160, 160, 1));
+    color: rgba(255, 255, 255, 0.7);
+    box-shadow: none;
+    transform: none;
+}
+
+/* Modern focus state */
+QPushButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);
 }</string>
              </property>
              <property name="text">

@@ -53,6 +53,7 @@ class ProcessingThread(QtCore.QThread):
         self.dest_dir = dest_dir
         self.is_move_mode = is_move_mode
         self.is_running = True
+        self.stopping = False  # 标记线程是否正在停止过程中
         self.processed_count = 0
         self.success_count = 0
         self.failed_count = 0
@@ -373,6 +374,7 @@ class ProcessingThread(QtCore.QThread):
             if not self.is_running:
                 return
             self.is_running = False
+            self.stopping = True  # 标记线程正在停止过程中
 
         while not self.file_queue.empty():
             try:
@@ -424,6 +426,10 @@ class ProcessingThread(QtCore.QThread):
                         log("WARNING", f"客户端资源清理失败: {str(e)}")
             
             log("INFO", "线程资源清理完成")
+            
+            # 重置停止状态
+            with self.lock:
+                self.stopping = False
             
         except Exception as e:
             log("ERROR", f"资源清理过程中发生错误: {str(e)}")

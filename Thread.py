@@ -368,6 +368,7 @@ class ProcessingThread(QtCore.QThread):
                 time.sleep(self.request_interval)
 
     def stop(self):
+        """停止线程，支持超时处理和资源清理"""
         with self.lock:
             if not self.is_running:
                 return
@@ -383,16 +384,30 @@ class ProcessingThread(QtCore.QThread):
         self.signal_processor_running = False
         self.signal_queue.put(('stop_signal',))
 
+        # 设置超时时间，避免线程无法正常终止
         for worker in self.workers:
             if worker.is_alive():
-                worker.join(timeout=1.0)
+                worker.join(timeout=5.0)  # 5秒超时
                 if worker.is_alive():
-                    log("WARNING", f"工作线程未能正常退出")
+                    log("WARNING", f"工作线程未能正常退出，正在强制清理")
+                    # 这里不直接使用terminate()，因为可能造成资源泄漏
+                    # 而是通过设置更强的停止信号
+                    self._force_stop = True
+                    
+                    # 再次尝试优雅终止
+                    worker.join(timeout=2.0)
+                    
+                    if worker.is_alive():
+                        log("ERROR", f"工作线程最终无法终止，可能需要重启程序")
 
         if self.signal_processor_thread and self.signal_processor_thread.is_alive():
-            self.signal_processor_thread.join(timeout=1.0)
+            self.signal_processor_thread.join(timeout=5.0)
             if self.signal_processor_thread.is_alive():
-                log("WARNING", "信号处理器线程未能正常退出")
+                log("WARNING", "信号处理器线程未能正常退出，正在强制清理")
+                self._force_stop = True
+                self.signal_processor_thread.join(timeout=2.0)
+                if self.signal_processor_thread.is_alive():
+                    log("ERROR", "信号处理器线程最终无法终止，可能需要重启程序")
 
         self.processing_stopped.emit()
         log("INFO", "处理线程已成功停止")
@@ -405,8 +420,48 @@ class ProcessingThread(QtCore.QThread):
             except (RuntimeError, OSError) as e:
                 log_print(f"客户端资源清理失败: {str(e)}")
 
+        # 清理资源
+        self._cleanup_resources()
         self.workers = []
         self.signal_processor_thread = None
+    
+    def _cleanup_resources(self):
+        """清理线程使用的资源"""
+        try:
+            # 清空信号队列
+            while not self.signal_queue.empty():
+                try:
+                    self.signal_queue.get_nowait()
+                except:
+                    break
+            
+            # 清空工作队列
+            while not self.work_queue.empty():
+                try:
+                    self.work_queue.get_nowait()
+                except:
+                    break
+            
+            # 清理文件锁相关资源
+            if hasattr(self, 'file_lock') and self.file_lock:
+                try:
+                    self.file_lock.release()
+                except:
+                    pass
+            
+            # 清理OCR客户端资源
+            if hasattr(self, 'clients') and self.clients:
+                for client in self.clients:
+                    try:
+                        if hasattr(client, 'close') and callable(client.close):
+                            client.close()
+                    except Exception as e:
+                        log("WARNING", f"客户端资源清理失败: {str(e)}")
+            
+            log("INFO", "线程资源清理完成")
+            
+        except Exception as e:
+            log("ERROR", f"资源清理过程中发生错误: {str(e)}")
 
     def process_image_file(self, local_file_path, client):
         """
@@ -509,7 +564,7 @@ class ProcessingThread(QtCore.QThread):
 
     def copy_to_classified_folder(self, local_file_path, recognition, output_dir, is_move=False):
         """
-        将文件复制或移动到分类文件夹，使用文件锁确保线程安全
+        将文件复制或移动到分类文件夹，使用文件锁确保线程安全，包含重试机制和错误处理
         
         Args:
             local_file_path: 源文件路径
@@ -520,72 +575,126 @@ class ProcessingThread(QtCore.QThread):
 
         # 使用文件锁确保同一文件的并发操作安全
         with self.file_lock:
-            try:
-                if not os.path.exists(local_file_path):
-                    log("ERROR", f"源文件不存在: {local_file_path}")
-                    return
-                
-                # 清理识别结果，创建有效的文件夹名称
-                safe_recognition = self._sanitize_folder_name(recognition)
-                
-                # 创建目标子文件夹
-                target_subdir = os.path.join(output_dir, safe_recognition)
-                os.makedirs(target_subdir, exist_ok=True)
-                
-                # 构建目标文件路径
-                filename = os.path.basename(local_file_path)
-                target_path = os.path.join(target_subdir, filename)
-                
-                # 处理文件名冲突
-                counter = 1
-                base_name, ext = os.path.splitext(filename)
-                while os.path.exists(target_path):
-                    target_path = os.path.join(target_subdir, f"{base_name}_{counter}{ext}")
-                    counter += 1
-                
-                # 执行文件操作
-                # operation变量用于日志记录，但当前未使用
-                
-                if is_move:
-                    # 移动操作：使用shutil.move确保原子性
-                    try:
-                        shutil.move(local_file_path, target_path)
-                        log("INFO", f"文件移动成功: {filename} -> {safe_recognition}")
-                    except (OSError, PermissionError, shutil.Error) as move_error:
-                        log("ERROR", f"文件移动失败: {filename}, 错误: {str(move_error)}")
-                        # 回退到复制+删除方式
+            max_retries = 3
+            retry_delay = 1.0  # 初始重试延迟1秒
+            
+            for attempt in range(max_retries):
+                try:
+                    if not os.path.exists(local_file_path):
+                        log("ERROR", f"源文件不存在: {local_file_path}")
+                        return
+                    
+                    # 清理识别结果，创建有效的文件夹名称
+                    safe_recognition = self._sanitize_folder_name(recognition)
+                    
+                    # 创建目标子文件夹
+                    target_subdir = os.path.join(output_dir, safe_recognition)
+                    os.makedirs(target_subdir, exist_ok=True)
+                    
+                    # 构建目标文件路径
+                    filename = os.path.basename(local_file_path)
+                    target_path = os.path.join(target_subdir, filename)
+                    
+                    # 处理文件名冲突
+                    counter = 1
+                    base_name, ext = os.path.splitext(filename)
+                    while os.path.exists(target_path):
+                        target_path = os.path.join(target_subdir, f"{base_name}_{counter}{ext}")
+                        counter += 1
+                    
+                    # 执行文件操作
+                    if is_move:
+                        # 移动操作：使用临时文件确保原子性
+                        temp_path = target_path + '.tmp'
                         try:
-                            shutil.copy2(local_file_path, target_path)
-                            if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
-                                os.remove(local_file_path)
-                                log("INFO", f"文件移动成功(回退方式): {filename} -> {safe_recognition}")
+                            shutil.copy2(local_file_path, temp_path)
+                            
+                            # 验证复制文件的完整性
+                            if os.path.getsize(temp_path) == os.path.getsize(local_file_path):
+                                os.rename(temp_path, target_path)
+                                if os.path.exists(target_path):
+                                    os.remove(local_file_path)
+                                    log("INFO", f"文件移动成功: {filename} -> {safe_recognition}")
+                                    return
+                                else:
+                                    raise Exception("文件重命名失败")
                             else:
-                                log("ERROR", f"文件移动回退失败: {filename}")
+                                # 文件大小不匹配，删除临时文件
+                                os.remove(temp_path)
+                                raise Exception("文件复制后大小不匹配")
+                                
+                        except (OSError, PermissionError, shutil.Error) as move_error:
+                            log("ERROR", f"文件移动失败: {filename}, 错误: {str(move_error)}")
+                            # 清理临时文件
+                            try:
+                                if os.path.exists(temp_path):
+                                    os.remove(temp_path)
+                            except:
+                                pass
+                            
+                            if attempt == max_retries - 1:
+                                # 最后一次尝试失败，回退到复制+删除方式
+                                try:
+                                    shutil.copy2(local_file_path, target_path)
+                                    if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
+                                        os.remove(local_file_path)
+                                        log("INFO", f"文件移动成功(回退方式): {filename} -> {safe_recognition}")
+                                        return
+                                    else:
+                                        log("ERROR", f"文件移动回退失败: {filename}")
+                                        if os.path.exists(target_path):
+                                            os.remove(target_path)
+                                except (OSError, PermissionError, shutil.Error) as fallback_error:
+                                    log("ERROR", f"文件移动回退操作失败: {filename}, 错误: {str(fallback_error)}")
+                    else:
+                        # 复制操作：使用临时文件确保原子性
+                        temp_path = target_path + '.tmp'
+                        try:
+                            shutil.copy2(local_file_path, temp_path)
+                            
+                            # 验证复制文件的完整性
+                            if os.path.getsize(temp_path) == os.path.getsize(local_file_path):
+                                os.rename(temp_path, target_path)
+                                if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
+                                    log("INFO", f"文件复制成功: {filename} -> {safe_recognition}")
+                                    return
+                                else:
+                                    raise Exception("文件重命名失败")
+                            else:
+                                # 文件大小不匹配，删除临时文件
+                                os.remove(temp_path)
+                                raise Exception("文件复制后大小不匹配")
+                                
+                        except (OSError, PermissionError, shutil.Error) as copy_error:
+                            log("ERROR", f"文件复制失败: {filename}, 错误: {str(copy_error)}")
+                            # 清理临时文件
+                            try:
+                                if os.path.exists(temp_path):
+                                    os.remove(temp_path)
+                            except:
+                                pass
+                            
+                            if attempt == max_retries - 1:
+                                log("ERROR", f"文件复制最终失败: {filename}")
                                 if os.path.exists(target_path):
                                     os.remove(target_path)
-                        except (OSError, PermissionError, shutil.Error) as fallback_error:
-                            log("ERROR", f"文件移动回退操作失败: {filename}, 错误: {str(fallback_error)}")
-                else:
-                    # 复制操作
-                    shutil.copy2(local_file_path, target_path)
-                    if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
-                        log("INFO", f"文件复制成功: {filename} -> {safe_recognition}")
+                    
+                    # 如果操作成功，跳出重试循环
+                    break
+                    
+                except (OSError, PermissionError, shutil.Error) as e:
+                    if attempt < max_retries - 1:
+                        log("WARNING", f"文件操作失败 (尝试 {attempt + 1}/{max_retries}): {filename}, 错误: {str(e)}")
+                        time.sleep(retry_delay)
+                        retry_delay *= 2  # 指数退避
                     else:
-                        log("ERROR", f"文件复制失败: {filename}")
-                        if os.path.exists(target_path):
-                            os.remove(target_path)
-                
-            except (OSError, PermissionError, shutil.Error) as e:
-                log("ERROR", f"文件操作错误: {str(e)}")
-                # 等待并重试一次
-                time.sleep(0.1)
-                try:
-                    if is_move:
-                        shutil.move(local_file_path, target_path)
-                    else:
-                        shutil.copy2(local_file_path, target_path)
-                except (OSError, PermissionError, shutil.Error) as retry_e:
-                    log("ERROR", f"文件操作重试失败: {str(retry_e)}")
+                        log("ERROR", f"文件操作最终失败: {filename}, 错误: {str(e)}")
+                        # 清理可能残留的临时文件
+                        try:
+                            if 'temp_path' in locals() and os.path.exists(temp_path):
+                                os.remove(temp_path)
+                        except:
+                            pass
     
     def _sanitize_folder_name(self, name):
         """清理文件夹名称，移除非法字符"""

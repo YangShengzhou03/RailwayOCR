@@ -3,7 +3,7 @@ import os
 import sys
 import time
 from datetime import datetime
-from functools import lru_cache
+from functools import lru_cache, wraps
 
 from PyQt6.QtWidgets import QMessageBox
 
@@ -16,6 +16,39 @@ MAIN_WINDOW = None
 LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_internal', 'log')
 MAX_LINES = 3000
 _LOG_FILE_HANDLE = None
+
+
+def exception_handler(max_retries=1, retry_delay=1.0, log_level="ERROR"):
+    """
+    统一异常处理装饰器
+    :param max_retries: 最大重试次数
+    :param retry_delay: 重试延迟时间（秒）
+    :param log_level: 日志级别
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries + 1):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    if attempt < max_retries:
+                        log_print(f"函数 {func.__name__} 执行失败 (尝试 {attempt + 1}/{max_retries + 1}): {str(e)}", "WARNING")
+                        time.sleep(retry_delay * (2 ** attempt))  # 指数退避
+                    else:
+                        log_print(f"函数 {func.__name__} 最终执行失败: {str(e)}", log_level)
+                        # 根据异常类型决定是否重新抛出
+                        if isinstance(e, (KeyboardInterrupt, SystemExit)):
+                            raise
+                        # 对于文件操作和网络相关的异常，通常不重新抛出以避免程序崩溃
+                        elif isinstance(e, (FileNotFoundError, PermissionError, ConnectionError)):
+                            return None
+                        else:
+                            # 对于其他未知异常，可以选择重新抛出或返回None
+                            return None
+            return None
+        return wrapper
+    return decorator
 
 
 @lru_cache(maxsize=128)
@@ -94,15 +127,24 @@ _LOG_COUNTER = 0
 _LOG_FLUSH_INTERVAL = 10  # 每10条日志flush一次
 
 
-def log_print(debug_message):
-    """打印调试日志并写入文件
+def log_print(message, level='INFO'):
+    """打印日志并记录到文件
 
     Args:
-        debug_message (str): 调试信息内容
+        message (str): 日志消息
+        level (str): 日志级别，可选值：DEBUG, INFO, WARNING, ERROR, CRITICAL
     """
     global _LOG_COUNTER
+    
+    # 根据配置过滤日志级别
+    config_level = getattr(logging, Config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    message_level = getattr(logging, level.upper(), logging.INFO)
+    
+    if message_level < config_level:
+        return  # 低于配置级别的日志不输出
+    
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    formatted_log = f"[{timestamp}] {debug_message}"
+    formatted_log = f"[{timestamp}] [{level}] {message}"
     print(formatted_log)
     try:
         log_rotation_size = Config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)

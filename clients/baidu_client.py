@@ -140,7 +140,7 @@ class BaiduClient(BaseClient):
             response = self.posturl(headers, body)
             pattern = re.compile(self.config.get("RE", r'.*'))
             result = self.extract_matches(response, pattern)
-            return self.process_recognition_result(str(result), image_source, is_url)
+            return self.process_recognition_result(result, image_source, is_url)
         except (requests.exceptions.RequestException, IOError, ValueError) as e:
             log("ERROR", f"图像识别请求失败: {str(e)}")
             return None

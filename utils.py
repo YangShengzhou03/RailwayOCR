@@ -86,7 +86,7 @@ def _init_log_system():
             with open(LOG_PATH, 'w', encoding='utf-8') as f:
                 f.write(f"# Log file created at {datetime.now()}\n")
     except (OSError, FileNotFoundError) as e:
-        print(f"[ERROR] 初始化日志系统失败: {str(e)}")
+        log_print(f"[ERROR] 初始化日志系统失败: {str(e)}", "ERROR")
 
 
 _init_log_system()
@@ -120,12 +120,32 @@ def close_log_file():
             _LOG_FILE_HANDLE = None
 
         except (OSError, IOError) as e:
-            print(f"[ERROR] 关闭日志文件失败: {str(e)}")
+            log_print(f"[ERROR] 关闭日志文件失败: {str(e)}", "ERROR")
 
 
 # 添加日志计数器，用于控制flush频率
 _LOG_COUNTER = 0
 _LOG_FLUSH_INTERVAL = 10  # 每10条日志flush一次
+
+
+def _write_to_log_file(message):
+    """统一的日志写入函数
+    
+    Args:
+        message (str): 日志消息
+    """
+    global _LOG_COUNTER
+    
+    try:
+        log_handle = _get_log_file_handle()
+        if log_handle:
+            log_handle.write(f"{message}\n")
+            _LOG_COUNTER += 1
+            # 优化：每10条日志flush一次，降低磁盘IO
+            if _LOG_COUNTER % _LOG_FLUSH_INTERVAL == 0:
+                log_handle.flush()
+    except (OSError, IOError):
+        pass
 
 
 def log_print(message, level='INFO'):
@@ -147,7 +167,9 @@ def log_print(message, level='INFO'):
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     formatted_log = f"[{timestamp}] [{level}] {message}"
-    print(formatted_log)
+    
+    # 使用统一的日志处理机制
+    _write_to_log_file(formatted_log)
     try:
         log_rotation_size = config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
         log_backup_count = config.get("LOG_BACKUP_COUNT", 3)

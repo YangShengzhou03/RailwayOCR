@@ -384,46 +384,11 @@ class ProcessingThread(QtCore.QThread):
         self.signal_processor_running = False
         self.signal_queue.put(('stop_signal',))
 
-        # 设置超时时间，避免线程无法正常终止
-        for worker in self.workers:
-            if worker.is_alive():
-                worker.join(timeout=5.0)  # 5秒超时
-                if worker.is_alive():
-                    log("WARNING", f"工作线程未能正常退出，正在强制清理")
-                    # 这里不直接使用terminate()，因为可能造成资源泄漏
-                    # 而是通过设置更强的停止信号
-                    self._force_stop = True
-                    
-                    # 再次尝试优雅终止
-                    worker.join(timeout=2.0)
-                    
-                    if worker.is_alive():
-                        log("ERROR", f"工作线程最终无法终止，可能需要重启程序")
-
-        if self.signal_processor_thread and self.signal_processor_thread.is_alive():
-            self.signal_processor_thread.join(timeout=5.0)
-            if self.signal_processor_thread.is_alive():
-                log("WARNING", "信号处理器线程未能正常退出，正在强制清理")
-                self._force_stop = True
-                self.signal_processor_thread.join(timeout=2.0)
-                if self.signal_processor_thread.is_alive():
-                    log("ERROR", "信号处理器线程最终无法终止，可能需要重启程序")
-
+        # 立即返回，不阻塞UI线程
+        # 线程会在后台自行终止，通过processing_stopped信号通知主线程
         self.processing_stopped.emit()
-        log("INFO", "处理线程已成功停止")
-        log_print("处理线程已成功停止")
-
-        if self.client_type != 'local' and hasattr(self.shared_client, 'cleanup') and callable(self.shared_client.cleanup):
-            try:
-                self.shared_client.cleanup()
-                gc.collect()
-            except (RuntimeError, OSError) as e:
-                log_print(f"客户端资源清理失败: {str(e)}")
-
-        # 清理资源
-        self._cleanup_resources()
-        self.workers = []
-        self.signal_processor_thread = None
+        log("INFO", "已发送停止信号，线程将在后台安全终止")
+        log_print("已发送停止信号，线程将在后台安全终止")
     
     def _cleanup_resources(self):
         """清理线程使用的资源"""

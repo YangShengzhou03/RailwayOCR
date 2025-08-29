@@ -318,11 +318,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
             self.processing_thread.stop()
-            # 使用异步方式等待线程停止，避免阻塞UI
-            self.stop_timer = QtCore.QTimer()
-            self.stop_timer.timeout.connect(self._check_thread_stop)
-            self.stop_timer.start(100)  # 每100ms检查一次
-            self.stop_start_time = time.time()
+            # 立即返回，不等待线程停止
+            # 线程会在后台自行终止，通过processing_stopped信号通知主线程
             return True
         except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"停止线程时发生错误: {str(e)}")
@@ -330,25 +327,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _check_thread_stop(self):
         """检查线程是否已停止，超时后强制终止"""
-        if not self.processing_thread or not self.processing_thread.isRunning():
-            if hasattr(self, 'stop_timer'):
-                self.stop_timer.stop()
-                self.stop_timer.deleteLater()
-            log("INFO", "处理线程已成功停止")
-            return
-
-        current_time = time.time()
-        if current_time - self.stop_start_time > 2.0:  # 2秒超时
-            if hasattr(self, 'stop_timer'):
-                self.stop_timer.stop()
-                self.stop_timer.deleteLater()
-            log("WARNING", "处理线程未能正常终止，强制终止")
-            try:
-                self.processing_thread.terminate()
-            except (RuntimeError, ValueError, TypeError) as e:
-                log("ERROR", f"强制终止线程失败: {str(e)}")
-            finally:
-                QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
+        # 这个方法不再需要，因为线程停止现在是完全异步的
+        # 线程会在后台自行终止，通过processing_stopped信号通知主线程
+        pass
 
     def start_processing(self):
         if not self._validate_processing_conditions():
@@ -477,9 +458,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             if self.processing_thread and self.processing_thread.isRunning():
                 self._safe_stop_thread()
-                QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
-            else:
-                QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
+            # UI将在processing_stopped信号中自动更新
 
     def _update_ui_after_stop(self):
         """在处理停止后更新UI状态"""
@@ -575,12 +554,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 try:
                     log("WARNING", "处理线程仍在运行，尝试安全停止")
                     self.processing_thread.stop()
-                    self.processing_thread.wait(3000)  # 等待3秒
-                    
-                    if self.processing_thread.isRunning():
-                        log("ERROR", "无法安全停止处理线程，尝试强制终止")
-                        self.processing_thread.terminate()
-                        self.processing_thread.wait(2000)
+                    # 不再等待线程停止，线程会在后台自行终止
                 except (RuntimeError, ValueError, TypeError) as e:
                     log("ERROR", f"停止处理线程时发生错误: {str(e)}")
             
@@ -624,12 +598,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.processing_thread and self.processing_thread.isRunning():
                     log("WARNING", "应用程序关闭前停止处理线程")
                     self.processing_thread.stop()
-                    # 使用异步方式等待线程停止，避免阻塞UI
-                    self.close_timer = QtCore.QTimer()
-                    self.close_timer.timeout.connect(self._check_close_thread_stop)
-                    self.close_timer.start(100)  # 每100ms检查一次
-                    self.close_start_time = time.time()
-                    return  # 延迟退出，等待异步检查
+                    # 不再等待线程停止，直接关闭应用程序
+                    # 线程会在后台自行终止
             else:
                 # 如果没有在处理，直接关闭应用程序
                 self._finalize_close()
@@ -638,36 +608,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self._finalize_close()
 
     def _check_close_thread_stop(self):
-        """检查关闭时的线程停止状态，超时后强制退出"""
-        if not self.processing_thread or not self.processing_thread.isRunning():
-            if hasattr(self, 'close_timer'):
-                self.close_timer.stop()
-                self.close_timer.deleteLater()
-            log("INFO", "处理线程已成功停止")
-            self._finalize_close()
-            return
-
-        current_time = time.time()
-        if current_time - self.close_start_time > 10.0:  # 延长超时时间到10秒
-            if hasattr(self, 'close_timer'):
-                self.close_timer.stop()
-                self.close_timer.deleteLater()
-            
-            # 尝试强制终止线程
-            try:
-                if self.processing_thread and self.processing_thread.isRunning():
-                    log("WARNING", "处理线程仍在运行，尝试强制终止")
-                    self.processing_thread.terminate()
-                    self.processing_thread.wait(2000)  # 等待2秒
-                    
-                    if self.processing_thread.isRunning():
-                        log("ERROR", "无法终止处理线程，强制退出")
-                    else:
-                        log("INFO", "处理线程已强制终止")
-            except (RuntimeError, ValueError, TypeError) as e:
-                log("ERROR", f"终止线程时发生错误: {str(e)}")
-            
-            self._finalize_close()
+        """检查关闭时的线程停止状态（已弃用）"""
+        log("WARNING", "_check_close_thread_stop方法已弃用，不再需要等待线程停止")
+        self._finalize_close()
 
     def _finalize_close(self):
         """最终关闭应用程序"""

@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import time
+import logging
 from datetime import datetime
 from functools import lru_cache, wraps
 
@@ -137,7 +138,8 @@ def log_print(message, level='INFO'):
     global _LOG_COUNTER
     
     # 根据配置过滤日志级别
-    config_level = getattr(logging, Config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    config = load_config()
+    config_level = getattr(logging, config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
     message_level = getattr(logging, level.upper(), logging.INFO)
     
     if message_level < config_level:
@@ -147,8 +149,8 @@ def log_print(message, level='INFO'):
     formatted_log = f"[{timestamp}] [{level}] {message}"
     print(formatted_log)
     try:
-        log_rotation_size = Config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
-        log_backup_count = Config.get("LOG_BACKUP_COUNT", 3)
+        log_rotation_size = config.get("LOG_ROTATION_SIZE", 5 * 1024 * 1024)
+        log_backup_count = config.get("LOG_BACKUP_COUNT", 3)
 
         if os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > log_rotation_size:
             for i in range(log_backup_count - 1, 0, -1):

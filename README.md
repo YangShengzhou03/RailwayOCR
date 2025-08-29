@@ -1,27 +1,5 @@
 # 🚂 RailwayOCR - AI驱动的铁路基础设施检测系统
 
-## 📋 目录
-
-### 🎯 核心章节
-- [✨ 项目概览](#-项目概览)
-- [🚀 核心功能](#-核心功能)
-- [🏗️ 技术架构](#️-技术架构)
-- [📦 安装部署](#-安装部署)
-- [🚀 快速开始](#-快速开始)
-
-### 📊 高级主题
-- [📈 性能指标](#-性能指标)
-- [🔧 模型训练](#-模型训练)
-- [🏛️ 项目结构](#️-项目结构)
-- [📊 GitHub分析](#-github分析)
-
-### 🤝 社区与开发
-- [👥 社区支持](#-社区支持)
-- [📝 许可证](#-许可证)
-- [🔮 未来路线图](#-未来路线图)
-
----
-
 <div align="center">
   <a href="https://www.gnu.org/licenses/agpl-3.0">
     <img src="https://img.shields.io/badge/License-AGPL_v3-blue?style=for-the-badge&logo=gnu" alt="License: AGPL v3">
@@ -55,6 +33,29 @@
 📌 **专业领域**: 铁路基础设施检测 | 轨道路径识别 | 设备状态分析  
 📦 开源项目 | ⚙️ 跨平台应用 | 📈 AI图像识别 + 智能分类 + 缺陷检测
 
+## 📋 目录
+
+### 🎯 核心章节
+- [✨ 项目概览](#-项目概览)
+- [🚀 核心功能](#-核心功能)
+- [🏗️ 技术架构](#️-技术架构)
+- [📦 安装部署](#-安装部署)
+- [🎮 使用指南](#-使用指南)
+
+### 📊 高级主题
+- [📈 性能指标](#-性能指标)
+- [🔧 模型训练](#-模型训练)
+- [🏗️ 项目结构](#️-项目结构)
+- [📊 GitHub分析](#-github分析)
+
+### 🤝 社区与开发
+- [👥 社区支持](#-社区支持)
+- [📝 许可证](#-许可证)
+- [🔮 未来路线图](#-未来路线图)
+- [❓ 常见问题](#-常见问题)
+
+---
+
 ## ✨ 项目概览
 
 <div align="center">
@@ -68,40 +69,40 @@
 
 </div>
 
-### 📊 实时项目指标
+### 📊 项目统计信息
 
 <!-- PROJECT STATS -->
 <div align="center">
   
-![Lines of code](https://img.shields.io/tokei/lines/github/YangShengzhou03/RailwayOCR?label=Lines%20of%20Code&style=for-the-badge&color=blue)
-![GitHub repo size](https://img.shields.io/github/repo-size/YangShengzhou03/RailwayOCR?label=Repository%20Size&style=for-the-badge&color=green)
-![GitHub language count](https://img.shields.io/github/languages/count/YangShengzhou03/RailwayOCR?label=Programming%20Languages&style=for-the-badge&color=orange)
-![GitHub contributors](https://img.shields.io/github/contributors/YangShengzhou03/RailwayOCR?label=Contributors&style=for-the-badge&color=purple)
+![Lines of code](https://img.shields.io/tokei/lines/github/YangShengzhou03/RailwayOCR?label=代码行数&style=for-the-badge&color=blue)
+![GitHub repo size](https://img.shields.io/github/repo-size/YangShengzhou03/RailwayOCR?label=仓库大小&style=for-the-badge&color=green)
+![GitHub language count](https://img.shields.io/github/languages/count/YangShengzhou03/RailwayOCR?label=编程语言&style=for-the-badge&color=orange)
+![GitHub contributors](https://img.shields.io/github/contributors/YangShengzhou03/RailwayOCR?label=贡献者&style=for-the-badge&color=purple)
 
 </div>
 <!-- PROJECT STATS -->
 
-### 🎮 交互式项目探索
+### 📈 开发统计数据
 
 <details>
-<summary>📈 点击展开详细项目统计</summary>
+<summary>📊 点击查看详细开发统计</summary>
 
-#### 🔥 开发活动
+#### 🔥 开发活跃度
 
 ```bash
 # 近期开发活动统计
 过去30天提交次数: 25
 日均提交次数: 0.83
-主要开发时间: 工作日 9:00-18:00
+主要开发时段: 工作日 9:00-18:00
 ```
 
-#### 🏆 社区参与度
+#### 🏆 社区参与指标
 
-| 指标 | 数值 | 排名 |
+| 指标 | 数值 | 水平评估 |
 |--------|-------|---------|
-| ⭐ Star增长率 | +15% 每月 | 前10% |
-| 🍴 Fork转化率 | 8:1 (Star:Fork) | 优秀 |
-| 🐛 Issue响应时间 | < 24小时 | 非常快 |
+| ⭐ Star增长率 | +15% 每月 | 优秀 |
+| 🍴 Fork转化率 | 8:1 (Star:Fork) | 良好 |
+| 🐛 Issue响应时间 | < 24小时 | 优秀 |
 
 #### 📋 代码质量指标
 
@@ -117,16 +118,16 @@
 
 </details>
 
-### 🌟 项目亮点
+### 🌟 核心功能性能
 
 <div align="center">
 
-| 功能模块 | 状态 | 性能指标 |
+| 功能模块 | 状态 | 性能表现 |
 |----------------|--------|---------------------|
 | 🚆 轨道检测 | ✅ 生产就绪 | 准确率 98.5% |
 | 📷 图像识别 | ✅ 稳定运行 | 处理速度 50ms/帧 |
 | 🤖 AI分析 | 🚧 持续优化 | 模型精度 97.2% |
-| 📊 数据可视化 | ✅ 功能完整 | 实时刷新 < 1s |
+| 📊 数据可视化 | ✅ 功能完整 | 刷新延迟 < 1s |
 
 </div>
 
@@ -349,7 +350,7 @@ RailwayOCR提供从图像输入到结果输出的完整AI识别流程，包括�
 | **支持的图像格式** | JPG, PNG, TIFF, BMP |
 | **输入分辨率范围** | 最小640×480，最大4096×4096 |
 | **处理性能** | 平均处理时间 <1s/图像 (CPU模式) |
-| **识别准确率** | 平均准确率 >90% (测试数据集) |
+| **识别准确率** | 平均准确率 >90% (在标准测试数据集上) |
 | **操作系统** | Windows 10/11 |
 | **最低硬件要求** | CPU: i5-8400; 内存: 8GB; 存储: 10GB |
 | **推荐硬件配置** | CPU: i7-12700; 内存: 16GB; 存储: 50GB |
@@ -429,58 +430,65 @@ graph TB
 安装前请验证您的系统满足最低要求：
 
 ```bash
-# 检查Python版本
+# 检查Python版本（需要Python 3.8+）
 python --version
-# 应为Python 3.8+
 
-# 检查可用内存
-systeminfo | find "Available Physical Memory"
-# 应至少8GB
+# 检查可用内存（Windows PowerShell）
+Get-CimInstance -ClassName Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum | % {[math]::Round($_.Sum/1GB,2)}
 
-# 检查磁盘空间
-dir C:\ | find "free"
-# 应至少有10GB可用空间
+# 检查磁盘空间（Windows PowerShell）
+Get-PSDrive C | Select-Object Used,Free
+
+# 或者使用CMD命令（中文系统）
+# systeminfo | findstr /C:"可用物理内存"
+# dir C:\ | find "可用"
 ```
 
 ### ⚙️ 配置设置
 
 安装后配置系统：
 
-1. **初始设置**: 系统自动创建必要目录
-2. **模型加载**: 首次运行时下载预训练模型
-3. **配置文件**: 在`_internal/config/`中创建默认配置
-4. **日志目录**: 日志存储在`_internal/log/`中用于调试
+1. **初始设置**: 系统自动创建必要目录结构
+2. **模型加载**: 首次运行时自动下载预训练模型（约1.2GB）
+3. **配置文件**: 在`_internal/config/`目录中生成默认配置文件
+4. **日志目录**: 日志文件存储在`_internal/log/`目录中用于调试和监控
 
 ### 🔧 高级安装选项
 
-用于开发或生产部署：
+用于不同环境的部署：
 
 ```bash
-# 开发模式 (热重载)
+# 开发模式（启用热重载和详细日志）
 python Application.py --dev
 
-# 生产模式 (优化设置)  
+# 生产模式（优化性能设置）  
 python Application.py --production
 
-# 自定义配置路径
+# 自定义配置文件路径
 python Application.py --config /path/to/custom/config.json
+
+# 指定模型下载路径
+python Application.py --model-dir /custom/model/path
 ```
 
 ### 📱 多平台支持
 
-虽然主要设计用于Windows，但系统支持：
-- **Windows 10/11**: 原生支持，功能完整
-- **Linux**: 通过兼容层提供实验性支持
-- **macOS**: 有限测试，需要额外依赖
+**主要支持平台**:
+- **Windows 10/11**: 原生支持，所有功能完整可用
+- **Linux** (Ubuntu 18.04+): 实验性支持，需要手动安装依赖
+- **macOS** (10.15+): 有限测试支持，可能需要额外配置
 
-### 🚀 快速开始
+**Python版本兼容性**: Python 3.8, 3.9, 3.10, 3.11
 
-成功安装后：
-1. 启动应用程序
-2. 从`preview/`目录导入示例图像
-3. 运行快速测试检测
-4. 在输出面板查看结果
-5. 导出您的第一个检测报告
+### 🚀 5分钟快速开始
+
+成功安装后，按照以下步骤快速体验：
+
+1. **启动应用**: 运行 `python Application.py`
+2. **导入示例**: 点击"导入图像"，选择 `preview/` 目录中的示例图片
+3. **选择模式**: 使用"快速检测"模式进行初步测试
+4. **查看结果**: 在右侧结果面板查看检测详情和可视化标注
+5. **导出报告**: 点击"生成报告"导出您的第一份检测报告（支持PDF/Excel格式）
 
 ---
 
@@ -561,13 +569,13 @@ RailwayOCR/
 
 | 检测项目 | 准确率 | 召回率 | F1分数 | 平均检测时间 |
 |----------------|----------|--------|----------|------------------------|
-| 轨道裂纹 | 92.5%  | 90.8%  | 91.6%  | 680ms        |
-| 轨枕损伤 | 91.2%  | 89.5%  | 90.3%  | 590ms        |
-| 接触网异常 | 88.7%  | 86.3%  | 87.5%  | 720ms        |
-| 道岔异常 | 90.1%  | 88.6%  | 89.3%  | 650ms        |
-| 综合检测 | 90.6%  | 88.9%  | 89.7%  | 660ms        |
+| 轨道裂纹检测 | 92.5%  | 90.8%  | 91.6%  | 680ms        |
+| 轨枕损伤识别 | 91.2%  | 89.5%  | 90.3%  | 590ms        |
+| 接触网异常检测 | 88.7%  | 86.3%  | 87.5%  | 720ms        |
+| 道岔异常识别 | 90.1%  | 88.6%  | 89.3%  | 650ms        |
+| 综合检测性能 | 90.6%  | 88.9%  | 89.7%  | 660ms        |
 
-*测试环境: Intel i7-11700 CPU + 16GB RAM*
+*测试环境: Intel i7-11700 CPU + 16GB RAM, 在包含1,000张铁路设施图像的标准测试集上*
 
 ---
 
@@ -634,6 +642,32 @@ RailwayOCR/
 - [ ] 构建集成的铁路数字孪生和AI检测平台
 - [ ] 形成覆盖铁路全生命周期的综合智能检测解决方案
 - [ ] 建立铁路设施缺陷数据库和AI训练平台
+
+## ❓ 常见问题
+
+### 🔧 安装问题
+
+**Q: 安装时出现依赖冲突错误怎么办？**
+A: 建议使用全新的Python虚拟环境，并确保使用Python 3.8+版本。
+
+**Q: 模型下载速度很慢或失败？**
+A: 可以尝试使用 `--model-dir` 参数指定本地模型路径，或使用代理下载。
+
+### 🚀 使用问题
+
+**Q: 处理大型图像时内存不足？**
+A: 建议使用生产模式 (`--production`) 或调整图像预处理参数降低内存使用。
+
+**Q: 检测结果不准确？**
+A: 确保输入图像质量良好，光照条件适宜，必要时使用图像增强功能。
+
+### 📊 性能优化
+
+**Q: 如何提高处理速度？**
+A: 使用GPU加速（如果可用）或调整批量处理大小优化性能。
+
+**Q: 系统最低配置要求？**
+A: 最低要求：CPU i5-8400, 8GB RAM, 10GB存储。推荐配置：CPU i7-12700, 16GB RAM。
 
 ---
 

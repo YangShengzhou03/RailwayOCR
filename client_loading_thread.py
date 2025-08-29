@@ -44,7 +44,6 @@ class ClientLoadingThread(QThread):
         """
         try:
             mode_index = self.config.get("MODE_INDEX", 0)
-            log("INFO", f"开始加载OCR客户端，模式: {mode_index}")
             
             if mode_index == MODE_ALI:
                 self._load_ali_client()

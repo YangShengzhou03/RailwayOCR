@@ -120,15 +120,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         # 显示加载状态
         self.pushButton_start.setEnabled(False)
-        self.pushButton_start.setText("模型加载中...")
-        log("INFO", "[主窗口] 正在后台加载OCR模型...")
+        self.pushButton_start.setText("模型加载")
 
     def _on_client_loaded(self, client):
         """模型加载完成的回调"""
         self.client = client
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
-        log("INFO", "[主窗口] OCR模型加载完成")
 
     def _on_loading_error(self, error_msg):
         """模型加载失败的回调"""
@@ -320,16 +318,37 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         try:
             self.processing_thread.stop()
-            if self.processing_thread.wait(2000):
-                log("INFO", "处理线程已成功停止")
-                return True
-            
-            log("WARNING", "处理线程未能正常终止，强制终止")
-            self.processing_thread.terminate()
-            return False
+            # 使用异步方式等待线程停止，避免阻塞UI
+            self.stop_timer = QtCore.QTimer()
+            self.stop_timer.timeout.connect(self._check_thread_stop)
+            self.stop_timer.start(100)  # 每100ms检查一次
+            self.stop_start_time = time.time()
+            return True
         except (RuntimeError, ValueError, TypeError) as e:
             log("ERROR", f"停止线程时发生错误: {str(e)}")
             return False
+
+    def _check_thread_stop(self):
+        """检查线程是否已停止，超时后强制终止"""
+        if not self.processing_thread or not self.processing_thread.isRunning():
+            if hasattr(self, 'stop_timer'):
+                self.stop_timer.stop()
+                self.stop_timer.deleteLater()
+            log("INFO", "处理线程已成功停止")
+            return
+
+        current_time = time.time()
+        if current_time - self.stop_start_time > 2.0:  # 2秒超时
+            if hasattr(self, 'stop_timer'):
+                self.stop_timer.stop()
+                self.stop_timer.deleteLater()
+            log("WARNING", "处理线程未能正常终止，强制终止")
+            try:
+                self.processing_thread.terminate()
+            except (RuntimeError, ValueError, TypeError) as e:
+                log("ERROR", f"强制终止线程失败: {str(e)}")
+            finally:
+                QtCore.QTimer.singleShot(100, self._update_ui_after_stop)
 
     def start_processing(self):
         if not self._validate_processing_conditions():
@@ -584,25 +603,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 if self.processing_thread and self.processing_thread.isRunning():
                     log("WARNING", "应用程序关闭前停止处理线程")
                     self.processing_thread.stop()
-                    start_time = time.time()
-                    while self.processing_thread.isRunning() and (time.time() - start_time) < 5:
-                        QApplication.processEvents()
-                        time.sleep(0.1)
-                    if self.processing_thread.isRunning():
-                        log("ERROR", "无法正常停止处理线程，强制退出")
+                    # 使用异步方式等待线程停止，避免阻塞UI
+                    self.close_timer = QtCore.QTimer()
+                    self.close_timer.timeout.connect(self._check_close_thread_stop)
+                    self.close_timer.start(100)  # 每100ms检查一次
+                    self.close_start_time = time.time()
+                    return  # 延迟退出，等待异步检查
+        except Exception as e:
+            pass
 
-            if hasattr(self.client, 'cleanup') and hasattr(self.client,
-                                                           'client_type') and self.client.client_type == 'local':
-                try:
-                    self.client.cleanup()
-                    log("INFO", "本地OCR资源已在应用程序关闭前释放")
-                except (RuntimeError, ValueError, TypeError) as e:
-                    log("ERROR", f"清理本地OCR资源失败: {str(e)}")
+    def _check_close_thread_stop(self):
+        """检查关闭时的线程停止状态，超时后强制退出"""
+        if not self.processing_thread or not self.processing_thread.isRunning():
+            if hasattr(self, 'close_timer'):
+                self.close_timer.stop()
+                self.close_timer.deleteLater()
+            log("INFO", "处理线程已成功停止")
+            self._finalize_close()
+            return
 
-            log("INFO", "应用程序即将关闭")
-            QApplication.quit()
-        except (RuntimeError, ValueError, TypeError) as e:
-            log("ERROR", f"关闭应用程序失败: {str(e)}")
+        current_time = time.time()
+        if current_time - self.close_start_time > 5.0:  # 5秒超时
+            if hasattr(self, 'close_timer'):
+                self.close_timer.stop()
+                self.close_timer.deleteLater()
+            log("ERROR", "无法正常停止处理线程，强制退出")
+            self._finalize_close()
+
+    def _finalize_close(self):
+        """最终关闭应用程序"""
+        if hasattr(self.client, 'cleanup') and hasattr(self.client,
+                                                       'client_type') and self.client.client_type == 'local':
+            try:
+                self.client.cleanup()
+                log("INFO", "本地OCR资源已在应用程序关闭前释放")
+            except (RuntimeError, ValueError, TypeError) as e:
+                log("ERROR", f"清理本地OCR资源失败: {str(e)}")
+
+        log("INFO", "应用程序即将关闭")
+        QApplication.quit()
 
 
 if __name__ == "__main__":

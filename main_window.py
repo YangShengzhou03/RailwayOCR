@@ -132,15 +132,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """模型加载失败的回调"""
         self.pushButton_start.setEnabled(True)
         self.pushButton_start.setText("开始分类")
-        log("ERROR", f"[主窗口] OCR模型加载失败: {error_msg}")
+        log("ERROR", f"OCR模型加载失败: {error_msg}")
         QMessageBox.warning(self, "模型加载失败", f"OCR模型加载失败: {error_msg}\n将使用备用模式。")
         
         # 使用备用客户端
         try:
             self.client = LocalClient(max_retries=1)
-            log("INFO", "[主窗口] 已切换到备用本地客户端")
+            log("INFO", "已切换到备用本地客户端")
         except Exception as e:
-            log("ERROR", f"[主窗口] 备用客户端初始化失败: {str(e)}")
+            log("ERROR", f"备用客户端初始化失败: {str(e)}")
 
     def get_client(self):
         """获取OCR客户端，如果未加载则同步初始化"""
@@ -149,20 +149,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             try:
                 if mode_index == MODE_ALI:
                     self.client = AliClient()
-                    log("INFO", "[主窗口] 同步初始化阿里云客户端")
+                    log("INFO", "同步初始化阿里云客户端")
                 elif mode_index == MODE_BAIDU:
                     self.client = BaiduClient()
-                    log("INFO", "[主窗口] 同步初始化百度客户端")
+                    log("INFO", "同步初始化百度客户端")
                 elif mode_index == MODE_PADDLE:
                     self.client = PaddleClient()
-                    log("INFO", "[主窗口] 同步初始化飞桨客户端")
+                    log("INFO", "同步初始化飞桨客户端")
                 else:
                     self.client = LocalClient(max_retries=1)
-                    log("INFO", "[主窗口] 同步初始化本地客户端")
+                    log("INFO", "同步初始化本地客户端")
             except Exception as e:
-                log("ERROR", f"[主窗口] 同步初始化客户端失败: {str(e)}")
+                log("ERROR", f"同步初始化客户端失败: {str(e)}")
                 self.client = LocalClient(max_retries=1)
-                log("INFO", "[主窗口] 使用备用本地客户端")
+                log("INFO", "使用备用本地客户端")
         return self.client
 
     def _setup_connections(self):
@@ -570,14 +570,35 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def _cleanup_thread(self):
         """清理处理线程和OCR资源"""
         if self.processing_thread:
+            # 检查线程状态并安全停止
+            if self.processing_thread.isRunning():
+                try:
+                    log("WARNING", "处理线程仍在运行，尝试安全停止")
+                    self.processing_thread.stop()
+                    self.processing_thread.wait(3000)  # 等待3秒
+                    
+                    if self.processing_thread.isRunning():
+                        log("ERROR", "无法安全停止处理线程，尝试强制终止")
+                        self.processing_thread.terminate()
+                        self.processing_thread.wait(2000)
+                except (RuntimeError, ValueError, TypeError) as e:
+                    log("ERROR", f"停止处理线程时发生错误: {str(e)}")
+            
+            # 清理OCR资源
             if hasattr(self.client, 'cleanup') and hasattr(self.client,
                                                            'client_type') and self.client.client_type == 'local':
                 try:
                     self.client.cleanup()
                 except (RuntimeError, ValueError, TypeError) as e:
                     log("ERROR", f"清理本地OCR资源失败: {str(e)}")
-            self.processing_thread.deleteLater()
-            self.processing_thread = None
+            
+            # 清理线程对象
+            try:
+                self.processing_thread.deleteLater()
+            except (RuntimeError, ValueError, TypeError) as e:
+                log("ERROR", f"删除线程对象失败: {str(e)}")
+            finally:
+                self.processing_thread = None
 
     def minimize_window(self):
         """最小化应用程序窗口"""
@@ -609,8 +630,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     self.close_timer.start(100)  # 每100ms检查一次
                     self.close_start_time = time.time()
                     return  # 延迟退出，等待异步检查
+            else:
+                # 如果没有在处理，直接关闭应用程序
+                self._finalize_close()
         except Exception as e:
-            pass
+            # 发生异常时也尝试关闭应用程序
+            self._finalize_close()
 
     def _check_close_thread_stop(self):
         """检查关闭时的线程停止状态，超时后强制退出"""
@@ -623,11 +648,25 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         current_time = time.time()
-        if current_time - self.close_start_time > 5.0:  # 5秒超时
+        if current_time - self.close_start_time > 10.0:  # 延长超时时间到10秒
             if hasattr(self, 'close_timer'):
                 self.close_timer.stop()
                 self.close_timer.deleteLater()
-            log("ERROR", "无法正常停止处理线程，强制退出")
+            
+            # 尝试强制终止线程
+            try:
+                if self.processing_thread and self.processing_thread.isRunning():
+                    log("WARNING", "处理线程仍在运行，尝试强制终止")
+                    self.processing_thread.terminate()
+                    self.processing_thread.wait(2000)  # 等待2秒
+                    
+                    if self.processing_thread.isRunning():
+                        log("ERROR", "无法终止处理线程，强制退出")
+                    else:
+                        log("INFO", "处理线程已强制终止")
+            except (RuntimeError, ValueError, TypeError) as e:
+                log("ERROR", f"终止线程时发生错误: {str(e)}")
+            
             self._finalize_close()
 
     def _finalize_close(self):

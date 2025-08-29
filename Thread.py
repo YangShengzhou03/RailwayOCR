@@ -547,15 +547,24 @@ class ProcessingThread(QtCore.QThread):
                 # operation变量用于日志记录，但当前未使用
                 
                 if is_move:
-                    # 移动操作：先复制再删除，确保原子性
-                    shutil.copy2(local_file_path, target_path)
-                    if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
-                        os.remove(local_file_path)
+                    # 移动操作：使用shutil.move确保原子性
+                    try:
+                        shutil.move(local_file_path, target_path)
                         log("INFO", f"文件移动成功: {filename} -> {safe_recognition}")
-                    else:
-                        log("ERROR", f"文件移动失败: {filename}")
-                        if os.path.exists(target_path):
-                            os.remove(target_path)
+                    except (OSError, PermissionError, shutil.Error) as move_error:
+                        log("ERROR", f"文件移动失败: {filename}, 错误: {str(move_error)}")
+                        # 回退到复制+删除方式
+                        try:
+                            shutil.copy2(local_file_path, target_path)
+                            if os.path.exists(target_path) and os.path.getsize(target_path) == os.path.getsize(local_file_path):
+                                os.remove(local_file_path)
+                                log("INFO", f"文件移动成功(回退方式): {filename} -> {safe_recognition}")
+                            else:
+                                log("ERROR", f"文件移动回退失败: {filename}")
+                                if os.path.exists(target_path):
+                                    os.remove(target_path)
+                        except (OSError, PermissionError, shutil.Error) as fallback_error:
+                            log("ERROR", f"文件移动回退操作失败: {filename}, 错误: {str(fallback_error)}")
                 else:
                     # 复制操作
                     shutil.copy2(local_file_path, target_path)

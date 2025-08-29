@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QMessageBox, QFileDialog
 import utils
 from Setting import SettingWindow
 from Thread import ProcessingThread
+from client_loading_thread import ClientLoadingThread
 from Ui_MainWindow import Ui_MainWindow
 from clients import AliClient, BaiduClient, LocalClient
 from clients.paddle_client import PaddleClient
@@ -56,10 +57,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.drag_position = QtCore.QPoint()
         self.setting_window = None
         self.client = None
+        self.client_loading_thread = None
 
         utils.MAIN_WINDOW = self
         self.config = load_config()
-        self._initialize_ocr_client()
+        # 延迟初始化OCR客户端，优先显示UI
+        # self._initialize_ocr_client()  # 移除立即初始化
 
         self._init_ui_components()
         self._setup_connections()
@@ -68,6 +71,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setWindowTitle("LeafView-RailwayOCR")
         self.setWindowIcon(QtGui.QIcon(get_resource_path('resources/img/icon.ico')))
+
+        # 在UI显示后异步加载模型
+        QtCore.QTimer.singleShot(100, self._start_async_client_initialization)
 
     def _init_ui_components(self):
         """初始化用户界面组件的初始状态"""
@@ -101,6 +107,65 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         except (ConnectionError, ValueError, OSError) as e:
             log("ERROR", f"OCR服务启动失败: {str(e)}")
             self.client = LocalClient(max_retries=1)
+
+    def _start_async_client_initialization(self):
+        """启动异步OCR客户端初始化"""
+        if self.client_loading_thread and self.client_loading_thread.isRunning():
+            return
+            
+        self.client_loading_thread = ClientLoadingThread(self.config)
+        self.client_loading_thread.client_loaded.connect(self._on_client_loaded)
+        self.client_loading_thread.loading_error.connect(self._on_loading_error)
+        self.client_loading_thread.start()
+        
+        # 显示加载状态
+        self.pushButton_start.setEnabled(False)
+        self.pushButton_start.setText("模型加载中...")
+        log("INFO", "[主窗口] 正在后台加载OCR模型...")
+
+    def _on_client_loaded(self, client):
+        """模型加载完成的回调"""
+        self.client = client
+        self.pushButton_start.setEnabled(True)
+        self.pushButton_start.setText("开始分类")
+        log("INFO", "[主窗口] OCR模型加载完成")
+
+    def _on_loading_error(self, error_msg):
+        """模型加载失败的回调"""
+        self.pushButton_start.setEnabled(True)
+        self.pushButton_start.setText("开始分类")
+        log("ERROR", f"[主窗口] OCR模型加载失败: {error_msg}")
+        QMessageBox.warning(self, "模型加载失败", f"OCR模型加载失败: {error_msg}\n将使用备用模式。")
+        
+        # 使用备用客户端
+        try:
+            self.client = LocalClient(max_retries=1)
+            log("INFO", "[主窗口] 已切换到备用本地客户端")
+        except Exception as e:
+            log("ERROR", f"[主窗口] 备用客户端初始化失败: {str(e)}")
+
+    def get_client(self):
+        """获取OCR客户端，如果未加载则同步初始化"""
+        if self.client is None:
+            mode_index = self.config.get("MODE_INDEX", 0)
+            try:
+                if mode_index == MODE_ALI:
+                    self.client = AliClient()
+                    log("INFO", "[主窗口] 同步初始化阿里云客户端")
+                elif mode_index == MODE_BAIDU:
+                    self.client = BaiduClient()
+                    log("INFO", "[主窗口] 同步初始化百度客户端")
+                elif mode_index == MODE_PADDLE:
+                    self.client = PaddleClient()
+                    log("INFO", "[主窗口] 同步初始化飞桨客户端")
+                else:
+                    self.client = LocalClient(max_retries=1)
+                    log("INFO", "[主窗口] 同步初始化本地客户端")
+            except Exception as e:
+                log("ERROR", f"[主窗口] 同步初始化客户端失败: {str(e)}")
+                self.client = LocalClient(max_retries=1)
+                log("INFO", "[主窗口] 使用备用本地客户端")
+        return self.client
 
     def _setup_connections(self):
         """设置UI组件的事件信号连接"""

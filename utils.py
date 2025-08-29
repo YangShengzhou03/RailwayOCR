@@ -70,7 +70,6 @@ def _get_log_file_handle():
             # pylint: disable=R1732
             _LOG_FILE_HANDLE = open(LOG_PATH, 'a', encoding='utf-8')
         except (IOError, OSError) as e:
-            log("ERROR", f"无法打开日志文件: {str(e)}")
             return None
     return None
 
@@ -132,7 +131,7 @@ def log_print(debug_message):
             if _LOG_COUNTER % _LOG_FLUSH_INTERVAL == 0:
                 log_handle.flush()
     except (OSError, IOError) as e:
-        log("ERROR", f"写入日志时出错: {str(e)}")
+        pass
 
 
 @lru_cache(maxsize=1)
@@ -154,14 +153,11 @@ def load_config():
 
     try:
         if not os.path.exists(file_path):
-            log("INFO", "配置文件不存在，正在创建默认设置...")
             try:
                 os.makedirs(os.path.dirname(file_path), exist_ok=True)
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(default_config, f, ensure_ascii=False, indent=2)
-                log("INFO", "默认配置文件创建成功")
             except IOError as e:
-                log("ERROR", f"创建默认配置文件失败: {str(e)}")
                 QMessageBox.critical(None, "配置错误", f"创建默认配置文件失败: {str(e)}")
             return default_config
 
@@ -170,7 +166,6 @@ def load_config():
             default_config.update(config_data)
             return default_config
     except json.JSONDecodeError:
-        log("WARNING", "配置文件格式错误，将使用默认设置")
         return default_config
     except (IOError, ValueError):
         return default_config

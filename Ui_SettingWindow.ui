@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>850</width>
-    <height>550</height>
+    <width>932</width>
+    <height>598</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -33,12 +33,12 @@
     <item>
      <widget class="QFrame" name="main_frame">
       <property name="styleSheet">
- <string notr="true">QFrame{
+       <string notr="true">QFrame{
 background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
                           stop: 0 rgba(255, 255, 255, 0.98), 
                           stop: 1 rgba(248, 250, 255, 0.95));
 border: 1px solid rgba(30, 131, 255, 0.12);
-border-radius: 20px;
+border-radius: 0px;
 box-shadow: 0 12px 40px rgba(30, 131, 255, 0.1);
 backdrop-filter: blur(12px);
 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -76,7 +76,7 @@ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
 }
 
 /* 添加现代分隔线样式 */
-QFrame[line="true"] {
+QFrame[line=&quot;true&quot;] {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                               stop:0 rgba(30, 131, 255, 0.1), 
                               stop:0.5 rgba(30, 131, 255, 0.3),
@@ -84,7 +84,7 @@ QFrame[line="true"] {
     border: none;
     height: 1px;
 }</string>
-</property>
+      </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -110,20 +110,20 @@ QFrame[line="true"] {
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
-          <number>24</number>
+          <number>16</number>
          </property>
          <property name="leftMargin">
-        <number>24</number>
-       </property>
-       <property name="topMargin">
-        <number>24</number>
-       </property>
-       <property name="rightMargin">
-        <number>24</number>
-       </property>
-       <property name="bottomMargin">
-        <number>24</number>
-       </property>
+          <number>24</number>
+         </property>
+         <property name="topMargin">
+          <number>24</number>
+         </property>
+         <property name="rightMargin">
+          <number>24</number>
+         </property>
+         <property name="bottomMargin">
+          <number>24</number>
+         </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="bottomMargin">
@@ -131,20 +131,18 @@ QFrame[line="true"] {
            </property>
            <item>
             <widget class="QLabel" name="label">
+             <property name="font">
+              <font>
+               <pointsize>18</pointsize>
+              </font>
+             </property>
              <property name="styleSheet">
               <string notr="true">color: #1e83ff;
-font-weight: 700;
 background: linear-gradient(135deg, #1e83ff 0%, #0052cc 100%);
 -webkit-background-clip: text;
 -webkit-text-fill-color: transparent;
 background-clip: text;
 text-shadow: 0 2px 4px rgba(30, 131, 255, 0.2);</string>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>20</pointsize>
-               <weight>75</weight>
-              </font>
              </property>
              <property name="text">
               <string>RailwayOCR 设置</string>
@@ -167,22 +165,26 @@ text-shadow: 0 2px 4px rgba(30, 131, 255, 0.2);</string>
               <widget class="QLabel" name="label_2">
                <property name="minimumSize">
                 <size>
-                 <width>166</width>
+                 <width>188</width>
                  <height>0</height>
                 </size>
                </property>
-               <property name="styleSheet">
-                <string notr="true">color: #2d3748;
-font-weight: 600;
-font-size: 15px;
-background: transparent;
-border: none;</string>
+               <property name="maximumSize">
+                <size>
+                 <width>188</width>
+                 <height>16777215</height>
+                </size>
                </property>
                <property name="font">
                 <font>
                  <pointsize>14</pointsize>
-                 <weight>60</weight>
+                 <bold>false</bold>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
                </property>
                <property name="text">
                 <string>BAIDU_API_KEY</string>
@@ -191,16 +193,23 @@ border: none;</string>
              </item>
              <item>
               <widget class="QLineEdit" name="lineEdit_BAIDU_API_KEY">
+               <property name="minimumSize">
+                <size>
+                 <width>0</width>
+                 <height>42</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
+                 <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
                 <string notr="true">QLineEdit {
     border: 2px solid #e2e8f0;
     border-radius: 10px;
-    padding: 14px 16px;
+    padding: 7px 8px;
     background-color: #ffffff;
     color: #2d3748;
     font-size: 14px;
@@ -239,12 +248,12 @@ QLineEdit::placeholder {
 }
 
 /* 错误状态样式 */
-QLineEdit[error="true"] {
+QLineEdit[error=&quot;true&quot;] {
     border-color: #e53e3e;
     background-color: #fff5f5;
 }
 
-QLineEdit[error="true"]:focus {
+QLineEdit[error=&quot;true&quot;]:focus {
     box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);
 }</string>
                </property>
@@ -268,19 +277,25 @@ QLineEdit[error="true"]:focus {
               <widget class="QLabel" name="label_3">
                <property name="minimumSize">
                 <size>
-                 <width>166</width>
+                 <width>188</width>
                  <height>0</height>
                 </size>
                </property>
-               <property name="styleSheet">
-                <string notr="true">color: rgb(60, 60, 60);
-font-weight: 500;</string>
+               <property name="maximumSize">
+                <size>
+                 <width>188</width>
+                 <height>16777215</height>
+                </size>
                </property>
                <property name="font">
                 <font>
                  <pointsize>14</pointsize>
-                 <weight>60</weight>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
                </property>
                <property name="text">
                 <string>BAIDU_SECRET_KEY</string>
@@ -292,41 +307,59 @@ font-weight: 500;</string>
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
+                 <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
                 <string notr="true">QLineEdit {
-    border: 0.5px solid rgba(30, 131, 255, 0.6);
-    border-radius: 6px;
-    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */
-    background-color: white;
-    color: black;
-    font-size: 16px;
-    transition: all 0.2s ease; /* 平滑过渡效果 */
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 8px;
+    background-color: #ffffff;
+    color: #2d3748;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    selection-background-color: rgba(30, 131, 255, 0.3);
+    min-height: 24px;
 }
 
 QLineEdit:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QLineEdit:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px;
-    background-color: #f8faff;
-    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QLineEdit:disabled {
-    border: 0.5px solid #e0e0e0;
-    background-color: #f5f5f5;
-    color: #b0b0b0;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
-/* 增加占位文本样式 */
+/* 现代占位文本样式 */
 QLineEdit::placeholder {
-    color: #999999;
-    font-style: italic;
+    color: #a0aec0;
+    font-style: normal;
+    font-weight: 400;
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+/* 错误状态样式 */
+QLineEdit[error=&quot;true&quot;] {
+    border-color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+QLineEdit[error=&quot;true&quot;]:focus {
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);
 }</string>
                </property>
                <property name="placeholderText">
@@ -379,14 +412,25 @@ height: 2px;</string>
               <widget class="QLabel" name="label_4">
                <property name="minimumSize">
                 <size>
-                 <width>166</width>
+                 <width>188</width>
                  <height>0</height>
+                </size>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>188</width>
+                 <height>16777215</height>
                 </size>
                </property>
                <property name="font">
                 <font>
                  <pointsize>14</pointsize>
                 </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
                </property>
                <property name="text">
                 <string>ALI_APPCODE</string>
@@ -398,41 +442,59 @@ height: 2px;</string>
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
+                 <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
                 <string notr="true">QLineEdit {
-    border: 0.5px solid rgba(30, 131, 255, 0.6);
-    border-radius: 6px;
-    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */
-    background-color: white;
-    color: black;
-    font-size: 16px;
-    transition: all 0.2s ease; /* 平滑过渡效果 */
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 8px;
+    background-color: #ffffff;
+    color: #2d3748;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    selection-background-color: rgba(30, 131, 255, 0.3);
+    min-height: 24px;
 }
 
 QLineEdit:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QLineEdit:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px;
-    background-color: #f8faff;
-    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QLineEdit:disabled {
-    border: 0.5px solid #e0e0e0;
-    background-color: #f5f5f5;
-    color: #b0b0b0;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
-/* 增加占位文本样式 */
+/* 现代占位文本样式 */
 QLineEdit::placeholder {
-    color: #999999;
-    font-style: italic;
+    color: #a0aec0;
+    font-style: normal;
+    font-weight: 400;
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+/* 错误状态样式 */
+QLineEdit[error=&quot;true&quot;] {
+    border-color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+QLineEdit[error=&quot;true&quot;]:focus {
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);
 }</string>
                </property>
                <property name="placeholderText">
@@ -471,7 +533,13 @@ QLineEdit::placeholder {
            <property name="spacing">
             <number>24</number>
            </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
            <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -481,16 +549,16 @@ QLineEdit::placeholder {
              </property>
              <item>
               <widget class="QLabel" name="label_7">
+               <property name="font">
+                <font>
+                 <pointsize>14</pointsize>
+                </font>
+               </property>
                <property name="styleSheet">
-              <string notr="true">color: rgb(60, 60, 60);
-font-weight: 500;</string>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>14</pointsize>
-               <weight>60</weight>
-              </font>
-             </property>
+                <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
+               </property>
                <property name="text">
                 <string>线程并发数</string>
                </property>
@@ -498,16 +566,23 @@ font-weight: 500;</string>
              </item>
              <item>
               <widget class="QSpinBox" name="spinBox_CONCURRENCY">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
+                 <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
                 <string notr="true">QSpinBox {
     border: 2px solid #e2e8f0;
     border-radius: 10px;
-    padding: 12px 16px;
+    padding: 6px 8px;
     background-color: #ffffff;
     color: #2d3748;
     font-size: 14px;
@@ -599,16 +674,16 @@ QSpinBox::down-arrow {
              </property>
              <item>
               <widget class="QLabel" name="label_6">
+               <property name="font">
+                <font>
+                 <pointsize>14</pointsize>
+                </font>
+               </property>
                <property name="styleSheet">
-              <string notr="true">color: rgb(60, 60, 60);
-font-weight: 500;</string>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>14</pointsize>
-               <weight>60</weight>
-              </font>
-             </property>
+                <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
+               </property>
                <property name="text">
                 <string>出错重试数</string>
                </property>
@@ -616,56 +691,92 @@ font-weight: 500;</string>
              </item>
              <item>
               <widget class="QSpinBox" name="spinBox_RETRY_TIMES">
+               <property name="minimumSize">
+                <size>
+                 <width>120</width>
+                 <height>0</height>
+                </size>
+               </property>
                <property name="font">
                 <font>
                  <pointsize>-1</pointsize>
+                 <bold>false</bold>
                 </font>
                </property>
                <property name="styleSheet">
                 <string notr="true">QSpinBox {
-    border: 1px solid rgb(30, 131, 255);
-    border-radius: 4px;
-    padding: 2px;
-    background-color: white;
-    color: black;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 6px 8px;
+    background-color: #ffffff;
+    color: #2d3748;
     font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 100px;
 }
 
 QSpinBox:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 1px;
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QSpinBox:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 1px;
-    background-color: #f8faff;
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QSpinBox:disabled {
-    border: 1px solid #cccccc;
-    background-color: #f0f0f0;
-    color: #999999;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
+/* 现代按钮样式 */
 QSpinBox::up-button, QSpinBox::down-button {
     subcontrol-origin: border;
-    subcontrol-position: top right;
-    width: 16px;
-    height: 8px;
+    subcontrol-position: center right;
+    width: 28px;
+    border-left: 1px solid #e2e8f0;
     background-color: transparent;
+}
+
+QSpinBox::up-button {
+    subcontrol-position: top right;
+    height: 50%;
+    border-bottom: 1px solid #e2e8f0;
+    border-top-right-radius: 9px;
+}
+
+QSpinBox::down-button {
+    subcontrol-position: bottom right;
+    height: 50%;
+    border-bottom-right-radius: 9px;
 }
 
 QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-    background-color: rgba(30, 131, 255, 0.1);
+    background-color: rgba(30, 131, 255, 0.08);
 }
 
 QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
-    background-color: rgba(30, 131, 255, 0.2);
+    background-color: rgba(30, 131, 255, 0.15);
 }
 
-QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
-    background-color: transparent;
+QSpinBox::up-arrow, QSpinBox::down-arrow {
+    width: 10px;
+    height: 10px;
+    background: none;
+}
+
+QSpinBox::up-arrow {
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSA0TDEwIDlMMCA5WiIgc3Ryb2tlPSIjNjc3MjgwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+);
+}
+
+QSpinBox::down-arrow {
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSA2TDAgMUwxMCAxWiIgc3Ryb2tlPSIjNjc3MjgwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+);
 }</string>
                </property>
                <property name="minimum">
@@ -694,16 +805,16 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
              </property>
              <item>
               <widget class="QLabel" name="label_11">
+               <property name="font">
+                <font>
+                 <pointsize>14</pointsize>
+                </font>
+               </property>
                <property name="styleSheet">
-              <string notr="true">color: rgb(60, 60, 60);
-font-weight: 500;</string>
-             </property>
-             <property name="font">
-              <font>
-               <pointsize>14</pointsize>
-               <weight>60</weight>
-              </font>
-             </property>
+                <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
+               </property>
                <property name="text">
                 <string>识别模式</string>
                </property>
@@ -715,7 +826,7 @@ font-weight: 500;</string>
                 <string notr="true">QComboBox {
     border: 2px solid #e2e8f0;
     border-radius: 10px;
-    padding: 12px 16px;
+    padding: 6px 8px;
     background-color: #ffffff;
     color: #2d3748;
     font-size: 14px;
@@ -838,81 +949,86 @@ QComboBox QAbstractItemView::item:hover {
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_Password">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
              <property name="styleSheet">
               <string notr="true">QPushButton {
     border: none;
-    border-radius: 12px;
-    padding: 14px 28px;
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1e83ff, stop:1 #0052cc);
+    border-radius: 6px;
+    padding: 8px 18px;
+    background: #258fff; /* 纯蓝色主色调 */
     color: white;
-    font-size: 15px;
-    font-weight: 600;
     letter-spacing: 0.5px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 16px rgba(30, 131, 255, 0.3);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(37, 143, 255, 0.3);
     text-transform: none;
 }
 
 QPushButton:hover {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #2d8eff, stop:1 #0066e6);
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 24px rgba(30, 131, 255, 0.4);
+    background: #3a99ff; /* 亮一点的蓝色 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(37, 143, 255, 0.4);
 }
 
 QPushButton:pressed {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #0052cc, stop:1 #0047b3);
-    transform: translateY(0px) scale(0.98);
-    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);
+    background: #0a66e0; /* 深一点的蓝色 */
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(37, 143, 255, 0.3);
 }
 
 QPushButton:disabled {
-    border: none;
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #cbd5e0, stop:1 #a0aec0);
-    color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 2px 8px rgba(160, 174, 192, 0.2);
+    background: #e2e8f0; /* 禁用状态的灰色 */
+    color: #a0aec0;
+    box-shadow: 0 2px 6px rgba(160, 174, 192, 0.15);
     transform: none;
 }
 
-/* Modern focus state with accessibility */
+/* 聚焦状态 - 增强可访问性 */
 QPushButton:focus {
     outline: none;
-    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.2);
+    box-shadow: 0 0 0 3px rgba(37, 143, 255, 0.3),
+                0 4px 14px rgba(37, 143, 255, 0.3);
 }
 
-/* Secondary button variant */
-QPushButton[secondary="true"] {
+/* 次要按钮变体 */
+QPushButton[secondary=&quot;true&quot;] {
     background: transparent;
-    border: 2px solid #1e83ff;
-    color: #1e83ff;
+    border: 1.5px solid #258fff;
+    color: #258fff;
     box-shadow: none;
 }
 
-QPushButton[secondary="true"]:hover {
-    background: rgba(30, 131, 255, 0.1);
+QPushButton[secondary=&quot;true&quot;]:hover {
+    background: rgba(37, 143, 255, 0.1);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.15);
+    box-shadow: 0 4px 12px rgba(37, 143, 255, 0.15);
 }
 
-QPushButton[secondary="true"]:pressed {
-    background: rgba(30, 131, 255, 0.2);
+QPushButton[secondary=&quot;true&quot;]:pressed {
+    background: rgba(37, 143, 255, 0.2);
     transform: translateY(0px);
+    box-shadow: none;
 }
 
-/* Success button variant */
-QPushButton[success="true"] {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #38a169, stop:1 #2f855a);
-    box-shadow: 0 4px 16px rgba(56, 161, 105, 0.3);
+/* 成功按钮变体 */
+QPushButton[success=&quot;true&quot;] {
+    background: #38b2ac; /* 纯绿色调 */
+    box-shadow: 0 4px 16px rgba(56, 178, 172, 0.3);
 }
 
-QPushButton[success="true"]:hover {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #48bb78, stop:1 #38a169);
-}</string>
+QPushButton[success=&quot;true&quot;]:hover {
+    background: #48bfa7; /* 亮一点的绿色 */
+    box-shadow: 0 6px 16px rgba(56, 178, 172, 0.4);
+}
+
+QPushButton[success=&quot;true&quot;]:pressed {
+    background: #2d978f; /* 深一点的绿色 */
+    box-shadow: 0 2px 8px rgba(56, 178, 172, 0.3);
+}
+</string>
              </property>
              <property name="text">
               <string>启动密码</string>
@@ -928,15 +1044,15 @@ QPushButton[success="true"]:hover {
            </property>
            <item>
             <widget class="QLabel" name="label_8">
-             <property name="styleSheet">
-              <string notr="true">color: rgb(60, 60, 60);
-font-weight: 500;</string>
-             </property>
              <property name="font">
               <font>
                <pointsize>14</pointsize>
-               <weight>60</weight>
               </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">color: #2d3748;
+background: transparent;
+border: none;</string>
              </property>
              <property name="text">
               <string>RE（识别结果校验）</string>
@@ -948,41 +1064,59 @@ font-weight: 500;</string>
              <property name="font">
               <font>
                <pointsize>-1</pointsize>
+               <bold>false</bold>
               </font>
              </property>
              <property name="styleSheet">
               <string notr="true">QLineEdit {
-    border: 0.5px solid rgba(30, 131, 255, 0.6);
-    border-radius: 6px;
-    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */
-    background-color: white;
-    color: black;
-    font-size: 16px;
-    transition: all 0.2s ease; /* 平滑过渡效果 */
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 7px 8px;
+    background-color: #ffffff;
+    color: #2d3748;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    selection-background-color: rgba(30, 131, 255, 0.3);
+    min-height: 24px;
 }
 
 QLineEdit:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QLineEdit:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px;
-    background-color: #f8faff;
-    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QLineEdit:disabled {
-    border: 0.5px solid #e0e0e0;
-    background-color: #f5f5f5;
-    color: #b0b0b0;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
-/* 增加占位文本样式 */
+/* 现代占位文本样式 */
 QLineEdit::placeholder {
-    color: #999999;
-    font-style: italic;
+    color: #a0aec0;
+    font-style: normal;
+    font-weight: 400;
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+/* 错误状态样式 */
+QLineEdit[error=&quot;true&quot;] {
+    border-color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+QLineEdit[error=&quot;true&quot;]:focus {
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);
 }</string>
              </property>
              <property name="placeholderText">
@@ -1022,52 +1156,86 @@ QLineEdit::placeholder {
            </item>
            <item>
             <widget class="QPushButton" name="pushButton_save">
+             <property name="font">
+              <font>
+               <pointsize>12</pointsize>
+              </font>
+             </property>
              <property name="styleSheet">
               <string notr="true">QPushButton {
     border: none;
-    border-radius: 8px;
-    padding: 10px 24px;
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(47, 144, 255, 1), 
-                              stop:1 rgba(25, 118, 210, 1));
+    border-radius: 6px;
+    padding: 8px 18px;
+    background: #258fff; /* 纯蓝色主色调 */
     color: white;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);
+    letter-spacing: 0.5px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(37, 143, 255, 0.3);
+    text-transform: none;
 }
 
 QPushButton:hover {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(60, 160, 255, 1), 
-                              stop:1 rgba(35, 135, 230, 1));
+    background: #3a99ff; /* 亮一点的蓝色 */
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);
+    box-shadow: 0 6px 16px rgba(37, 143, 255, 0.4);
 }
 
 QPushButton:pressed {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(20, 100, 190, 1), 
-                              stop:1 rgba(15, 85, 170, 1));
-    transform: translateY(0px);
-    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);
+    background: #0a66e0; /* 深一点的蓝色 */
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px rgba(37, 143, 255, 0.3);
 }
 
 QPushButton:disabled {
-    border: none;
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(180, 180, 180, 1), 
-                              stop:1 rgba(160, 160, 160, 1));
-    color: rgba(255, 255, 255, 0.7);
-    box-shadow: none;
+    background: #e2e8f0; /* 禁用状态的灰色 */
+    color: #a0aec0;
+    box-shadow: 0 2px 6px rgba(160, 174, 192, 0.15);
     transform: none;
 }
 
-/* Modern focus state */
+/* 聚焦状态 - 增强可访问性 */
 QPushButton:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);
-}</string>
+    box-shadow: 0 0 0 3px rgba(37, 143, 255, 0.3),
+                0 4px 14px rgba(37, 143, 255, 0.3);
+}
+
+/* 次要按钮变体 */
+QPushButton[secondary=&quot;true&quot;] {
+    background: transparent;
+    border: 1.5px solid #258fff;
+    color: #258fff;
+    box-shadow: none;
+}
+
+QPushButton[secondary=&quot;true&quot;]:hover {
+    background: rgba(37, 143, 255, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 143, 255, 0.15);
+}
+
+QPushButton[secondary=&quot;true&quot;]:pressed {
+    background: rgba(37, 143, 255, 0.2);
+    transform: translateY(0px);
+    box-shadow: none;
+}
+
+/* 成功按钮变体 */
+QPushButton[success=&quot;true&quot;] {
+    background: #38b2ac; /* 纯绿色调 */
+    box-shadow: 0 4px 16px rgba(56, 178, 172, 0.3);
+}
+
+QPushButton[success=&quot;true&quot;]:hover {
+    background: #48bfa7; /* 亮一点的绿色 */
+    box-shadow: 0 6px 16px rgba(56, 178, 172, 0.4);
+}
+
+QPushButton[success=&quot;true&quot;]:pressed {
+    background: #2d978f; /* 深一点的绿色 */
+    box-shadow: 0 2px 8px rgba(56, 178, 172, 0.3);
+}
+</string>
              </property>
              <property name="text">
               <string>保存设置</string>

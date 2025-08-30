@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_SettingWindow(object):
     def setupUi(self, SettingWindow):
         SettingWindow.setObjectName("SettingWindow")
-        SettingWindow.resize(850, 550)
+        SettingWindow.resize(932, 598)
         self.centralwidget = QtWidgets.QWidget(parent=SettingWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -25,7 +25,7 @@ class Ui_SettingWindow(object):
 "                          stop: 0 rgba(255, 255, 255, 0.98), \n"
 "                          stop: 1 rgba(248, 250, 255, 0.95));\n"
 "border: 1px solid rgba(30, 131, 255, 0.12);\n"
-"border-radius: 20px;\n"
+"border-radius: 0px;\n"
 "box-shadow: 0 12px 40px rgba(30, 131, 255, 0.1);\n"
 "backdrop-filter: blur(12px);\n"
 "transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);\n"
@@ -80,23 +80,21 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_18.setObjectName("horizontalLayout_18")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout()
         self.verticalLayout_2.setContentsMargins(24, 24, 24, 24)
-        self.verticalLayout_2.setSpacing(24)
+        self.verticalLayout_2.setSpacing(16)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(-1, -1, -1, 24)
         self.horizontalLayout.setObjectName("horizontalLayout")
         self.label = QtWidgets.QLabel(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(18)
+        self.label.setFont(font)
         self.label.setStyleSheet("color: #1e83ff;\n"
-"font-weight: 700;\n"
 "background: linear-gradient(135deg, #1e83ff 0%, #0052cc 100%);\n"
 "-webkit-background-clip: text;\n"
 "-webkit-text-fill-color: transparent;\n"
 "background-clip: text;\n"
 "text-shadow: 0 2px 4px rgba(30, 131, 255, 0.2);")
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        font.setWeight(75)
-        self.label.setFont(font)
         self.label.setObjectName("label")
         self.horizontalLayout.addWidget(self.label)
         self.verticalLayout_2.addLayout(self.horizontalLayout)
@@ -107,26 +105,27 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_9.setContentsMargins(-1, -1, 0, -1)
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
         self.label_2 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_2.setMinimumSize(QtCore.QSize(166, 0))
-        self.label_2.setStyleSheet("color: #2d3748;\n"
-"font-weight: 600;\n"
-"font-size: 15px;\n"
-"background: transparent;\n"
-"border: none;")
+        self.label_2.setMinimumSize(QtCore.QSize(188, 0))
+        self.label_2.setMaximumSize(QtCore.QSize(188, 16777215))
         font = QtGui.QFont()
         font.setPointSize(14)
-        font.setWeight(60)
+        font.setBold(False)
         self.label_2.setFont(font)
+        self.label_2.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_2.setObjectName("label_2")
         self.horizontalLayout_9.addWidget(self.label_2)
         self.lineEdit_BAIDU_API_KEY = QtWidgets.QLineEdit(parent=self.main_frame)
+        self.lineEdit_BAIDU_API_KEY.setMinimumSize(QtCore.QSize(0, 42))
         font = QtGui.QFont()
         font.setPointSize(-1)
+        font.setBold(False)
         self.lineEdit_BAIDU_API_KEY.setFont(font)
         self.lineEdit_BAIDU_API_KEY.setStyleSheet("QLineEdit {\n"
 "    border: 2px solid #e2e8f0;\n"
 "    border-radius: 10px;\n"
-"    padding: 14px 16px;\n"
+"    padding: 7px 8px;\n"
 "    background-color: #ffffff;\n"
 "    color: #2d3748;\n"
 "    font-size: 14px;\n"
@@ -183,51 +182,70 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setObjectName("horizontalLayout_3")
         self.label_3 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_3.setMinimumSize(QtCore.QSize(166, 0))
-        self.label_3.setStyleSheet("color: rgb(60, 60, 60);\n"
-"font-weight: 500;")
+        self.label_3.setMinimumSize(QtCore.QSize(188, 0))
+        self.label_3.setMaximumSize(QtCore.QSize(188, 16777215))
         font = QtGui.QFont()
         font.setPointSize(14)
-        font.setWeight(60)
         self.label_3.setFont(font)
+        self.label_3.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_3.setObjectName("label_3")
         self.horizontalLayout_3.addWidget(self.label_3)
         self.lineEdit_BAIDU_SECRET_KEY = QtWidgets.QLineEdit(parent=self.main_frame)
         font = QtGui.QFont()
         font.setPointSize(-1)
+        font.setBold(False)
         self.lineEdit_BAIDU_SECRET_KEY.setFont(font)
         self.lineEdit_BAIDU_SECRET_KEY.setStyleSheet("QLineEdit {\n"
-"    border: 0.5px solid rgba(30, 131, 255, 0.6);\n"
-"    border-radius: 6px;\n"
-"    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */\n"
-"    background-color: white;\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    transition: all 0.2s ease; /* 平滑过渡效果 */\n"
+"    border: 2px solid #e2e8f0;\n"
+"    border-radius: 10px;\n"
+"    padding: 7px 8px;\n"
+"    background-color: #ffffff;\n"
+"    color: #2d3748;\n"
+"    font-size: 14px;\n"
+"    font-weight: 400;\n"
+"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    selection-background-color: rgba(30, 131, 255, 0.3);\n"
+"    min-height: 24px;\n"
 "}\n"
 "\n"
 "QLineEdit:hover {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */\n"
+"    border-color: #a0aec0;\n"
+"    background-color: #f7fafc;\n"
+"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);\n"
 "}\n"
 "\n"
 "QLineEdit:focus {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 3.5px;\n"
-"    background-color: #f8faff;\n"
-"    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */\n"
+"    border-color: #1e83ff;\n"
+"    background-color: #ffffff;\n"
+"    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);\n"
+"    outline: none;\n"
 "}\n"
 "\n"
 "QLineEdit:disabled {\n"
-"    border: 0.5px solid #e0e0e0;\n"
-"    background-color: #f5f5f5;\n"
-"    color: #b0b0b0;\n"
+"    border-color: #e2e8f0;\n"
+"    background-color: #f8f9fa;\n"
+"    color: #a0aec0;\n"
 "}\n"
 "\n"
-"/* 增加占位文本样式 */\n"
+"/* 现代占位文本样式 */\n"
 "QLineEdit::placeholder {\n"
-"    color: #999999;\n"
-"    font-style: italic;\n"
+"    color: #a0aec0;\n"
+"    font-style: normal;\n"
+"    font-weight: 400;\n"
+"    opacity: 0.8;\n"
+"    font-size: 14px;\n"
+"}\n"
+"\n"
+"/* 错误状态样式 */\n"
+"QLineEdit[error=\"true\"] {\n"
+"    border-color: #e53e3e;\n"
+"    background-color: #fff5f5;\n"
+"}\n"
+"\n"
+"QLineEdit[error=\"true\"]:focus {\n"
+"    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);\n"
 "}")
         self.lineEdit_BAIDU_SECRET_KEY.setObjectName("lineEdit_BAIDU_SECRET_KEY")
         self.horizontalLayout_3.addWidget(self.lineEdit_BAIDU_SECRET_KEY)
@@ -253,48 +271,70 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_10.setContentsMargins(-1, -1, 0, -1)
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
         self.label_4 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_4.setMinimumSize(QtCore.QSize(166, 0))
+        self.label_4.setMinimumSize(QtCore.QSize(188, 0))
+        self.label_4.setMaximumSize(QtCore.QSize(188, 16777215))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.label_4.setFont(font)
+        self.label_4.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_4.setObjectName("label_4")
         self.horizontalLayout_10.addWidget(self.label_4)
         self.lineEdit_ALI_APPCODE = QtWidgets.QLineEdit(parent=self.main_frame)
         font = QtGui.QFont()
         font.setPointSize(-1)
+        font.setBold(False)
         self.lineEdit_ALI_APPCODE.setFont(font)
         self.lineEdit_ALI_APPCODE.setStyleSheet("QLineEdit {\n"
-"    border: 0.5px solid rgba(30, 131, 255, 0.6);\n"
-"    border-radius: 6px;\n"
-"    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */\n"
-"    background-color: white;\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    transition: all 0.2s ease; /* 平滑过渡效果 */\n"
+"    border: 2px solid #e2e8f0;\n"
+"    border-radius: 10px;\n"
+"    padding: 7px 8px;\n"
+"    background-color: #ffffff;\n"
+"    color: #2d3748;\n"
+"    font-size: 14px;\n"
+"    font-weight: 400;\n"
+"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    selection-background-color: rgba(30, 131, 255, 0.3);\n"
+"    min-height: 24px;\n"
 "}\n"
 "\n"
 "QLineEdit:hover {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */\n"
+"    border-color: #a0aec0;\n"
+"    background-color: #f7fafc;\n"
+"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);\n"
 "}\n"
 "\n"
 "QLineEdit:focus {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 3.5px;\n"
-"    background-color: #f8faff;\n"
-"    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */\n"
+"    border-color: #1e83ff;\n"
+"    background-color: #ffffff;\n"
+"    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);\n"
+"    outline: none;\n"
 "}\n"
 "\n"
 "QLineEdit:disabled {\n"
-"    border: 0.5px solid #e0e0e0;\n"
-"    background-color: #f5f5f5;\n"
-"    color: #b0b0b0;\n"
+"    border-color: #e2e8f0;\n"
+"    background-color: #f8f9fa;\n"
+"    color: #a0aec0;\n"
 "}\n"
 "\n"
-"/* 增加占位文本样式 */\n"
+"/* 现代占位文本样式 */\n"
 "QLineEdit::placeholder {\n"
-"    color: #999999;\n"
-"    font-style: italic;\n"
+"    color: #a0aec0;\n"
+"    font-style: normal;\n"
+"    font-weight: 400;\n"
+"    opacity: 0.8;\n"
+"    font-size: 14px;\n"
+"}\n"
+"\n"
+"/* 错误状态样式 */\n"
+"QLineEdit[error=\"true\"] {\n"
+"    border-color: #e53e3e;\n"
+"    background-color: #fff5f5;\n"
+"}\n"
+"\n"
+"QLineEdit[error=\"true\"]:focus {\n"
+"    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);\n"
 "}")
         self.lineEdit_ALI_APPCODE.setPlaceholderText("阿里云code")
         self.lineEdit_ALI_APPCODE.setObjectName("lineEdit_ALI_APPCODE")
@@ -310,29 +350,31 @@ class Ui_SettingWindow(object):
         self.line.setObjectName("line")
         self.verticalLayout_2.addWidget(self.line)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_6.setContentsMargins(-1, -1, 0, -1)
+        self.horizontalLayout_6.setContentsMargins(-1, 0, 0, 0)
         self.horizontalLayout_6.setSpacing(24)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_7.setSpacing(16)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.label_7 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_7.setStyleSheet("color: rgb(60, 60, 60);\n"
-"font-weight: 500;")
         font = QtGui.QFont()
         font.setPointSize(14)
-        font.setWeight(60)
         self.label_7.setFont(font)
+        self.label_7.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_7.setObjectName("label_7")
         self.horizontalLayout_7.addWidget(self.label_7)
         self.spinBox_CONCURRENCY = QtWidgets.QSpinBox(parent=self.main_frame)
+        self.spinBox_CONCURRENCY.setMinimumSize(QtCore.QSize(120, 0))
         font = QtGui.QFont()
         font.setPointSize(-1)
+        font.setBold(False)
         self.spinBox_CONCURRENCY.setFont(font)
         self.spinBox_CONCURRENCY.setStyleSheet("QSpinBox {\n"
 "    border: 2px solid #e2e8f0;\n"
 "    border-radius: 10px;\n"
-"    padding: 12px 16px;\n"
+"    padding: 6px 8px;\n"
 "    background-color: #ffffff;\n"
 "    color: #2d3748;\n"
 "    font-size: 14px;\n"
@@ -413,62 +455,93 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_14.setSpacing(16)
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
         self.label_6 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_6.setStyleSheet("color: rgb(60, 60, 60);\n"
-"font-weight: 500;")
         font = QtGui.QFont()
         font.setPointSize(14)
-        font.setWeight(60)
         self.label_6.setFont(font)
+        self.label_6.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_6.setObjectName("label_6")
         self.horizontalLayout_14.addWidget(self.label_6)
         self.spinBox_RETRY_TIMES = QtWidgets.QSpinBox(parent=self.main_frame)
+        self.spinBox_RETRY_TIMES.setMinimumSize(QtCore.QSize(120, 0))
         font = QtGui.QFont()
         font.setPointSize(-1)
+        font.setBold(False)
         self.spinBox_RETRY_TIMES.setFont(font)
         self.spinBox_RETRY_TIMES.setStyleSheet("QSpinBox {\n"
-"    border: 1px solid rgb(30, 131, 255);\n"
-"    border-radius: 4px;\n"
-"    padding: 2px;\n"
-"    background-color: white;\n"
-"    color: black;\n"
+"    border: 2px solid #e2e8f0;\n"
+"    border-radius: 10px;\n"
+"    padding: 6px 8px;\n"
+"    background-color: #ffffff;\n"
+"    color: #2d3748;\n"
 "    font-size: 14px;\n"
+"    font-weight: 400;\n"
+"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    min-width: 100px;\n"
 "}\n"
 "\n"
 "QSpinBox:hover {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 1px;\n"
+"    border-color: #a0aec0;\n"
+"    background-color: #f7fafc;\n"
+"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);\n"
 "}\n"
 "\n"
 "QSpinBox:focus {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 1px;\n"
-"    background-color: #f8faff;\n"
+"    border-color: #1e83ff;\n"
+"    background-color: #ffffff;\n"
+"    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);\n"
+"    outline: none;\n"
 "}\n"
 "\n"
 "QSpinBox:disabled {\n"
-"    border: 1px solid #cccccc;\n"
-"    background-color: #f0f0f0;\n"
-"    color: #999999;\n"
+"    border-color: #e2e8f0;\n"
+"    background-color: #f8f9fa;\n"
+"    color: #a0aec0;\n"
 "}\n"
 "\n"
+"/* 现代按钮样式 */\n"
 "QSpinBox::up-button, QSpinBox::down-button {\n"
 "    subcontrol-origin: border;\n"
-"    subcontrol-position: top right;\n"
-"    width: 16px;\n"
-"    height: 8px;\n"
+"    subcontrol-position: center right;\n"
+"    width: 28px;\n"
+"    border-left: 1px solid #e2e8f0;\n"
 "    background-color: transparent;\n"
+"}\n"
+"\n"
+"QSpinBox::up-button {\n"
+"    subcontrol-position: top right;\n"
+"    height: 50%;\n"
+"    border-bottom: 1px solid #e2e8f0;\n"
+"    border-top-right-radius: 9px;\n"
+"}\n"
+"\n"
+"QSpinBox::down-button {\n"
+"    subcontrol-position: bottom right;\n"
+"    height: 50%;\n"
+"    border-bottom-right-radius: 9px;\n"
 "}\n"
 "\n"
 "QSpinBox::up-button:hover, QSpinBox::down-button:hover {\n"
-"    background-color: rgba(30, 131, 255, 0.1);\n"
+"    background-color: rgba(30, 131, 255, 0.08);\n"
 "}\n"
 "\n"
 "QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {\n"
-"    background-color: rgba(30, 131, 255, 0.2);\n"
+"    background-color: rgba(30, 131, 255, 0.15);\n"
 "}\n"
 "\n"
-"QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {\n"
-"    background-color: transparent;\n"
+"QSpinBox::up-arrow, QSpinBox::down-arrow {\n"
+"    width: 10px;\n"
+"    height: 10px;\n"
+"    background: none;\n"
+"}\n"
+"\n"
+"QSpinBox::up-arrow {\n"
+"    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSA0TDEwIDlMMCA5WiIgc3Ryb2tlPSIjNjc3MjgwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+);\n"
+"}\n"
+"\n"
+"QSpinBox::down-arrow {\n"
+"    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSA2TDAgMUwxMCAxWiIgc3Ryb2tlPSIjNjc3MjgwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+);\n"
 "}")
         self.spinBox_RETRY_TIMES.setMinimum(3)
         self.spinBox_RETRY_TIMES.setMaximum(30)
@@ -482,19 +555,19 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_16.setSpacing(16)
         self.horizontalLayout_16.setObjectName("horizontalLayout_16")
         self.label_11 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_11.setStyleSheet("color: rgb(60, 60, 60);\n"
-"font-weight: 500;")
         font = QtGui.QFont()
         font.setPointSize(14)
-        font.setWeight(60)
         self.label_11.setFont(font)
+        self.label_11.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_11.setObjectName("label_11")
         self.horizontalLayout_16.addWidget(self.label_11)
         self.comboBox_mode = QtWidgets.QComboBox(parent=self.main_frame)
         self.comboBox_mode.setStyleSheet("QComboBox {\n"
 "    border: 2px solid #e2e8f0;\n"
 "    border-radius: 10px;\n"
-"    padding: 12px 16px;\n"
+"    padding: 6px 8px;\n"
 "    background-color: #ffffff;\n"
 "    color: #2d3748;\n"
 "    font-size: 14px;\n"
@@ -587,80 +660,83 @@ class Ui_SettingWindow(object):
         spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_6.addItem(spacerItem)
         self.pushButton_Password = QtWidgets.QPushButton(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.pushButton_Password.setFont(font)
         self.pushButton_Password.setStyleSheet("QPushButton {\n"
 "    border: none;\n"
-"    border-radius: 12px;\n"
-"    padding: 14px 28px;\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #1e83ff, stop:1 #0052cc);\n"
+"    border-radius: 6px;\n"
+"    padding: 8px 18px;\n"
+"    background: #258fff; /* 纯蓝色主色调 */\n"
 "    color: white;\n"
-"    font-size: 15px;\n"
-"    font-weight: 600;\n"
 "    letter-spacing: 0.5px;\n"
-"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
-"    box-shadow: 0 4px 16px rgba(30, 131, 255, 0.3);\n"
+"    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    box-shadow: 0 4px 14px rgba(37, 143, 255, 0.3);\n"
 "    text-transform: none;\n"
 "}\n"
 "\n"
 "QPushButton:hover {\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #2d8eff, stop:1 #0066e6);\n"
-"    transform: translateY(-2px) scale(1.02);\n"
-"    box-shadow: 0 8px 24px rgba(30, 131, 255, 0.4);\n"
+"    background: #3a99ff; /* 亮一点的蓝色 */\n"
+"    transform: translateY(-2px);\n"
+"    box-shadow: 0 6px 16px rgba(37, 143, 255, 0.4);\n"
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #0052cc, stop:1 #0047b3);\n"
-"    transform: translateY(0px) scale(0.98);\n"
-"    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);\n"
+"    background: #0a66e0; /* 深一点的蓝色 */\n"
+"    transform: translateY(1px);\n"
+"    box-shadow: 0 2px 8px rgba(37, 143, 255, 0.3);\n"
 "}\n"
 "\n"
 "QPushButton:disabled {\n"
-"    border: none;\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #cbd5e0, stop:1 #a0aec0);\n"
-"    color: rgba(255, 255, 255, 0.8);\n"
-"    box-shadow: 0 2px 8px rgba(160, 174, 192, 0.2);\n"
+"    background: #e2e8f0; /* 禁用状态的灰色 */\n"
+"    color: #a0aec0;\n"
+"    box-shadow: 0 2px 6px rgba(160, 174, 192, 0.15);\n"
 "    transform: none;\n"
 "}\n"
 "\n"
-"/* Modern focus state with accessibility */\n"
+"/* 聚焦状态 - 增强可访问性 */\n"
 "QPushButton:focus {\n"
 "    outline: none;\n"
-"    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.2);\n"
+"    box-shadow: 0 0 0 3px rgba(37, 143, 255, 0.3),\n"
+"                0 4px 14px rgba(37, 143, 255, 0.3);\n"
 "}\n"
 "\n"
-"/* Secondary button variant */\n"
+"/* 次要按钮变体 */\n"
 "QPushButton[secondary=\"true\"] {\n"
 "    background: transparent;\n"
-"    border: 2px solid #1e83ff;\n"
-"    color: #1e83ff;\n"
+"    border: 1.5px solid #258fff;\n"
+"    color: #258fff;\n"
 "    box-shadow: none;\n"
 "}\n"
 "\n"
 "QPushButton[secondary=\"true\"]:hover {\n"
-"    background: rgba(30, 131, 255, 0.1);\n"
+"    background: rgba(37, 143, 255, 0.1);\n"
 "    transform: translateY(-1px);\n"
-"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.15);\n"
+"    box-shadow: 0 4px 12px rgba(37, 143, 255, 0.15);\n"
 "}\n"
 "\n"
 "QPushButton[secondary=\"true\"]:pressed {\n"
-"    background: rgba(30, 131, 255, 0.2);\n"
+"    background: rgba(37, 143, 255, 0.2);\n"
 "    transform: translateY(0px);\n"
+"    box-shadow: none;\n"
 "}\n"
 "\n"
-"/* Success button variant */\n"
+"/* 成功按钮变体 */\n"
 "QPushButton[success=\"true\"] {\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #38a169, stop:1 #2f855a);\n"
-"    box-shadow: 0 4px 16px rgba(56, 161, 105, 0.3);\n"
+"    background: #38b2ac; /* 纯绿色调 */\n"
+"    box-shadow: 0 4px 16px rgba(56, 178, 172, 0.3);\n"
 "}\n"
 "\n"
 "QPushButton[success=\"true\"]:hover {\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 #48bb78, stop:1 #38a169);\n"
-"}")
+"    background: #48bfa7; /* 亮一点的绿色 */\n"
+"    box-shadow: 0 6px 16px rgba(56, 178, 172, 0.4);\n"
+"}\n"
+"\n"
+"QPushButton[success=\"true\"]:pressed {\n"
+"    background: #2d978f; /* 深一点的绿色 */\n"
+"    box-shadow: 0 2px 8px rgba(56, 178, 172, 0.3);\n"
+"}\n"
+"")
         self.pushButton_Password.setObjectName("pushButton_Password")
         self.horizontalLayout_6.addWidget(self.pushButton_Password)
         self.verticalLayout_2.addLayout(self.horizontalLayout_6)
@@ -668,50 +744,68 @@ class Ui_SettingWindow(object):
         self.horizontalLayout_8.setSpacing(16)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.label_8 = QtWidgets.QLabel(parent=self.main_frame)
-        self.label_8.setStyleSheet("color: rgb(60, 60, 60);\n"
-"font-weight: 500;")
         font = QtGui.QFont()
         font.setPointSize(14)
-        font.setWeight(60)
         self.label_8.setFont(font)
+        self.label_8.setStyleSheet("color: #2d3748;\n"
+"background: transparent;\n"
+"border: none;")
         self.label_8.setObjectName("label_8")
         self.horizontalLayout_8.addWidget(self.label_8)
         self.lineEdit_RE = QtWidgets.QLineEdit(parent=self.main_frame)
         font = QtGui.QFont()
         font.setPointSize(-1)
+        font.setBold(False)
         self.lineEdit_RE.setFont(font)
         self.lineEdit_RE.setStyleSheet("QLineEdit {\n"
-"    border: 0.5px solid rgba(30, 131, 255, 0.6);\n"
-"    border-radius: 6px;\n"
-"    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */\n"
-"    background-color: white;\n"
-"    color: black;\n"
-"    font-size: 16px;\n"
-"    transition: all 0.2s ease; /* 平滑过渡效果 */\n"
+"    border: 2px solid #e2e8f0;\n"
+"    border-radius: 10px;\n"
+"    padding: 7px 8px;\n"
+"    background-color: #ffffff;\n"
+"    color: #2d3748;\n"
+"    font-size: 14px;\n"
+"    font-weight: 400;\n"
+"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    selection-background-color: rgba(30, 131, 255, 0.3);\n"
+"    min-height: 24px;\n"
 "}\n"
 "\n"
 "QLineEdit:hover {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */\n"
+"    border-color: #a0aec0;\n"
+"    background-color: #f7fafc;\n"
+"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);\n"
 "}\n"
 "\n"
 "QLineEdit:focus {\n"
-"    border: 2px solid rgb(30, 131, 255);\n"
-"    padding: 3.5px;\n"
-"    background-color: #f8faff;\n"
-"    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */\n"
+"    border-color: #1e83ff;\n"
+"    background-color: #ffffff;\n"
+"    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);\n"
+"    outline: none;\n"
 "}\n"
 "\n"
 "QLineEdit:disabled {\n"
-"    border: 0.5px solid #e0e0e0;\n"
-"    background-color: #f5f5f5;\n"
-"    color: #b0b0b0;\n"
+"    border-color: #e2e8f0;\n"
+"    background-color: #f8f9fa;\n"
+"    color: #a0aec0;\n"
 "}\n"
 "\n"
-"/* 增加占位文本样式 */\n"
+"/* 现代占位文本样式 */\n"
 "QLineEdit::placeholder {\n"
-"    color: #999999;\n"
-"    font-style: italic;\n"
+"    color: #a0aec0;\n"
+"    font-style: normal;\n"
+"    font-weight: 400;\n"
+"    opacity: 0.8;\n"
+"    font-size: 14px;\n"
+"}\n"
+"\n"
+"/* 错误状态样式 */\n"
+"QLineEdit[error=\"true\"] {\n"
+"    border-color: #e53e3e;\n"
+"    background-color: #fff5f5;\n"
+"}\n"
+"\n"
+"QLineEdit[error=\"true\"]:focus {\n"
+"    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);\n"
 "}")
         self.lineEdit_RE.setObjectName("lineEdit_RE")
         self.horizontalLayout_8.addWidget(self.lineEdit_RE)
@@ -723,51 +817,83 @@ class Ui_SettingWindow(object):
         spacerItem2 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Minimum)
         self.horizontalLayout_15.addItem(spacerItem2)
         self.pushButton_save = QtWidgets.QPushButton(parent=self.main_frame)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.pushButton_save.setFont(font)
         self.pushButton_save.setStyleSheet("QPushButton {\n"
 "    border: none;\n"
-"    border-radius: 8px;\n"
-"    padding: 10px 24px;\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(47, 144, 255, 1), \n"
-"                              stop:1 rgba(25, 118, 210, 1));\n"
+"    border-radius: 6px;\n"
+"    padding: 8px 18px;\n"
+"    background: #258fff; /* 纯蓝色主色调 */\n"
 "    color: white;\n"
-"    font-size: 14px;\n"
-"    font-weight: 600;\n"
-"    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);\n"
-"    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);\n"
+"    letter-spacing: 0.5px;\n"
+"    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);\n"
+"    box-shadow: 0 4px 14px rgba(37, 143, 255, 0.3);\n"
+"    text-transform: none;\n"
 "}\n"
 "\n"
 "QPushButton:hover {\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(60, 160, 255, 1), \n"
-"                              stop:1 rgba(35, 135, 230, 1));\n"
+"    background: #3a99ff; /* 亮一点的蓝色 */\n"
 "    transform: translateY(-2px);\n"
-"    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);\n"
+"    box-shadow: 0 6px 16px rgba(37, 143, 255, 0.4);\n"
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(20, 100, 190, 1), \n"
-"                              stop:1 rgba(15, 85, 170, 1));\n"
-"    transform: translateY(0px);\n"
-"    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);\n"
+"    background: #0a66e0; /* 深一点的蓝色 */\n"
+"    transform: translateY(1px);\n"
+"    box-shadow: 0 2px 8px rgba(37, 143, 255, 0.3);\n"
 "}\n"
 "\n"
 "QPushButton:disabled {\n"
-"    border: none;\n"
-"    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, \n"
-"                              stop:0 rgba(180, 180, 180, 1), \n"
-"                              stop:1 rgba(160, 160, 160, 1));\n"
-"    color: rgba(255, 255, 255, 0.7);\n"
-"    box-shadow: none;\n"
+"    background: #e2e8f0; /* 禁用状态的灰色 */\n"
+"    color: #a0aec0;\n"
+"    box-shadow: 0 2px 6px rgba(160, 174, 192, 0.15);\n"
 "    transform: none;\n"
 "}\n"
 "\n"
-"/* Modern focus state */\n"
+"/* 聚焦状态 - 增强可访问性 */\n"
 "QPushButton:focus {\n"
 "    outline: none;\n"
-"    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);\n"
-"}")
+"    box-shadow: 0 0 0 3px rgba(37, 143, 255, 0.3),\n"
+"                0 4px 14px rgba(37, 143, 255, 0.3);\n"
+"}\n"
+"\n"
+"/* 次要按钮变体 */\n"
+"QPushButton[secondary=\"true\"] {\n"
+"    background: transparent;\n"
+"    border: 1.5px solid #258fff;\n"
+"    color: #258fff;\n"
+"    box-shadow: none;\n"
+"}\n"
+"\n"
+"QPushButton[secondary=\"true\"]:hover {\n"
+"    background: rgba(37, 143, 255, 0.1);\n"
+"    transform: translateY(-1px);\n"
+"    box-shadow: 0 4px 12px rgba(37, 143, 255, 0.15);\n"
+"}\n"
+"\n"
+"QPushButton[secondary=\"true\"]:pressed {\n"
+"    background: rgba(37, 143, 255, 0.2);\n"
+"    transform: translateY(0px);\n"
+"    box-shadow: none;\n"
+"}\n"
+"\n"
+"/* 成功按钮变体 */\n"
+"QPushButton[success=\"true\"] {\n"
+"    background: #38b2ac; /* 纯绿色调 */\n"
+"    box-shadow: 0 4px 16px rgba(56, 178, 172, 0.3);\n"
+"}\n"
+"\n"
+"QPushButton[success=\"true\"]:hover {\n"
+"    background: #48bfa7; /* 亮一点的绿色 */\n"
+"    box-shadow: 0 6px 16px rgba(56, 178, 172, 0.4);\n"
+"}\n"
+"\n"
+"QPushButton[success=\"true\"]:pressed {\n"
+"    background: #2d978f; /* 深一点的绿色 */\n"
+"    box-shadow: 0 2px 8px rgba(56, 178, 172, 0.3);\n"
+"}\n"
+"")
         self.pushButton_save.setObjectName("pushButton_save")
         self.horizontalLayout_15.addWidget(self.pushButton_save)
         self.verticalLayout_2.addLayout(self.horizontalLayout_15)

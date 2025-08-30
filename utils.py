@@ -208,13 +208,13 @@ def load_config():
     返回合并后的配置字典
     """
     default_config = {
-        "ALLOWED_EXTENSIONS": [".jpg", ".jpeg", ".png", ".bmp", ".gif"],
-        "SUMMARY_DIR": "summary",
-        "DOUYIN_WORKFLOW_ID": "",
-        "DOUYIN_PROMPT": "请识别图像中的内容",
-        "LOG_LEVEL": "INFO",
-        "LOG_ROTATION_SIZE": 5 * 1024 * 1024,
-        "LOG_BACKUP_COUNT": 3
+      "BAIDU_API_KEY": "百度应用Key",
+      "BAIDU_SECRET_KEY": "百度应用密钥SecretKey",
+      "ALI_APPCODE": "您可自行注册阿里云服务获取Code",
+      "CONCURRENCY": 1,
+      "RETRY_TIMES": 3,
+      "RE": ".*",
+      "MODE_INDEX": 0
     }
 
     try:

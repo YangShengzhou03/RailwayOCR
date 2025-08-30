@@ -9,6 +9,9 @@ datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 tmp_ret = collect_all('paddleocr')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
+# 添加resources目录和版本信息文件
+datas += [('resources', 'resources'), ('RailwayOCR_version_info.txt', '.')]
+
 
 a = Analysis(
     ['Application.py'],

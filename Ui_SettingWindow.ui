@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>495</height>
+    <width>850</width>
+    <height>550</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>RailwayOCR - 设置</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -33,12 +33,58 @@
     <item>
      <widget class="QFrame" name="main_frame">
       <property name="styleSheet">
-       <string notr="true">QFrame{
-background-color: rgba(248, 250, 255, 0.95);
-border: 1px solid rgba(30, 131, 255, 0.2);
-border-radius: 12px;
+ <string notr="true">QFrame{
+background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,
+                          stop: 0 rgba(255, 255, 255, 0.98), 
+                          stop: 1 rgba(248, 250, 255, 0.95));
+border: 1px solid rgba(30, 131, 255, 0.12);
+border-radius: 20px;
+box-shadow: 0 12px 40px rgba(30, 131, 255, 0.1);
+backdrop-filter: blur(12px);
+transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+QFrame:hover {
+    box-shadow: 0 16px 48px rgba(30, 131, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+/* 添加现代滚动条样式 */
+QScrollBar:vertical {
+    border: none;
+    background: transparent;
+    width: 10px;
+    margin: 2px;
+}
+
+QScrollBar::handle:vertical {
+    background: rgba(30, 131, 255, 0.4);
+    border-radius: 5px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgba(30, 131, 255, 0.6);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+/* 添加现代分隔线样式 */
+QFrame[line="true"] {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                              stop:0 rgba(30, 131, 255, 0.1), 
+                              stop:0.5 rgba(30, 131, 255, 0.3),
+                              stop:1 rgba(30, 131, 255, 0.1));
+    border: none;
+    height: 1px;
 }</string>
-      </property>
+</property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -47,7 +93,7 @@ border-radius: 12px;
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_18" stretch="0">
        <property name="spacing">
-        <number>12</number>
+        <number>20</number>
        </property>
        <property name="leftMargin">
         <number>0</number>
@@ -64,20 +110,20 @@ border-radius: 12px;
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="spacing">
-          <number>16</number>
+          <number>24</number>
          </property>
          <property name="leftMargin">
-          <number>12</number>
-         </property>
-         <property name="topMargin">
-          <number>12</number>
-         </property>
-         <property name="rightMargin">
-          <number>12</number>
-         </property>
-         <property name="bottomMargin">
-          <number>12</number>
-         </property>
+        <number>24</number>
+       </property>
+       <property name="topMargin">
+        <number>24</number>
+       </property>
+       <property name="rightMargin">
+        <number>24</number>
+       </property>
+       <property name="bottomMargin">
+        <number>24</number>
+       </property>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="bottomMargin">
@@ -86,8 +132,13 @@ border-radius: 12px;
            <item>
             <widget class="QLabel" name="label">
              <property name="styleSheet">
-              <string notr="true">color: rgb(30, 131, 255);
-font-weight: bold;</string>
+              <string notr="true">color: #1e83ff;
+font-weight: 700;
+background: linear-gradient(135deg, #1e83ff 0%, #0052cc 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+background-clip: text;
+text-shadow: 0 2px 4px rgba(30, 131, 255, 0.2);</string>
              </property>
              <property name="font">
               <font>
@@ -105,7 +156,7 @@ font-weight: bold;</string>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
            <property name="spacing">
-            <number>12</number>
+            <number>16</number>
            </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_9">
@@ -121,8 +172,11 @@ font-weight: bold;</string>
                 </size>
                </property>
                <property name="styleSheet">
-                <string notr="true">color: rgb(60, 60, 60);
-font-weight: 500;</string>
+                <string notr="true">color: #2d3748;
+font-weight: 600;
+font-size: 15px;
+background: transparent;
+border: none;</string>
                </property>
                <property name="font">
                 <font>
@@ -144,37 +198,54 @@ font-weight: 500;</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">QLineEdit {
-    border: 0.5px solid rgba(30, 131, 255, 0.6);
-    border-radius: 6px;
-    padding: 5px; /* 稍微增加内边距，视觉上更舒适 */
-    background-color: white;
-    color: black;
-    font-size: 16px;
-    transition: all 0.2s ease; /* 平滑过渡效果 */
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    background-color: #ffffff;
+    color: #2d3748;
+    font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    selection-background-color: rgba(30, 131, 255, 0.3);
+    min-height: 24px;
 }
 
 QLineEdit:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px; /* 调整内边距补偿边框宽度变化 */
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QLineEdit:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 3.5px;
-    background-color: #f8faff;
-    box-shadow: 0 0 0 2px rgba(30, 131, 255, 0.2); /* 焦点状态添加轻微阴影 */
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QLineEdit:disabled {
-    border: 0.5px solid #e0e0e0;
-    background-color: #f5f5f5;
-    color: #b0b0b0;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
-/* 增加占位文本样式 */
+/* 现代占位文本样式 */
 QLineEdit::placeholder {
-    color: #999999;
-    font-style: italic;
+    color: #a0aec0;
+    font-style: normal;
+    font-weight: 400;
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+/* 错误状态样式 */
+QLineEdit[error="true"] {
+    border-color: #e53e3e;
+    background-color: #fff5f5;
+}
+
+QLineEdit[error="true"]:focus {
+    box-shadow: 0 0 0 4px rgba(229, 62, 62, 0.15);
 }</string>
                </property>
                <property name="placeholderText">
@@ -282,7 +353,12 @@ QLineEdit::placeholder {
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">background: rgba(30, 131, 255, 0.3);</string>
+            <string notr="true">background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                              stop:0 rgba(30, 131, 255, 0.2), 
+                              stop:0.5 rgba(30, 131, 255, 0.4),
+                              stop:1 rgba(30, 131, 255, 0.2));
+border: none;
+height: 2px;</string>
            </property>
            <property name="orientation">
             <enum>Qt::Horizontal</enum>
@@ -292,7 +368,7 @@ QLineEdit::placeholder {
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <property name="spacing">
-            <number>12</number>
+            <number>16</number>
            </property>
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_10">
@@ -393,7 +469,7 @@ QLineEdit::placeholder {
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0">
            <property name="spacing">
-            <number>18</number>
+            <number>24</number>
            </property>
            <property name="rightMargin">
             <number>0</number>
@@ -401,7 +477,7 @@ QLineEdit::placeholder {
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_7">
              <property name="spacing">
-              <number>12</number>
+              <number>16</number>
              </property>
              <item>
               <widget class="QLabel" name="label_7">
@@ -429,49 +505,78 @@ font-weight: 500;</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">QSpinBox {
-    border: 1px solid rgb(30, 131, 255);
-    border-radius: 4px;
-    padding: 2px;
-    background-color: white;
-    color: black;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    background-color: #ffffff;
+    color: #2d3748;
     font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 100px;
 }
 
 QSpinBox:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 1px;
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QSpinBox:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 1px;
-    background-color: #f8faff;
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QSpinBox:disabled {
-    border: 1px solid #cccccc;
-    background-color: #f0f0f0;
-    color: #999999;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
+/* 现代按钮样式 */
 QSpinBox::up-button, QSpinBox::down-button {
     subcontrol-origin: border;
-    subcontrol-position: top right;
-    width: 16px;
-    height: 8px;
+    subcontrol-position: center right;
+    width: 28px;
+    border-left: 1px solid #e2e8f0;
     background-color: transparent;
+}
+
+QSpinBox::up-button {
+    subcontrol-position: top right;
+    height: 50%;
+    border-bottom: 1px solid #e2e8f0;
+    border-top-right-radius: 9px;
+}
+
+QSpinBox::down-button {
+    subcontrol-position: bottom right;
+    height: 50%;
+    border-bottom-right-radius: 9px;
 }
 
 QSpinBox::up-button:hover, QSpinBox::down-button:hover {
-    background-color: rgba(30, 131, 255, 0.1);
+    background-color: rgba(30, 131, 255, 0.08);
 }
 
 QSpinBox::up-button:pressed, QSpinBox::down-button:pressed {
-    background-color: rgba(30, 131, 255, 0.2);
+    background-color: rgba(30, 131, 255, 0.15);
 }
 
-QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
-    background-color: transparent;
+QSpinBox::up-arrow, QSpinBox::down-arrow {
+    width: 10px;
+    height: 10px;
+    background: none;
+}
+
+QSpinBox::up-arrow {
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSA0TDEwIDlMMCA5WiIgc3Ryb2tlPSIjNjc3MjgwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+);
+}
+
+QSpinBox::down-arrow {
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNNSA2TDAgMUwxMCAxWiIgc3Ryb2tlPSIjNjc3MjgwIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PC9zdmc+);
 }</string>
                </property>
                <property name="minimum">
@@ -487,7 +592,7 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_14">
              <property name="spacing">
-              <number>12</number>
+              <number>16</number>
              </property>
              <property name="rightMargin">
               <number>0</number>
@@ -582,7 +687,7 @@ QSpinBox:disabled::up-button, QSpinBox:disabled::down-button {
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_16" stretch="0,0">
              <property name="spacing">
-              <number>12</number>
+              <number>16</number>
              </property>
              <property name="rightMargin">
               <number>0</number>
@@ -608,66 +713,90 @@ font-weight: 500;</string>
               <widget class="QComboBox" name="comboBox_mode">
                <property name="styleSheet">
                 <string notr="true">QComboBox {
-    border: 1px solid rgb(30, 131, 255);
-    border-radius: 4px;
-    padding: 2px;
-    background-color: white;
-    color: black;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    background-color: #ffffff;
+    color: #2d3748;
     font-size: 14px;
+    font-weight: 400;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 24px;
 }
 
 QComboBox:hover {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 1px;
+    border-color: #a0aec0;
+    background-color: #f7fafc;
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.12);
 }
 
 QComboBox:focus {
-    border: 2px solid rgb(30, 131, 255);
-    padding: 1px;
-    background-color: #f8faff;
+    border-color: #1e83ff;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.15);
+    outline: none;
 }
 
 QComboBox:disabled {
-    border: 1px solid #cccccc;
-    background-color: #f0f0f0;
-    color: #999999;
+    border-color: #e2e8f0;
+    background-color: #f8f9fa;
+    color: #a0aec0;
 }
 
-/* 下拉按钮样式 */
+/* 现代下拉按钮样式 */
 QComboBox::drop-down {
     subcontrol-origin: border;
-    subcontrol-position: top right;
-    width: 16px;
-    height: 100%;
+    subcontrol-position: center right;
+    width: 32px;
+    border-left: 1px solid #e2e8f0;
     background-color: transparent;
-}
-
-/* 下拉箭头样式 */
-QComboBox::down-arrow {
-    image: url(:/icons/down_arrow.png); /* 可替换为实际箭头图标 */
-    width: 8px;
-    height: 8px;
+    border-top-right-radius: 9px;
+    border-bottom-right-radius: 9px;
 }
 
 QComboBox::drop-down:hover {
-    background-color: rgba(30, 131, 255, 0.1);
+    background-color: rgba(30, 131, 255, 0.08);
 }
 
 QComboBox::drop-down:pressed {
-    background-color: rgba(30, 131, 255, 0.2);
+    background-color: rgba(30, 131, 255, 0.15);
 }
 
-QComboBox:disabled::drop-down {
-    background-color: transparent;
+/* 现代下拉箭头样式 */
+QComboBox::down-arrow {
+    image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iMTIiIHZpZXdCb3g9IjAgMCAxMiAxMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMiA0LjVMNiA4LjVMMTAgNC41IiBzdHJva2U9IiM2NzcyODAiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz48L3N2Zz4=);
+    width: 12px;
+    height: 12px;
 }
 
-/* 下拉列表样式 */
+/* 现代下拉列表样式 */
 QComboBox QAbstractItemView {
-    border: 1px solid rgb(30, 131, 255);
-    border-radius: 4px;
-    background-color: white;
-    selection-background-color: rgba(30, 131, 255, 0.2);
-    selection-color: black;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    padding: 8px 0;
+    margin: 4px 0 0 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    outline: none;
+}
+
+QComboBox QAbstractItemView::item {
+    height: 36px;
+    padding: 8px 16px;
+    border: none;
+    background-color: transparent;
+    color: #2d3748;
+    font-size: 14px;
+}
+
+QComboBox QAbstractItemView::item:selected {
+    background-color: rgba(30, 131, 255, 0.12);
+    color: #1e83ff;
+    font-weight: 500;
+}
+
+QComboBox QAbstractItemView::item:hover {
+    background-color: rgba(30, 131, 255, 0.08);
 }</string>
                </property>
                <item>
@@ -712,48 +841,77 @@ QComboBox QAbstractItemView {
              <property name="styleSheet">
               <string notr="true">QPushButton {
     border: none;
-    border-radius: 8px;
-    padding: 10px 24px;
+    border-radius: 12px;
+    padding: 14px 28px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(47, 144, 255, 1), 
-                              stop:1 rgba(25, 118, 210, 1));
+                              stop:0 #1e83ff, stop:1 #0052cc);
     color: white;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
+    letter-spacing: 0.5px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(30, 131, 255, 0.3);
+    text-transform: none;
 }
 
 QPushButton:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(60, 160, 255, 1), 
-                              stop:1 rgba(35, 135, 230, 1));
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.4);
+                              stop:0 #2d8eff, stop:1 #0066e6);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(30, 131, 255, 0.4);
 }
 
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(20, 100, 190, 1), 
-                              stop:1 rgba(15, 85, 170, 1));
-    transform: translateY(0px);
-    box-shadow: 0 1px 4px rgba(30, 131, 255, 0.2);
+                              stop:0 #0052cc, stop:1 #0047b3);
+    transform: translateY(0px) scale(0.98);
+    box-shadow: 0 2px 8px rgba(30, 131, 255, 0.3);
 }
 
 QPushButton:disabled {
     border: none;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(180, 180, 180, 1), 
-                              stop:1 rgba(160, 160, 160, 1));
-    color: rgba(255, 255, 255, 0.7);
-    box-shadow: none;
+                              stop:0 #cbd5e0, stop:1 #a0aec0);
+    color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(160, 174, 192, 0.2);
     transform: none;
 }
 
-/* Modern focus state */
+/* Modern focus state with accessibility */
 QPushButton:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(30, 131, 255, 0.3);
+    box-shadow: 0 0 0 4px rgba(30, 131, 255, 0.2);
+}
+
+/* Secondary button variant */
+QPushButton[secondary="true"] {
+    background: transparent;
+    border: 2px solid #1e83ff;
+    color: #1e83ff;
+    box-shadow: none;
+}
+
+QPushButton[secondary="true"]:hover {
+    background: rgba(30, 131, 255, 0.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 131, 255, 0.15);
+}
+
+QPushButton[secondary="true"]:pressed {
+    background: rgba(30, 131, 255, 0.2);
+    transform: translateY(0px);
+}
+
+/* Success button variant */
+QPushButton[success="true"] {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #38a169, stop:1 #2f855a);
+    box-shadow: 0 4px 16px rgba(56, 161, 105, 0.3);
+}
+
+QPushButton[success="true"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #48bb78, stop:1 #38a169);
 }</string>
              </property>
              <property name="text">
@@ -765,6 +923,9 @@ QPushButton:focus {
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_8">
+           <property name="spacing">
+            <number>16</number>
+           </property>
            <item>
             <widget class="QLabel" name="label_8">
              <property name="styleSheet">

@@ -403,9 +403,9 @@ class ProcessingThread(QtCore.QThread):
                     break
             
             # 清空工作队列
-            while not self.work_queue.empty():
+            while not self.file_queue.empty():
                 try:
-                    self.work_queue.get_nowait()
+                    self.file_queue.get_nowait()
                 except:
                     break
             

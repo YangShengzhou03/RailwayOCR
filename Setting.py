@@ -234,6 +234,23 @@ class SettingWindow(QMainWindow, Ui_SettingWindow):
 
     def handle_password(self):
         """处理密码设置按钮点击事件，打开密码对话框并保存或删除密码"""
+        from security import PasswordDialog, has_password, save_password, delete_password
+        
+        dialog = PasswordDialog(self)
+        if dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            password = dialog.get_password()
+            if password:
+                if save_password(password):
+                    QMessageBox.information(self, "成功", "密码设置成功！")
+                else:
+                    QMessageBox.critical(self, "错误", "密码保存失败！")
+            else:
+                if delete_password():
+                    QMessageBox.information(self, "成功", "密码已删除！")
+                else:
+                    QMessageBox.critical(self, "错误", "密码删除失败！")
+        else:
+            QMessageBox.information(self, "取消", "密码设置已取消。")
 
 
 if __name__ == "__main__":

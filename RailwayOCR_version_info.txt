@@ -1,35 +1,95 @@
+# -*- coding: utf-8 -*-
+"""
+RailwayOCR Version Information File
+==================================
+
+This file contains comprehensive version metadata for the RailwayOCR application.
+It follows the VSVersionInfo format for Windows executable version resources.
+
+Key Information:
+- File Version: 1.0.0.0
+- Product Version: 1.0.0.0  
+- Build Type: Release
+- Language: Chinese Simplified (0804) / Unicode (04B0)
+"""
+
 VSVersionInfo(
     ffi=FixedFileInfo(
-        filevers=(1, 0, 0, 0),
-        prodvers=(1, 0, 0, 0),
-        mask=0x3f,
-        flags=0x0,
-        OS=0x4,
-        fileType=0x1,
-        subtype=0x0,
-        date=(0, 0)
+        filevers=(1, 0, 0, 0),        # File version: Major.Minor.Build.Revision
+        prodvers=(1, 0, 0, 0),        # Product version: Major.Minor.Build.Revision
+        mask=0x3f,                    # Valid mask bits
+        flags=0x0,                    # File flags
+        OS=0x4,                       # Operating system: Windows NT
+        fileType=0x1,                 # File type: Application
+        subtype=0x0,                  # File subtype: Not specified
+        date=(0, 0)                   # Build date (0,0 = not set)
     ),
     kids=[
+        # String file information
         StringFileInfo([
-            StringTable('080404B0', [
+            StringTable('080404B0', [  # Language: Chinese Simplified (0804) / CodePage: Unicode (04B0)
+                # Company Information
                 StringStruct('CompanyName', 'Yangshengzhou'),
                 StringStruct('CompanyShortName', 'Shengzhou'),
-                StringStruct('FileDescription', 'RailwayOCR'),
+                
+                # Application Information
+                StringStruct('FileDescription', 'RailwayOCR - AI-Powered Railway Image Classification Tool'),
                 StringStruct('FileVersion', '1.0.0.0'),
                 StringStruct('InternalName', 'LeafView-RailwayOCR'),
-                StringStruct('LegalCopyright', 'Copyright © 2025 Yangshengzhou All rights reserved'),
-                StringStruct('LegalTrademarks', 'TM RailwayOCR'),
                 StringStruct('OriginalFilename', 'RailwayOCR.exe'),
+                
+                # Product Information
                 StringStruct('ProductName', 'RailwayOCR'),
                 StringStruct('ProductShortName', 'RailwayOCR'),
                 StringStruct('ProductVersion', '1.0.0.0'),
-                StringStruct('Comments', 'RailwayOCR 是一款基于阿里云OSS和扣子智能体的自动化图像分类工具'),
-                StringStruct('PrivateBuild', 'Beta v1.0.0'),
-                StringStruct('SpecialBuild', '识别准确度优化版本')
+                
+                # Legal Information
+                StringStruct('LegalCopyright', 'Copyright © 2025 Yangshengzhou. All rights reserved.'),
+                StringStruct('LegalTrademarks', 'RailwayOCR™'),
+                
+                # Descriptive Information
+                StringStruct('Comments', 'RailwayOCR是一款基于人工智能的自动化铁路图像分类识别工具，支持多种OCR引擎和图像处理功能。'),
+                
+                # Build Information
+                StringStruct('PrivateBuild', 'Beta v1.0.0 - Built with PyInstaller'),
+                StringStruct('SpecialBuild', '识别准确度优化版本 - 支持百度、阿里、PaddleOCR等多种引擎'),
+                
+                # Additional Metadata
+                StringStruct('BuildDate', '2025-01-01'),
+                StringStruct('PythonVersion', '3.8+'),
+                StringStruct('Framework', 'PyQt5'),
+                StringStruct('SupportedOS', 'Windows 10/11')
             ])
         ]),
+        
+        # Variable file information (language translations)
         VarFileInfo([
-            VarStruct('Translation', [2052, 1200])
+            VarStruct('Translation', [2052, 1200])  # LangID: Chinese Simplified (2052), CodePage: Unicode (1200)
         ])
     ]
 )
+
+# Additional Documentation
+"""
+Version Numbering Scheme:
+- Major: Breaking changes or major feature additions
+- Minor: New features without breaking changes  
+- Build: Bug fixes and minor improvements
+- Revision: Patch releases and hotfixes
+
+Supported OCR Engines:
+- Baidu OCR API
+- Alibaba Cloud OCR
+- PaddleOCR (Local)
+- Custom Local Models
+
+File Properties Display:
+This information appears in:
+1. Windows File Properties → Details tab
+2. Right-click → Properties → Details
+3. Version information queries
+
+Build Process:
+This file is processed by PyInstaller during executable creation
+and embedded as a version resource in the final .exe file.
+"""
